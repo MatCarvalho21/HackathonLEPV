@@ -1,0 +1,2907 @@
+{
+ "versao": "2026-10-30b",
+ "escopo_meses": [
+  0,
+  131
+ ],
+ "faixas_meses": [
+  2,
+  4,
+  6,
+  9,
+  12,
+  15,
+  18,
+  24,
+  30,
+  36,
+  48,
+  60,
+  72,
+  84,
+  96,
+  108,
+  120
+ ],
+ "respostas": {
+  "sim": "Faz com frequência",
+  "as_vezes": "Às vezes ou com ajuda",
+  "nao": "Ainda não",
+  "nao_sei": "Não sei"
+ },
+ "dominios_por_idade": [
+  "COM_R",
+  "COM_E",
+  "FAL",
+  "SOC",
+  "BRI",
+  "COG",
+  "MOT_A",
+  "MOT_F",
+  "AUT"
+ ],
+ "dominios_funcionais": [
+  "REG",
+  "ATE",
+  "SEN"
+ ],
+ "dominios_sem_classificacao": [
+  "SAU",
+  "CTX"
+ ],
+ "marcos": [
+  {
+   "id": "M02_SOC_1",
+   "faixa_meses": 2,
+   "faixa": "2 meses",
+   "dominio": "SOC",
+   "dominios_secundarios": [
+    "REG"
+   ],
+   "texto": "Acalma-se quando falam com ela ou a pegam no colo",
+   "pergunta": "Seu filho(a): acalma-se quando falam com ela ou a pegam no colo?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M02_SOC_2",
+   "faixa_meses": 2,
+   "faixa": "2 meses",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Olha para o rosto de quem cuida",
+   "pergunta": "Seu filho(a): olha para o rosto de quem cuida?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M02_SOC_3",
+   "faixa_meses": 2,
+   "faixa": "2 meses",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Parece feliz ao ver o cuidador se aproximar",
+   "pergunta": "Seu filho(a): parece feliz ao ver o cuidador se aproximar?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M02_SOC_4",
+   "faixa_meses": 2,
+   "faixa": "2 meses",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Sorri quando falam ou sorriem para ela",
+   "pergunta": "Seu filho(a): sorri quando falam ou sorriem para ela?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M02_FAL_1",
+   "faixa_meses": 2,
+   "faixa": "2 meses",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "Faz sons além do choro",
+   "pergunta": "Seu filho(a): faz sons além do choro?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M02_COM_R_1",
+   "faixa_meses": 2,
+   "faixa": "2 meses",
+   "dominio": "COM_R",
+   "dominios_secundarios": [],
+   "texto": "Reage a sons altos",
+   "pergunta": "Seu filho(a): reage a sons altos?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M02_COG_1",
+   "faixa_meses": 2,
+   "faixa": "2 meses",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Acompanha com o olhar quando a pessoa se move",
+   "pergunta": "Seu filho(a): acompanha com o olhar quando a pessoa se move?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M02_COG_2",
+   "faixa_meses": 2,
+   "faixa": "2 meses",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Olha para um brinquedo por alguns segundos",
+   "pergunta": "Seu filho(a): olha para um brinquedo por alguns segundos?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M02_MOT_A_1",
+   "faixa_meses": 2,
+   "faixa": "2 meses",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Levanta a cabeça quando está de bruços",
+   "pergunta": "Seu filho(a): levanta a cabeça quando está de bruços?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M02_MOT_A_2",
+   "faixa_meses": 2,
+   "faixa": "2 meses",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Mexe os dois braços e as duas pernas",
+   "pergunta": "Seu filho(a): mexe os dois braços e as duas pernas?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M02_MOT_F_1",
+   "faixa_meses": 2,
+   "faixa": "2 meses",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Abre as mãos por alguns instantes",
+   "pergunta": "Seu filho(a): abre as mãos por alguns instantes?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M04_SOC_1",
+   "faixa_meses": 4,
+   "faixa": "4 meses",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Sorri por conta própria para chamar atenção",
+   "pergunta": "Seu filho(a): sorri por conta própria para chamar atenção?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M04_SOC_2",
+   "faixa_meses": 4,
+   "faixa": "4 meses",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Dá risadinhas quando tentam fazê-la rir",
+   "pergunta": "Seu filho(a): dá risadinhas quando tentam fazê-la rir?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M04_COM_E_1",
+   "faixa_meses": 4,
+   "faixa": "4 meses",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Olha, se mexe ou faz sons para conseguir ou manter a atenção do adulto",
+   "pergunta": "Seu filho(a): olha, se mexe ou faz sons para conseguir ou manter a atenção do adulto?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M04_FAL_1",
+   "faixa_meses": 4,
+   "faixa": "4 meses",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "Faz sons como \"uuu\" e \"aaa\" (arrulhos)",
+   "pergunta": "Seu filho(a): faz sons como \"uuu\" e \"aaa\" (arrulhos)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M04_COM_E_2",
+   "faixa_meses": 4,
+   "faixa": "4 meses",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Responde com sons quando falam com ela",
+   "pergunta": "Seu filho(a): responde com sons quando falam com ela?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M04_COM_R_1",
+   "faixa_meses": 4,
+   "faixa": "4 meses",
+   "dominio": "COM_R",
+   "dominios_secundarios": [],
+   "texto": "Vira a cabeça na direção da voz do cuidador",
+   "pergunta": "Seu filho(a): vira a cabeça na direção da voz do cuidador?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M04_COG_1",
+   "faixa_meses": 4,
+   "faixa": "4 meses",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Abre a boca ao ver o peito ou a mamadeira quando está com fome",
+   "pergunta": "Seu filho(a): abre a boca ao ver o peito ou a mamadeira quando está com fome?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M04_COG_2",
+   "faixa_meses": 4,
+   "faixa": "4 meses",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Olha para as próprias mãos com interesse",
+   "pergunta": "Seu filho(a): olha para as próprias mãos com interesse?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M04_MOT_A_1",
+   "faixa_meses": 4,
+   "faixa": "4 meses",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Mantém a cabeça firme, sem apoio, quando está no colo",
+   "pergunta": "Seu filho(a): mantém a cabeça firme, sem apoio, quando está no colo?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M04_MOT_A_2",
+   "faixa_meses": 4,
+   "faixa": "4 meses",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Apoia-se nos cotovelos ou antebraços quando está de bruços",
+   "pergunta": "Seu filho(a): apoia-se nos cotovelos ou antebraços quando está de bruços?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M04_MOT_F_1",
+   "faixa_meses": 4,
+   "faixa": "4 meses",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Segura um brinquedo colocado na mão",
+   "pergunta": "Seu filho(a): segura um brinquedo colocado na mão?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M04_MOT_F_2",
+   "faixa_meses": 4,
+   "faixa": "4 meses",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Usa o braço para tentar bater em brinquedos",
+   "pergunta": "Seu filho(a): usa o braço para tentar bater em brinquedos?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M04_MOT_F_3",
+   "faixa_meses": 4,
+   "faixa": "4 meses",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Leva as mãos à boca",
+   "pergunta": "Seu filho(a): leva as mãos à boca?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M06_SOC_1",
+   "faixa_meses": 6,
+   "faixa": "6 meses",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Reconhece pessoas conhecidas",
+   "pergunta": "Seu filho(a): reconhece pessoas conhecidas?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M06_SOC_2",
+   "faixa_meses": 6,
+   "faixa": "6 meses",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Gosta de se olhar no espelho",
+   "pergunta": "Seu filho(a): gosta de se olhar no espelho?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M06_SOC_3",
+   "faixa_meses": 6,
+   "faixa": "6 meses",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Ri",
+   "pergunta": "Seu filho(a): ri?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M06_COM_E_1",
+   "faixa_meses": 6,
+   "faixa": "6 meses",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Reveza sons com o adulto (\"conversa\" de sons)",
+   "pergunta": "Seu filho(a): reveza sons com o adulto (\"conversa\" de sons)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M06_FAL_1",
+   "faixa_meses": 6,
+   "faixa": "6 meses",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "Faz \"pum\" com a boca (língua para fora e sopra)",
+   "pergunta": "Seu filho(a): faz \"pum\" com a boca (língua para fora e sopra)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M06_FAL_2",
+   "faixa_meses": 6,
+   "faixa": "6 meses",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "Dá gritinhos agudos",
+   "pergunta": "Seu filho(a): dá gritinhos agudos?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M06_BRI_1",
+   "faixa_meses": 6,
+   "faixa": "6 meses",
+   "dominio": "BRI",
+   "dominios_secundarios": [],
+   "texto": "Leva objetos à boca para explorá-los",
+   "pergunta": "Seu filho(a): leva objetos à boca para explorá-los?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M06_MOT_F_1",
+   "faixa_meses": 6,
+   "faixa": "6 meses",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Estica o braço para pegar um brinquedo que quer",
+   "pergunta": "Seu filho(a): estica o braço para pegar um brinquedo que quer?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M06_COM_E_2",
+   "faixa_meses": 6,
+   "faixa": "6 meses",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Fecha a boca para mostrar que não quer mais comida",
+   "pergunta": "Seu filho(a): fecha a boca para mostrar que não quer mais comida?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M06_MOT_A_1",
+   "faixa_meses": 6,
+   "faixa": "6 meses",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Rola de bruços para de costas",
+   "pergunta": "Seu filho(a): rola de bruços para de costas?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M06_MOT_A_2",
+   "faixa_meses": 6,
+   "faixa": "6 meses",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Empurra o corpo com os braços esticados quando está de bruços",
+   "pergunta": "Seu filho(a): empurra o corpo com os braços esticados quando está de bruços?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M06_MOT_A_3",
+   "faixa_meses": 6,
+   "faixa": "6 meses",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Apoia-se nas mãos quando está sentada",
+   "pergunta": "Seu filho(a): apoia-se nas mãos quando está sentada?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M09_SOC_1",
+   "faixa_meses": 9,
+   "faixa": "9 meses",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Fica tímida ou grudada no cuidador perto de estranhos",
+   "pergunta": "Seu filho(a): fica tímida ou grudada no cuidador perto de estranhos?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M09_SOC_2",
+   "faixa_meses": 9,
+   "faixa": "9 meses",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Mostra várias expressões faciais (alegria, tristeza, raiva, surpresa)",
+   "pergunta": "Seu filho(a): mostra várias expressões faciais (alegria, tristeza, raiva, surpresa)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M09_COM_R_1",
+   "faixa_meses": 9,
+   "faixa": "9 meses",
+   "dominio": "COM_R",
+   "dominios_secundarios": [],
+   "texto": "Olha quando chamam pelo nome",
+   "pergunta": "Seu filho(a): olha quando chamam pelo nome?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M09_SOC_3",
+   "faixa_meses": 9,
+   "faixa": "9 meses",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Reage quando o cuidador sai (olha, estica os braços ou chora)",
+   "pergunta": "Seu filho(a): reage quando o cuidador sai (olha, estica os braços ou chora)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M09_BRI_1",
+   "faixa_meses": 9,
+   "faixa": "9 meses",
+   "dominio": "BRI",
+   "dominios_secundarios": [],
+   "texto": "Sorri ou ri brincando de esconde-achou",
+   "pergunta": "Seu filho(a): sorri ou ri brincando de esconde-achou?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M09_FAL_1",
+   "faixa_meses": 9,
+   "faixa": "9 meses",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "Faz sons repetidos como \"mamama\" e \"bababa\"",
+   "pergunta": "Seu filho(a): faz sons repetidos como \"mamama\" e \"bababa\"?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M09_COM_E_1",
+   "faixa_meses": 9,
+   "faixa": "9 meses",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Levanta os braços para pedir colo",
+   "pergunta": "Seu filho(a): levanta os braços para pedir colo?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M09_COG_1",
+   "faixa_meses": 9,
+   "faixa": "9 meses",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Procura um objeto que caiu fora da vista",
+   "pergunta": "Seu filho(a): procura um objeto que caiu fora da vista?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M09_BRI_2",
+   "faixa_meses": 9,
+   "faixa": "9 meses",
+   "dominio": "BRI",
+   "dominios_secundarios": [],
+   "texto": "Bate dois objetos um no outro",
+   "pergunta": "Seu filho(a): bate dois objetos um no outro?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M09_MOT_A_1",
+   "faixa_meses": 9,
+   "faixa": "9 meses",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Senta sozinha a partir de outra posição",
+   "pergunta": "Seu filho(a): senta sozinha a partir de outra posição?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M09_MOT_A_2",
+   "faixa_meses": 9,
+   "faixa": "9 meses",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Fica sentada sem apoio",
+   "pergunta": "Seu filho(a): fica sentada sem apoio?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M09_MOT_F_1",
+   "faixa_meses": 9,
+   "faixa": "9 meses",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Passa objetos de uma mão para a outra",
+   "pergunta": "Seu filho(a): passa objetos de uma mão para a outra?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M09_MOT_F_2",
+   "faixa_meses": 9,
+   "faixa": "9 meses",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Puxa a comida para perto com os dedos (movimento de \"rastelo\")",
+   "pergunta": "Seu filho(a): puxa a comida para perto com os dedos (movimento de \"rastelo\")?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M12_BRI_1",
+   "faixa_meses": 12,
+   "faixa": "12 meses",
+   "dominio": "BRI",
+   "dominios_secundarios": [],
+   "texto": "Participa de brincadeiras com o adulto, como bater palminhas",
+   "pergunta": "Seu filho(a): participa de brincadeiras com o adulto, como bater palminhas?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M12_BRI_2",
+   "faixa_meses": 12,
+   "faixa": "12 meses",
+   "dominio": "BRI",
+   "dominios_secundarios": [],
+   "texto": "Imita outras crianças enquanto brinca",
+   "pergunta": "Seu filho(a): imita outras crianças enquanto brinca?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M12_COM_E_1",
+   "faixa_meses": 12,
+   "faixa": "12 meses",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Dá tchau com a mão",
+   "pergunta": "Seu filho(a): dá tchau com a mão?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M12_FAL_1",
+   "faixa_meses": 12,
+   "faixa": "12 meses",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "Chama os pais de \"mamã\", \"papá\" ou outro nome especial",
+   "pergunta": "Seu filho(a): chama os pais de \"mamã\", \"papá\" ou outro nome especial?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M12_COM_R_1",
+   "faixa_meses": 12,
+   "faixa": "12 meses",
+   "dominio": "COM_R",
+   "dominios_secundarios": [],
+   "texto": "Entende o \"não\" (para ou pausa quando ouve)",
+   "pergunta": "Seu filho(a): entende o \"não\" (para ou pausa quando ouve)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M12_COG_1",
+   "faixa_meses": 12,
+   "faixa": "12 meses",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Coloca um objeto dentro de um recipiente",
+   "pergunta": "Seu filho(a): coloca um objeto dentro de um recipiente?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M12_COG_2",
+   "faixa_meses": 12,
+   "faixa": "12 meses",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Procura algo que viu o adulto esconder",
+   "pergunta": "Seu filho(a): procura algo que viu o adulto esconder?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M12_MOT_A_1",
+   "faixa_meses": 12,
+   "faixa": "12 meses",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Fica em pé apoiando-se em algo",
+   "pergunta": "Seu filho(a): fica em pé apoiando-se em algo?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M12_MOT_A_2",
+   "faixa_meses": 12,
+   "faixa": "12 meses",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Anda segurando nos móveis",
+   "pergunta": "Seu filho(a): anda segurando nos móveis?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M12_AUT_1",
+   "faixa_meses": 12,
+   "faixa": "12 meses",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Bebe em copo sem tampa segurado pelo adulto",
+   "pergunta": "Seu filho(a): bebe em copo sem tampa segurado pelo adulto?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M12_MOT_F_1",
+   "faixa_meses": 12,
+   "faixa": "12 meses",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Pega objetos pequenos com o polegar e o indicador (pinça)",
+   "pergunta": "Seu filho(a): pega objetos pequenos com o polegar e o indicador (pinça)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M15_SOC_1",
+   "faixa_meses": 15,
+   "faixa": "15 meses",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Mostra ao adulto um objeto de que gosta",
+   "pergunta": "Seu filho(a): mostra ao adulto um objeto de que gosta?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M15_SOC_2",
+   "faixa_meses": 15,
+   "faixa": "15 meses",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Bate palmas quando está animada",
+   "pergunta": "Seu filho(a): bate palmas quando está animada?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M15_BRI_1",
+   "faixa_meses": 15,
+   "faixa": "15 meses",
+   "dominio": "BRI",
+   "dominios_secundarios": [],
+   "texto": "Abraça bonecos ou bichos de pelúcia",
+   "pergunta": "Seu filho(a): abraça bonecos ou bichos de pelúcia?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M15_SOC_3",
+   "faixa_meses": 15,
+   "faixa": "15 meses",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Demonstra carinho (abraça, aconchega, beija)",
+   "pergunta": "Seu filho(a): demonstra carinho (abraça, aconchega, beija)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M15_FAL_1",
+   "faixa_meses": 15,
+   "faixa": "15 meses",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "Tenta dizer 1 ou 2 palavras além de mamã/papá",
+   "pergunta": "Seu filho(a): tenta dizer 1 ou 2 palavras além de mamã/papá?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M15_COM_R_1",
+   "faixa_meses": 15,
+   "faixa": "15 meses",
+   "dominio": "COM_R",
+   "dominios_secundarios": [],
+   "texto": "Olha para um objeto conhecido quando ele é nomeado",
+   "pergunta": "Seu filho(a): olha para um objeto conhecido quando ele é nomeado?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M15_COM_R_2",
+   "faixa_meses": 15,
+   "faixa": "15 meses",
+   "dominio": "COM_R",
+   "dominios_secundarios": [],
+   "texto": "Segue instruções dadas com gesto e palavras (\"me dá o brinquedo\" com a mão estendida)",
+   "pergunta": "Seu filho(a): segue instruções dadas com gesto e palavras (\"me dá o brinquedo\" com a mão estendida)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M15_COM_E_1",
+   "faixa_meses": 15,
+   "faixa": "15 meses",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Aponta para pedir algo ou pedir ajuda",
+   "pergunta": "Seu filho(a): aponta para pedir algo ou pedir ajuda?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M15_BRI_2",
+   "faixa_meses": 15,
+   "faixa": "15 meses",
+   "dominio": "BRI",
+   "dominios_secundarios": [],
+   "texto": "Usa objetos do jeito certo, como telefone, copo ou livro",
+   "pergunta": "Seu filho(a): usa objetos do jeito certo, como telefone, copo ou livro?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M15_MOT_F_1",
+   "faixa_meses": 15,
+   "faixa": "15 meses",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Empilha pelo menos dois objetos pequenos",
+   "pergunta": "Seu filho(a): empilha pelo menos dois objetos pequenos?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M15_MOT_A_1",
+   "faixa_meses": 15,
+   "faixa": "15 meses",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Dá alguns passos sozinha",
+   "pergunta": "Seu filho(a): dá alguns passos sozinha?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M15_AUT_1",
+   "faixa_meses": 15,
+   "faixa": "15 meses",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Come alguns alimentos com os dedos",
+   "pergunta": "Seu filho(a): come alguns alimentos com os dedos?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M18_SOC_1",
+   "faixa_meses": 18,
+   "faixa": "18 meses",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Afasta-se do cuidador, mas confere se ele está por perto",
+   "pergunta": "Seu filho(a): afasta-se do cuidador, mas confere se ele está por perto?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M18_SOC_2",
+   "faixa_meses": 18,
+   "faixa": "18 meses",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Aponta para mostrar algo interessante",
+   "pergunta": "Seu filho(a): aponta para mostrar algo interessante?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M18_AUT_1",
+   "faixa_meses": 18,
+   "faixa": "18 meses",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Estende as mãos para que as lavem",
+   "pergunta": "Seu filho(a): estende as mãos para que as lavem?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M18_SOC_3",
+   "faixa_meses": 18,
+   "faixa": "18 meses",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Olha algumas páginas de um livro junto com o adulto",
+   "pergunta": "Seu filho(a): olha algumas páginas de um livro junto com o adulto?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M18_AUT_2",
+   "faixa_meses": 18,
+   "faixa": "18 meses",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Ajuda a se vestir (passa o braço na manga, levanta o pé)",
+   "pergunta": "Seu filho(a): ajuda a se vestir (passa o braço na manga, levanta o pé)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M18_FAL_1",
+   "faixa_meses": 18,
+   "faixa": "18 meses",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "Tenta dizer 3 palavras além de mamã/papá",
+   "pergunta": "Seu filho(a): tenta dizer 3 palavras além de mamã/papá?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M18_COM_R_1",
+   "faixa_meses": 18,
+   "faixa": "18 meses",
+   "dominio": "COM_R",
+   "dominios_secundarios": [],
+   "texto": "Segue instrução de um passo sem gestos (\"me dá\")",
+   "pergunta": "Seu filho(a): segue instrução de um passo sem gestos (\"me dá\")?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M18_BRI_1",
+   "faixa_meses": 18,
+   "faixa": "18 meses",
+   "dominio": "BRI",
+   "dominios_secundarios": [],
+   "texto": "Imita o adulto em tarefas da casa, como varrer",
+   "pergunta": "Seu filho(a): imita o adulto em tarefas da casa, como varrer?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M18_BRI_2",
+   "faixa_meses": 18,
+   "faixa": "18 meses",
+   "dominio": "BRI",
+   "dominios_secundarios": [],
+   "texto": "Brinca com brinquedos de forma simples, como empurrar um carrinho",
+   "pergunta": "Seu filho(a): brinca com brinquedos de forma simples, como empurrar um carrinho?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M18_MOT_A_1",
+   "faixa_meses": 18,
+   "faixa": "18 meses",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Anda sem se segurar em nada nem em ninguém",
+   "pergunta": "Seu filho(a): anda sem se segurar em nada nem em ninguém?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M18_MOT_A_2",
+   "faixa_meses": 18,
+   "faixa": "18 meses",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Sobe e desce do sofá ou da cadeira sem ajuda",
+   "pergunta": "Seu filho(a): sobe e desce do sofá ou da cadeira sem ajuda?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M18_MOT_F_1",
+   "faixa_meses": 18,
+   "faixa": "18 meses",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Rabisca",
+   "pergunta": "Seu filho(a): rabisca?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M18_AUT_3",
+   "faixa_meses": 18,
+   "faixa": "18 meses",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Bebe em copo sem tampa, às vezes derramando",
+   "pergunta": "Seu filho(a): bebe em copo sem tampa, às vezes derramando?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M18_AUT_4",
+   "faixa_meses": 18,
+   "faixa": "18 meses",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Tenta usar a colher",
+   "pergunta": "Seu filho(a): tenta usar a colher?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M24_SOC_1",
+   "faixa_meses": 24,
+   "faixa": "2 anos",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Percebe quando alguém está machucado ou triste",
+   "pergunta": "Seu filho(a): percebe quando alguém está machucado ou triste?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M24_SOC_2",
+   "faixa_meses": 24,
+   "faixa": "2 anos",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Olha o rosto do adulto para saber como reagir a uma situação nova",
+   "pergunta": "Seu filho(a): olha o rosto do adulto para saber como reagir a uma situação nova?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M24_COM_R_1",
+   "faixa_meses": 24,
+   "faixa": "2 anos",
+   "dominio": "COM_R",
+   "dominios_secundarios": [],
+   "texto": "Aponta figuras em um livro quando perguntam (\"cadê o urso?\")",
+   "pergunta": "Seu filho(a): aponta figuras em um livro quando perguntam (\"cadê o urso?\")?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M24_FAL_1",
+   "faixa_meses": 24,
+   "faixa": "2 anos",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "Junta pelo menos 2 palavras (\"mais leite\")",
+   "pergunta": "Seu filho(a): junta pelo menos 2 palavras (\"mais leite\")?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M24_COM_R_2",
+   "faixa_meses": 24,
+   "faixa": "2 anos",
+   "dominio": "COM_R",
+   "dominios_secundarios": [],
+   "texto": "Aponta pelo menos 2 partes do corpo quando pedem",
+   "pergunta": "Seu filho(a): aponta pelo menos 2 partes do corpo quando pedem?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M24_COM_E_1",
+   "faixa_meses": 24,
+   "faixa": "2 anos",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Usa outros gestos além de dar tchau e apontar (mandar beijo, acenar sim)",
+   "pergunta": "Seu filho(a): usa outros gestos além de dar tchau e apontar (mandar beijo, acenar sim)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M24_MOT_F_1",
+   "faixa_meses": 24,
+   "faixa": "2 anos",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Segura algo com uma mão enquanto usa a outra (ex.: tirar a tampa de um pote)",
+   "pergunta": "Seu filho(a): segura algo com uma mão enquanto usa a outra (ex.: tirar a tampa de um pote)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M24_COG_1",
+   "faixa_meses": 24,
+   "faixa": "2 anos",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Tenta usar botões, interruptores ou maçanetas de brinquedos",
+   "pergunta": "Seu filho(a): tenta usar botões, interruptores ou maçanetas de brinquedos?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M24_BRI_1",
+   "faixa_meses": 24,
+   "faixa": "2 anos",
+   "dominio": "BRI",
+   "dominios_secundarios": [],
+   "texto": "Brinca com mais de um brinquedo ao mesmo tempo (comidinha no pratinho)",
+   "pergunta": "Seu filho(a): brinca com mais de um brinquedo ao mesmo tempo (comidinha no pratinho)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M24_MOT_A_1",
+   "faixa_meses": 24,
+   "faixa": "2 anos",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Chuta uma bola",
+   "pergunta": "Seu filho(a): chuta uma bola?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M24_MOT_A_2",
+   "faixa_meses": 24,
+   "faixa": "2 anos",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Corre",
+   "pergunta": "Seu filho(a): corre?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M24_MOT_A_3",
+   "faixa_meses": 24,
+   "faixa": "2 anos",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Sobe alguns degraus andando, com ou sem ajuda",
+   "pergunta": "Seu filho(a): sobe alguns degraus andando, com ou sem ajuda?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M24_AUT_1",
+   "faixa_meses": 24,
+   "faixa": "2 anos",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Come com colher",
+   "pergunta": "Seu filho(a): come com colher?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M30_SOC_1",
+   "faixa_meses": 30,
+   "faixa": "2 anos e meio",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Brinca perto de outras crianças e às vezes com elas",
+   "pergunta": "Seu filho(a): brinca perto de outras crianças e às vezes com elas?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M30_SOC_2",
+   "faixa_meses": 30,
+   "faixa": "2 anos e meio",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Mostra o que sabe fazer (\"olha eu!\")",
+   "pergunta": "Seu filho(a): mostra o que sabe fazer (\"olha eu!\")?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M30_ATE_1",
+   "faixa_meses": 30,
+   "faixa": "2 anos e meio",
+   "dominio": "ATE",
+   "dominios_secundarios": [],
+   "texto": "Segue rotinas simples quando pedem (\"hora de guardar os brinquedos\")",
+   "pergunta": "Seu filho(a): segue rotinas simples quando pedem (\"hora de guardar os brinquedos\")?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M30_FAL_1",
+   "faixa_meses": 30,
+   "faixa": "2 anos e meio",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "Fala cerca de 50 palavras",
+   "pergunta": "Seu filho(a): fala cerca de 50 palavras?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M30_FAL_2",
+   "faixa_meses": 30,
+   "faixa": "2 anos e meio",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "Junta 2 ou mais palavras, uma delas de ação (\"cachorro corre\")",
+   "pergunta": "Seu filho(a): junta 2 ou mais palavras, uma delas de ação (\"cachorro corre\")?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M30_FAL_3",
+   "faixa_meses": 30,
+   "faixa": "2 anos e meio",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "Nomeia figuras de um livro quando perguntam \"o que é isso?\"",
+   "pergunta": "Seu filho(a): nomeia figuras de um livro quando perguntam \"o que é isso?\"?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M30_FAL_4",
+   "faixa_meses": 30,
+   "faixa": "2 anos e meio",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "Usa palavras como \"eu\", \"meu\" ou \"a gente\"",
+   "pergunta": "Seu filho(a): usa palavras como \"eu\", \"meu\" ou \"a gente\"?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M30_COM_E_1",
+   "faixa_meses": 30,
+   "faixa": "2 anos e meio",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Conversa com pelo menos 2 trocas de ida e volta",
+   "pergunta": "Seu filho(a): conversa com pelo menos 2 trocas de ida e volta?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M30_BRI_1",
+   "faixa_meses": 30,
+   "faixa": "2 anos e meio",
+   "dominio": "BRI",
+   "dominios_secundarios": [],
+   "texto": "Usa objetos para faz de conta (dar \"comida\" para a boneca)",
+   "pergunta": "Seu filho(a): usa objetos para faz de conta (dar \"comida\" para a boneca)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M30_COG_1",
+   "faixa_meses": 30,
+   "faixa": "2 anos e meio",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Resolve problemas simples (sobe num banquinho para alcançar algo)",
+   "pergunta": "Seu filho(a): resolve problemas simples (sobe num banquinho para alcançar algo)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M30_COM_R_1",
+   "faixa_meses": 30,
+   "faixa": "2 anos e meio",
+   "dominio": "COM_R",
+   "dominios_secundarios": [],
+   "texto": "Segue instruções de 2 passos (\"guarda o brinquedo e fecha a porta\")",
+   "pergunta": "Seu filho(a): segue instruções de 2 passos (\"guarda o brinquedo e fecha a porta\")?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M30_COG_2",
+   "faixa_meses": 30,
+   "faixa": "2 anos e meio",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Mostra que conhece pelo menos uma cor",
+   "pergunta": "Seu filho(a): mostra que conhece pelo menos uma cor?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M30_MOT_F_1",
+   "faixa_meses": 30,
+   "faixa": "2 anos e meio",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Gira objetos com as mãos (maçaneta, tampa de rosca)",
+   "pergunta": "Seu filho(a): gira objetos com as mãos (maçaneta, tampa de rosca)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M30_AUT_1",
+   "faixa_meses": 30,
+   "faixa": "2 anos e meio",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Tira sozinha algumas roupas (calça folgada, casaco aberto)",
+   "pergunta": "Seu filho(a): tira sozinha algumas roupas (calça folgada, casaco aberto)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M30_MOT_A_1",
+   "faixa_meses": 30,
+   "faixa": "2 anos e meio",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Pula com os dois pés",
+   "pergunta": "Seu filho(a): pula com os dois pés?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M30_MOT_F_2",
+   "faixa_meses": 30,
+   "faixa": "2 anos e meio",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Vira páginas de livro, uma de cada vez",
+   "pergunta": "Seu filho(a): vira páginas de livro, uma de cada vez?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M36_REG_1",
+   "faixa_meses": 36,
+   "faixa": "3 anos",
+   "dominio": "REG",
+   "dominios_secundarios": [],
+   "texto": "Acalma-se em até 10 minutos depois que o cuidador sai (ex.: na entrada da escola)",
+   "pergunta": "Seu filho(a): acalma-se em até 10 minutos depois que o cuidador sai (ex.: na entrada da escola)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M36_SOC_1",
+   "faixa_meses": 36,
+   "faixa": "3 anos",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Percebe outras crianças e se junta a elas para brincar",
+   "pergunta": "Seu filho(a): percebe outras crianças e se junta a elas para brincar?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M36_COM_E_1",
+   "faixa_meses": 36,
+   "faixa": "3 anos",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Faz perguntas com quem, o quê, onde ou por quê",
+   "pergunta": "Seu filho(a): faz perguntas com quem, o quê, onde ou por quê?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M36_FAL_1",
+   "faixa_meses": 36,
+   "faixa": "3 anos",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "Diz o que está acontecendo numa figura quando perguntam (correndo, comendo)",
+   "pergunta": "Seu filho(a): diz o que está acontecendo numa figura quando perguntam (correndo, comendo)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M36_COM_E_2",
+   "faixa_meses": 36,
+   "faixa": "3 anos",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Diz o próprio nome quando perguntam",
+   "pergunta": "Seu filho(a): diz o próprio nome quando perguntam?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M36_FAL_2",
+   "faixa_meses": 36,
+   "faixa": "3 anos",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "Fala de um jeito que outras pessoas entendem na maior parte do tempo",
+   "pergunta": "Seu filho(a): fala de um jeito que outras pessoas entendem na maior parte do tempo?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M36_MOT_F_1",
+   "faixa_meses": 36,
+   "faixa": "3 anos",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Desenha um círculo depois de ver o adulto fazer",
+   "pergunta": "Seu filho(a): desenha um círculo depois de ver o adulto fazer?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M36_COG_1",
+   "faixa_meses": 36,
+   "faixa": "3 anos",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Evita tocar em objetos quentes quando é avisada",
+   "pergunta": "Seu filho(a): evita tocar em objetos quentes quando é avisada?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M36_MOT_F_2",
+   "faixa_meses": 36,
+   "faixa": "3 anos",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Enfia objetos em um fio (contas grandes, macarrão)",
+   "pergunta": "Seu filho(a): enfia objetos em um fio (contas grandes, macarrão)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M36_AUT_1",
+   "faixa_meses": 36,
+   "faixa": "3 anos",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Veste sozinha algumas roupas (calça folgada, casaco)",
+   "pergunta": "Seu filho(a): veste sozinha algumas roupas (calça folgada, casaco)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M36_AUT_2",
+   "faixa_meses": 36,
+   "faixa": "3 anos",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Usa o garfo",
+   "pergunta": "Seu filho(a): usa o garfo?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M48_BRI_1",
+   "faixa_meses": 48,
+   "faixa": "4 anos",
+   "dominio": "BRI",
+   "dominios_secundarios": [],
+   "texto": "Faz de conta que é outra coisa (professora, super-herói, cachorro)",
+   "pergunta": "Seu filho(a): faz de conta que é outra coisa (professora, super-herói, cachorro)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M48_SOC_1",
+   "faixa_meses": 48,
+   "faixa": "4 anos",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Pede para brincar com outras crianças",
+   "pergunta": "Seu filho(a): pede para brincar com outras crianças?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M48_SOC_2",
+   "faixa_meses": 48,
+   "faixa": "4 anos",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Consola quem está machucado ou triste",
+   "pergunta": "Seu filho(a): consola quem está machucado ou triste?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M48_REG_1",
+   "faixa_meses": 48,
+   "faixa": "4 anos",
+   "dominio": "REG",
+   "dominios_secundarios": [],
+   "texto": "Evita perigos (não pula de lugares altos no parquinho)",
+   "pergunta": "Seu filho(a): evita perigos (não pula de lugares altos no parquinho)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M48_SOC_3",
+   "faixa_meses": 48,
+   "faixa": "4 anos",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Gosta de ser \"ajudante\"",
+   "pergunta": "Seu filho(a): gosta de ser \"ajudante\"?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M48_REG_2",
+   "faixa_meses": 48,
+   "faixa": "4 anos",
+   "dominio": "REG",
+   "dominios_secundarios": [],
+   "texto": "Muda o comportamento conforme o lugar (biblioteca, parquinho)",
+   "pergunta": "Seu filho(a): muda o comportamento conforme o lugar (biblioteca, parquinho)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M48_FAL_1",
+   "faixa_meses": 48,
+   "faixa": "4 anos",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "Fala frases com 4 ou mais palavras",
+   "pergunta": "Seu filho(a): fala frases com 4 ou mais palavras?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M48_FAL_2",
+   "faixa_meses": 48,
+   "faixa": "4 anos",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "Diz trechos de músicas, histórias ou parlendas",
+   "pergunta": "Seu filho(a): diz trechos de músicas, histórias ou parlendas?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M48_COM_E_1",
+   "faixa_meses": 48,
+   "faixa": "4 anos",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Conta pelo menos uma coisa que aconteceu no dia",
+   "pergunta": "Seu filho(a): conta pelo menos uma coisa que aconteceu no dia?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M48_COM_R_1",
+   "faixa_meses": 48,
+   "faixa": "4 anos",
+   "dominio": "COM_R",
+   "dominios_secundarios": [],
+   "texto": "Responde perguntas simples (\"para que serve o casaco?\")",
+   "pergunta": "Seu filho(a): responde perguntas simples (\"para que serve o casaco?\")?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M48_COG_1",
+   "faixa_meses": 48,
+   "faixa": "4 anos",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Nomeia algumas cores",
+   "pergunta": "Seu filho(a): nomeia algumas cores?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M48_COG_2",
+   "faixa_meses": 48,
+   "faixa": "4 anos",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Diz o que vem a seguir numa história conhecida",
+   "pergunta": "Seu filho(a): diz o que vem a seguir numa história conhecida?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M48_COG_3",
+   "faixa_meses": 48,
+   "faixa": "4 anos",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Desenha uma pessoa com 3 ou mais partes do corpo",
+   "pergunta": "Seu filho(a): desenha uma pessoa com 3 ou mais partes do corpo?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M48_MOT_A_1",
+   "faixa_meses": 48,
+   "faixa": "4 anos",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Pega uma bola grande na maioria das vezes",
+   "pergunta": "Seu filho(a): pega uma bola grande na maioria das vezes?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M48_AUT_1",
+   "faixa_meses": 48,
+   "faixa": "4 anos",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Serve-se de comida ou água, com supervisão",
+   "pergunta": "Seu filho(a): serve-se de comida ou água, com supervisão?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M48_AUT_2",
+   "faixa_meses": 48,
+   "faixa": "4 anos",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Desabotoa alguns botões",
+   "pergunta": "Seu filho(a): desabotoa alguns botões?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M48_MOT_F_1",
+   "faixa_meses": 48,
+   "faixa": "4 anos",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Segura o lápis entre os dedos e o polegar (não com a mão fechada)",
+   "pergunta": "Seu filho(a): segura o lápis entre os dedos e o polegar (não com a mão fechada)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M60_BRI_1",
+   "faixa_meses": 60,
+   "faixa": "5 anos",
+   "dominio": "BRI",
+   "dominios_secundarios": [],
+   "texto": "Segue regras ou espera a vez em jogos com outras crianças",
+   "pergunta": "Seu filho(a): segue regras ou espera a vez em jogos com outras crianças?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M60_SOC_1",
+   "faixa_meses": 60,
+   "faixa": "5 anos",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Canta, dança ou encena para os outros",
+   "pergunta": "Seu filho(a): canta, dança ou encena para os outros?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M60_AUT_1",
+   "faixa_meses": 60,
+   "faixa": "5 anos",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Faz pequenas tarefas em casa (juntar meias, tirar a mesa)",
+   "pergunta": "Seu filho(a): faz pequenas tarefas em casa (juntar meias, tirar a mesa)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M60_COM_E_1",
+   "faixa_meses": 60,
+   "faixa": "5 anos",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Conta uma história, ouvida ou inventada, com pelo menos 2 acontecimentos",
+   "pergunta": "Seu filho(a): conta uma história, ouvida ou inventada, com pelo menos 2 acontecimentos?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M60_COM_R_1",
+   "faixa_meses": 60,
+   "faixa": "5 anos",
+   "dominio": "COM_R",
+   "dominios_secundarios": [],
+   "texto": "Responde perguntas simples sobre uma história depois de ouvi-la",
+   "pergunta": "Seu filho(a): responde perguntas simples sobre uma história depois de ouvi-la?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M60_COM_E_2",
+   "faixa_meses": 60,
+   "faixa": "5 anos",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Mantém uma conversa com mais de 3 trocas de ida e volta",
+   "pergunta": "Seu filho(a): mantém uma conversa com mais de 3 trocas de ida e volta?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M60_COG_1",
+   "faixa_meses": 60,
+   "faixa": "5 anos",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Reconhece ou faz rimas simples (bola-cola)",
+   "pergunta": "Seu filho(a): reconhece ou faz rimas simples (bola-cola)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M60_COG_2",
+   "faixa_meses": 60,
+   "faixa": "5 anos",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Conta até 10",
+   "pergunta": "Seu filho(a): conta até 10?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M60_COG_3",
+   "faixa_meses": 60,
+   "faixa": "5 anos",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Nomeia alguns números de 1 a 5 quando apontados",
+   "pergunta": "Seu filho(a): nomeia alguns números de 1 a 5 quando apontados?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M60_COG_4",
+   "faixa_meses": 60,
+   "faixa": "5 anos",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Usa palavras de tempo (ontem, amanhã, manhã, noite)",
+   "pergunta": "Seu filho(a): usa palavras de tempo (ontem, amanhã, manhã, noite)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M60_ATE_1",
+   "faixa_meses": 60,
+   "faixa": "5 anos",
+   "dominio": "ATE",
+   "dominios_secundarios": [],
+   "texto": "Presta atenção por 5 a 10 minutos em atividades (história, artes; telas não contam)",
+   "pergunta": "Seu filho(a): presta atenção por 5 a 10 minutos em atividades (história, artes; telas não contam)?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M60_COG_5",
+   "faixa_meses": 60,
+   "faixa": "5 anos",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Escreve algumas letras do próprio nome",
+   "pergunta": "Seu filho(a): escreve algumas letras do próprio nome?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M60_COG_6",
+   "faixa_meses": 60,
+   "faixa": "5 anos",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Nomeia algumas letras quando apontadas",
+   "pergunta": "Seu filho(a): nomeia algumas letras quando apontadas?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M60_AUT_2",
+   "faixa_meses": 60,
+   "faixa": "5 anos",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Abotoa alguns botões",
+   "pergunta": "Seu filho(a): abotoa alguns botões?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "M60_MOT_A_1",
+   "faixa_meses": 60,
+   "faixa": "5 anos",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Pula num pé só",
+   "pergunta": "Seu filho(a): pula num pé só?",
+   "fonte": "CDC/AAP 2022 (Zubler et al., Pediatrics 2022) — adaptação em português"
+  },
+  {
+   "id": "E06_COG_1",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Escreve palavras e frases de forma alfabética (EF01LP02)",
+   "pergunta": "Seu filho(a): escreve palavras e frases de forma alfabética (EF01LP02)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, habilidades de Língua Portuguesa e Matemática por ano (consultadas via Profez) — https://profez.com.br/bncc/lingua-portuguesa/1-ano"
+   ]
+  },
+  {
+   "id": "E06_COG_2",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Lê palavras novas juntando os sons e reconhece de memória as mais frequentes (EF12LP01)",
+   "pergunta": "Seu filho(a): lê palavras novas juntando os sons e reconhece de memória as mais frequentes (EF12LP01)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, habilidades de Língua Portuguesa e Matemática por ano (consultadas via Profez) — https://profez.com.br/bncc/lingua-portuguesa/1-ano",
+    "ASHA, Your Child's Communication, 1º ao 5º ano (1st–5th grade) — https://inte.asha.org/public/speech/development/firstgrade/"
+   ]
+  },
+  {
+   "id": "E06_COG_3",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Separa palavras em sílabas e identifica rimas (EF01LP06, EF12LP07)",
+   "pergunta": "Seu filho(a): separa palavras em sílabas e identifica rimas (EF01LP06, EF12LP07)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, habilidades de Língua Portuguesa e Matemática por ano (consultadas via Profez) — https://profez.com.br/bncc/lingua-portuguesa/1-ano"
+   ]
+  },
+  {
+   "id": "E06_COG_4",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Conta coleções de até 100 objetos (EF01MA04)",
+   "pergunta": "Seu filho(a): conta coleções de até 100 objetos (EF01MA04)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, Matemática por ano (consultada via Profez) — https://profez.com.br/bncc/matematica/1-ano"
+   ]
+  },
+  {
+   "id": "E06_COG_5",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Resolve problemas de somar e tirar com material ou desenho (EF01MA08)",
+   "pergunta": "Seu filho(a): resolve problemas de somar e tirar com material ou desenho (EF01MA08)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, Matemática por ano (consultada via Profez) — https://profez.com.br/bncc/matematica/1-ano"
+   ]
+  },
+  {
+   "id": "E06_COM_R_1",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "COM_R",
+   "dominios_secundarios": [],
+   "texto": "Segue 2 a 3 instruções em sequência e lembra o que ouviu",
+   "pergunta": "Seu filho(a): segue 2 a 3 instruções em sequência e lembra o que ouviu?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "ASHA, Your Child's Communication, 1º ao 5º ano (1st–5th grade) — https://inte.asha.org/public/speech/development/firstgrade/"
+   ]
+  },
+  {
+   "id": "E06_COM_R_2",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "COM_R",
+   "dominios_secundarios": [],
+   "texto": "Identifica personagens, tempo e lugar numa história (EF01LP26)",
+   "pergunta": "Seu filho(a): identifica personagens, tempo e lugar numa história (EF01LP26)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, habilidades de Língua Portuguesa e Matemática por ano (consultadas via Profez) — https://profez.com.br/bncc/lingua-portuguesa/1-ano"
+   ]
+  },
+  {
+   "id": "E06_COM_E_1",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Conta e reconta histórias que fazem sentido, em frases completas",
+   "pergunta": "Seu filho(a): conta e reconta histórias que fazem sentido, em frases completas?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "ASHA, Your Child's Communication, 1º ao 5º ano (1st–5th grade) — https://inte.asha.org/public/speech/development/firstgrade/"
+   ]
+  },
+  {
+   "id": "E06_COM_E_2",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Mantém o assunto e espera a vez na conversa",
+   "pergunta": "Seu filho(a): mantém o assunto e espera a vez na conversa?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "ASHA, Your Child's Communication, 1º ao 5º ano (1st–5th grade) — https://inte.asha.org/public/speech/development/firstgrade/"
+   ]
+  },
+  {
+   "id": "E06_FAL_1",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "É entendida por qualquer pessoa",
+   "pergunta": "Seu filho(a): é entendida por qualquer pessoa?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "ASHA, Your Child's Communication, 1º ao 5º ano (1st–5th grade) — https://inte.asha.org/public/speech/development/firstgrade/"
+   ]
+  },
+  {
+   "id": "E06_FAL_2",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "Produz os sons da língua, inclusive encontros como \"pr\" e \"bl\"",
+   "pergunta": "Seu filho(a): produz os sons da língua, inclusive encontros como \"pr\" e \"bl\"?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "McLeod & Crowe, aquisição de consoantes em 27 línguas — https://researchoutput.csu.edu.au/en/publications/childrens-consonant-acquisition-in-27-languages-a-cross-linguisti/",
+    "Revista CEFAC, processos fonológicos no onset complexo — https://old.scielo.br/j/rcefac/a/cgkqbKxQKdZhVSpFDhGSGgz/?lang=en"
+   ]
+  },
+  {
+   "id": "E06_SOC_1",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Brinca em cooperação com várias crianças ao mesmo tempo",
+   "pergunta": "Seu filho(a): brinca em cooperação com várias crianças ao mesmo tempo?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Harvard Center on the Developing Child, Working Paper 11 — https://developingchild.harvard.edu/wp-content/uploads/2024/10/How-Early-Experiences-Shape-the-Development-of-Executive-Function.pdf"
+   ]
+  },
+  {
+   "id": "E06_SOC_2",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Dá importância às amizades e quer ser aceita pelos colegas",
+   "pergunta": "Seu filho(a): dá importância às amizades e quer ser aceita pelos colegas?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "CDC, Middle Childhood 6–8 anos — https://www.restoredcdc.org/www.cdc.gov/child-development/positive-parenting-tips/middle-childhood-6-8-years.html"
+   ]
+  },
+  {
+   "id": "E06_BRI_1",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "BRI",
+   "dominios_secundarios": [],
+   "texto": "Gosta de jogos com regras simples",
+   "pergunta": "Seu filho(a): gosta de jogos com regras simples?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Harvard Center on the Developing Child, funções executivas 5–7 anos — https://developingchild.harvard.edu/wp-content/uploads/2024/10/Executive-Function-Activities-for-5-to-7-year-olds.pdf"
+   ]
+  },
+  {
+   "id": "E06_MOT_A_1",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Fica num pé só, pula num pé e saltita alternando os pés",
+   "pergunta": "Seu filho(a): fica num pé só, pula num pé e saltita alternando os pés?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "AAP Bright Futures, consultas de 5 a 10 anos — https://downloads.aap.org/AAP/PDF/Bright%20Futures/BF4_MiddleChildhoodVisits.pdf"
+   ]
+  },
+  {
+   "id": "E06_MOT_A_2",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Corre, salta, arremessa e chuta com movimento maduro (por volta de 6–7 anos)",
+   "pergunta": "Seu filho(a): corre, salta, arremessa e chuta com movimento maduro (por volta de 6–7 anos)?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Gallahue & Ozmun, fases do desenvolvimento motor (resumo em EFDeportes) — https://efdeportes.com/efd160/desenvolvimento-motor-grosso-com-criancas.htm"
+   ]
+  },
+  {
+   "id": "E06_MOT_F_1",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Segura o lápis com preensão madura",
+   "pergunta": "Seu filho(a): segura o lápis com preensão madura?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "AAP Bright Futures, consultas de 5 a 10 anos — https://downloads.aap.org/AAP/PDF/Bright%20Futures/BF4_MiddleChildhoodVisits.pdf"
+   ]
+  },
+  {
+   "id": "E06_MOT_F_2",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Copia quadrado e triângulo",
+   "pergunta": "Seu filho(a): copia quadrado e triângulo?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "AAP Bright Futures, consultas de 5 a 10 anos — https://downloads.aap.org/AAP/PDF/Bright%20Futures/BF4_MiddleChildhoodVisits.pdf"
+   ]
+  },
+  {
+   "id": "E06_MOT_F_3",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Dá um nó",
+   "pergunta": "Seu filho(a): dá um nó?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "AAP Bright Futures, consultas de 5 a 10 anos — https://downloads.aap.org/AAP/PDF/Bright%20Futures/BF4_MiddleChildhoodVisits.pdf"
+   ]
+  },
+  {
+   "id": "E06_MOT_F_4",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Recorta formas simples com tesoura",
+   "pergunta": "Seu filho(a): recorta formas simples com tesoura?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Kid Sense, quadro de desenvolvimento motor fino — https://childdevelopment.com.au/resources/child-development-charts/fine-motor-developmental-chart/"
+   ]
+  },
+  {
+   "id": "E06_AUT_1",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Veste-se e despe-se com pouca ajuda",
+   "pergunta": "Seu filho(a): veste-se e despe-se com pouca ajuda?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "AAP Bright Futures, consultas de 5 a 10 anos — https://downloads.aap.org/AAP/PDF/Bright%20Futures/BF4_MiddleChildhoodVisits.pdf"
+   ]
+  },
+  {
+   "id": "E06_AUT_2",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Arruma a cama, põe e tira a mesa, guarda brinquedos",
+   "pergunta": "Seu filho(a): arruma a cama, põe e tira a mesa, guarda brinquedos?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "AAP HealthyChildren.org, tarefas e responsabilidades por idade — https://www.healthychildren.org/English/family-life/family-dynamics/communication-discipline/Pages/Chores-and-Responsibility.aspx"
+   ]
+  },
+  {
+   "id": "E06_REG_1",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "REG",
+   "dominios_secundarios": [],
+   "texto": "Começa a usar palavras para falar de pensamentos e sentimentos",
+   "pergunta": "Seu filho(a): começa a usar palavras para falar de pensamentos e sentimentos?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "CDC, Middle Childhood 6–8 anos — https://www.restoredcdc.org/www.cdc.gov/child-development/positive-parenting-tips/middle-childhood-6-8-years.html"
+   ]
+  },
+  {
+   "id": "E06_ATE_1",
+   "faixa_meses": 72,
+   "faixa": "6 anos (1º ano)",
+   "dominio": "ATE",
+   "dominios_secundarios": [],
+   "texto": "Mantém um plano simples em jogos de tabuleiro",
+   "pergunta": "Seu filho(a): mantém um plano simples em jogos de tabuleiro?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Harvard Center on the Developing Child, funções executivas 5–7 anos — https://developingchild.harvard.edu/wp-content/uploads/2024/10/Executive-Function-Activities-for-5-to-7-year-olds.pdf"
+   ]
+  },
+  {
+   "id": "E07_COG_1",
+   "faixa_meses": 84,
+   "faixa": "7 anos (2º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Está alfabetizada: lê textos curtos e localiza informações (EF15LP03)",
+   "pergunta": "Seu filho(a): está alfabetizada: lê textos curtos e localiza informações (EF15LP03)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Lei 15.247/2025, Compromisso Nacional Criança Alfabetizada — https://www2.camara.leg.br/legin/fed/lei/2025/lei-15247-31-outubro-2025-798217-publicacaooriginal-176874-pl.html",
+    "CAEd/UFJF, A pesquisa que originou o padrão nacional de alfabetização — https://siarem.caeddigital.net/wp-content/uploads/2024/12/A-pesquisa-que-originou-o-padrao-nacional-de-alfabetizacao.pdf",
+    "BNCC, habilidades de Língua Portuguesa e Matemática por ano (consultadas via Profez) — https://profez.com.br/bncc/lingua-portuguesa/1-ano"
+   ]
+  },
+  {
+   "id": "E07_COG_2",
+   "faixa_meses": 84,
+   "faixa": "7 anos (2º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Escreve bilhetes e convites, ainda com erros de ortografia",
+   "pergunta": "Seu filho(a): escreve bilhetes e convites, ainda com erros de ortografia?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "CAEd/UFJF, A pesquisa que originou o padrão nacional de alfabetização — https://siarem.caeddigital.net/wp-content/uploads/2024/12/A-pesquisa-que-originou-o-padrao-nacional-de-alfabetizacao.pdf"
+   ]
+  },
+  {
+   "id": "E07_COG_3",
+   "faixa_meses": 84,
+   "faixa": "7 anos (2º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Usa ponto final, de interrogação e de exclamação (EF02LP09)",
+   "pergunta": "Seu filho(a): usa ponto final, de interrogação e de exclamação (EF02LP09)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, habilidades de Língua Portuguesa e Matemática por ano (consultadas via Profez) — https://profez.com.br/bncc/lingua-portuguesa/1-ano"
+   ]
+  },
+  {
+   "id": "E07_COG_4",
+   "faixa_meses": 84,
+   "faixa": "7 anos (2º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Resolve problemas de somar e tirar com números de até 3 algarismos (EF02MA06)",
+   "pergunta": "Seu filho(a): resolve problemas de somar e tirar com números de até 3 algarismos (EF02MA06)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, Matemática por ano (consultada via Profez) — https://profez.com.br/bncc/matematica/1-ano"
+   ]
+  },
+  {
+   "id": "E07_COG_5",
+   "faixa_meses": 84,
+   "faixa": "7 anos (2º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Reconhece moedas e cédulas (EF02MA20)",
+   "pergunta": "Seu filho(a): reconhece moedas e cédulas (EF02MA20)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, Matemática por ano (consultada via Profez) — https://profez.com.br/bncc/matematica/1-ano"
+   ]
+  },
+  {
+   "id": "E07_COM_R_1",
+   "faixa_meses": 84,
+   "faixa": "7 anos (2º ano)",
+   "dominio": "COM_R",
+   "dominios_secundarios": [],
+   "texto": "Segue 3 a 4 instruções; entende palavras de lugar e tempo (antes, depois, ao lado)",
+   "pergunta": "Seu filho(a): segue 3 a 4 instruções; entende palavras de lugar e tempo (antes, depois, ao lado)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "ASHA, Your Child's Communication, 1º ao 5º ano (1st–5th grade) — https://inte.asha.org/public/speech/development/firstgrade/"
+   ]
+  },
+  {
+   "id": "E07_COM_E_1",
+   "faixa_meses": 84,
+   "faixa": "7 anos (2º ano)",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Usa frases mais complexas e explica palavras e ideias",
+   "pergunta": "Seu filho(a): usa frases mais complexas e explica palavras e ideias?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "ASHA, Your Child's Communication, 1º ao 5º ano (1st–5th grade) — https://inte.asha.org/public/speech/development/firstgrade/"
+   ]
+  },
+  {
+   "id": "E07_COM_E_2",
+   "faixa_meses": 84,
+   "faixa": "7 anos (2º ano)",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Dá instruções de 3 a 4 passos; inicia e encerra conversas",
+   "pergunta": "Seu filho(a): dá instruções de 3 a 4 passos; inicia e encerra conversas?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "ASHA, Your Child's Communication, 1º ao 5º ano (1st–5th grade) — https://inte.asha.org/public/speech/development/firstgrade/"
+   ]
+  },
+  {
+   "id": "E07_FAL_1",
+   "faixa_meses": 84,
+   "faixa": "7 anos (2º ano)",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "Fala claramente, sem trocas de sons (aquisição dos sons do português vai até cerca de 7 anos)",
+   "pergunta": "Seu filho(a): fala claramente, sem trocas de sons (aquisição dos sons do português vai até cerca de 7 anos)?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "ASHA, Your Child's Communication, 1º ao 5º ano (1st–5th grade) — https://inte.asha.org/public/speech/development/firstgrade/",
+    "Aquisição fonológica do português brasileiro (Distúrbios da Comunicação) — https://revistas.pucsp.br/index.php/dic/article/view/53900"
+   ]
+  },
+  {
+   "id": "E07_SOC_1",
+   "faixa_meses": 84,
+   "faixa": "7 anos (2º ano)",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Preocupa-se mais com os outros e menos consigo",
+   "pergunta": "Seu filho(a): preocupa-se mais com os outros e menos consigo?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "CDC, Middle Childhood 6–8 anos — https://www.restoredcdc.org/www.cdc.gov/child-development/positive-parenting-tips/middle-childhood-6-8-years.html"
+   ]
+  },
+  {
+   "id": "E07_BRI_1",
+   "faixa_meses": 84,
+   "faixa": "7 anos (2º ano)",
+   "dominio": "BRI",
+   "dominios_secundarios": [],
+   "texto": "Segue regras e estratégias em jogos e esportes",
+   "pergunta": "Seu filho(a): segue regras e estratégias em jogos e esportes?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Harvard Center on the Developing Child, funções executivas 7–12 anos — https://developingchild.harvard.edu/wp-content/uploads/2024/10/Executive-Function-Activities-for-7-to-12-year-olds.pdf"
+   ]
+  },
+  {
+   "id": "E07_MOT_A_1",
+   "faixa_meses": 84,
+   "faixa": "7 anos (2º ano)",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Combina movimentos, como correr e chutar ou pular corda",
+   "pergunta": "Seu filho(a): combina movimentos, como correr e chutar ou pular corda?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Raising Children Network, desenvolvimento de 6 a 8 anos — https://raisingchildren.net.au/school-age/development/development-tracker/6-8-years"
+   ]
+  },
+  {
+   "id": "E07_MOT_A_2",
+   "faixa_meses": 84,
+   "faixa": "7 anos (2º ano)",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Pega a bola só com as mãos",
+   "pergunta": "Seu filho(a): pega a bola só com as mãos?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "CDC, Middle Childhood 6–8 anos (versão arquivada) — https://webarchive.library.unt.edu/web/20130309165355/http://www.cdc.gov/ncbddd/childdevelopment/positiveparenting/middle.html"
+   ]
+  },
+  {
+   "id": "E07_MOT_F_1",
+   "faixa_meses": 84,
+   "faixa": "7 anos (2º ano)",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Amarra o cadarço",
+   "pergunta": "Seu filho(a): amarra o cadarço?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Kid Sense, quadro de desenvolvimento motor fino — https://childdevelopment.com.au/resources/child-development-charts/fine-motor-developmental-chart/",
+    "CDC, Middle Childhood 6–8 anos (versão arquivada) — https://webarchive.library.unt.edu/web/20130309165355/http://www.cdc.gov/ncbddd/childdevelopment/positiveparenting/middle.html"
+   ]
+  },
+  {
+   "id": "E07_MOT_F_2",
+   "faixa_meses": 84,
+   "faixa": "7 anos (2º ano)",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Escreve sobre a linha, com letras e números bem formados",
+   "pergunta": "Seu filho(a): escreve sobre a linha, com letras e números bem formados?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Kid Sense, quadro de desenvolvimento motor fino — https://childdevelopment.com.au/resources/child-development-charts/fine-motor-developmental-chart/"
+   ]
+  },
+  {
+   "id": "E07_MOT_F_3",
+   "faixa_meses": 84,
+   "faixa": "7 anos (2º ano)",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Escreve em letra de imprensa e cursiva (EF02LP07)",
+   "pergunta": "Seu filho(a): escreve em letra de imprensa e cursiva (EF02LP07)?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, habilidades de Língua Portuguesa e Matemática por ano (consultadas via Profez) — https://profez.com.br/bncc/lingua-portuguesa/1-ano"
+   ]
+  },
+  {
+   "id": "E07_AUT_1",
+   "faixa_meses": 84,
+   "faixa": "7 anos (2º ano)",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Toma banho sozinha ou quase, veste-se sem ajuda e prepara um lanche simples",
+   "pergunta": "Seu filho(a): toma banho sozinha ou quase, veste-se sem ajuda e prepara um lanche simples?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "UBC Middle Childhood, habilidades adaptativas de 6 a 8 anos — https://blogs.ubc.ca/middlechildhoodintervention1/category/2-1-six-to-eight-6-12-adaptive-skills"
+   ]
+  },
+  {
+   "id": "E07_AUT_2",
+   "faixa_meses": 84,
+   "faixa": "7 anos (2º ano)",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Ajuda a montar a lancheira e cuida de plantas ou do animal de estimação",
+   "pergunta": "Seu filho(a): ajuda a montar a lancheira e cuida de plantas ou do animal de estimação?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "AAP HealthyChildren.org, tarefas e responsabilidades por idade — https://www.healthychildren.org/English/family-life/family-dynamics/communication-discipline/Pages/Chores-and-Responsibility.aspx"
+   ]
+  },
+  {
+   "id": "E07_REG_1",
+   "faixa_meses": 84,
+   "faixa": "7 anos (2º ano)",
+   "dominio": "REG",
+   "dominios_secundarios": [],
+   "texto": "Aprende a lidar com frustração e a expressar emoções de forma adequada",
+   "pergunta": "Seu filho(a): aprende a lidar com frustração e a expressar emoções de forma adequada?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "AAP Bright Futures, consultas de 5 a 10 anos — https://downloads.aap.org/AAP/PDF/Bright%20Futures/BF4_MiddleChildhoodVisits.pdf"
+   ]
+  },
+  {
+   "id": "E07_ATE_1",
+   "faixa_meses": 84,
+   "faixa": "7 anos (2º ano)",
+   "dominio": "ATE",
+   "dominios_secundarios": [],
+   "texto": "Planeja e ajusta o plano em jogos de estratégia",
+   "pergunta": "Seu filho(a): planeja e ajusta o plano em jogos de estratégia?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Harvard Center on the Developing Child, funções executivas 7–12 anos — https://developingchild.harvard.edu/wp-content/uploads/2024/10/Executive-Function-Activities-for-7-to-12-year-olds.pdf"
+   ]
+  },
+  {
+   "id": "E08_COG_1",
+   "faixa_meses": 96,
+   "faixa": "8 anos (3º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Lê textos curtos com autonomia e fluência (EF35LP01)",
+   "pergunta": "Seu filho(a): lê textos curtos com autonomia e fluência (EF35LP01)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, habilidades de Língua Portuguesa e Matemática por ano (consultadas via Profez) — https://profez.com.br/bncc/lingua-portuguesa/1-ano",
+    "ASHA, Your Child's Communication, 1º ao 5º ano (1st–5th grade) — https://inte.asha.org/public/speech/development/firstgrade/"
+   ]
+  },
+  {
+   "id": "E08_COG_2",
+   "faixa_meses": 96,
+   "faixa": "8 anos (3º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Identifica a ideia central e faz inferências (EF35LP03, EF35LP04)",
+   "pergunta": "Seu filho(a): identifica a ideia central e faz inferências (EF35LP03, EF35LP04)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, habilidades de Língua Portuguesa e Matemática por ano (consultadas via Profez) — https://profez.com.br/bncc/lingua-portuguesa/1-ano"
+   ]
+  },
+  {
+   "id": "E08_COG_3",
+   "faixa_meses": 96,
+   "faixa": "8 anos (3º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Escreve corretamente c/qu, g/gu, r/rr e s/ss (EF03LP01)",
+   "pergunta": "Seu filho(a): escreve corretamente c/qu, g/gu, r/rr e s/ss (EF03LP01)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, habilidades de Língua Portuguesa e Matemática por ano (consultadas via Profez) — https://profez.com.br/bncc/lingua-portuguesa/1-ano"
+   ]
+  },
+  {
+   "id": "E08_COG_4",
+   "faixa_meses": 96,
+   "faixa": "8 anos (3º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Divide por até 10 e usa fatos de soma e multiplicação no cálculo mental (EF03MA03, EF03MA08)",
+   "pergunta": "Seu filho(a): divide por até 10 e usa fatos de soma e multiplicação no cálculo mental (EF03MA03, EF03MA08)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, Matemática por ano (consultada via Profez) — https://profez.com.br/bncc/matematica/1-ano"
+   ]
+  },
+  {
+   "id": "E08_COG_5",
+   "faixa_meses": 96,
+   "faixa": "8 anos (3º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Lê as horas em relógio analógico e digital (EF03MA23)",
+   "pergunta": "Seu filho(a): lê as horas em relógio analógico e digital (EF03MA23)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, Matemática por ano (consultada via Profez) — https://profez.com.br/bncc/matematica/1-ano"
+   ]
+  },
+  {
+   "id": "E08_COM_R_1",
+   "faixa_meses": 96,
+   "faixa": "8 anos (3º ano)",
+   "dominio": "COM_R",
+   "dominios_secundarios": [],
+   "texto": "Presta atenção em grupo e guarda as ideias principais de explicações orais (EF35LP19)",
+   "pergunta": "Seu filho(a): presta atenção em grupo e guarda as ideias principais de explicações orais (EF35LP19)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "ASHA, Your Child's Communication, 1º ao 5º ano (1st–5th grade) — https://inte.asha.org/public/speech/development/firstgrade/",
+    "BNCC, habilidades de Língua Portuguesa e Matemática por ano (consultadas via Profez) — https://profez.com.br/bncc/lingua-portuguesa/1-ano"
+   ]
+  },
+  {
+   "id": "E08_COM_E_1",
+   "faixa_meses": 96,
+   "faixa": "8 anos (3º ano)",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Resume histórias e explica o que aprendeu",
+   "pergunta": "Seu filho(a): resume histórias e explica o que aprendeu?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "ASHA, Your Child's Communication, 1º ao 5º ano (1st–5th grade) — https://inte.asha.org/public/speech/development/firstgrade/"
+   ]
+  },
+  {
+   "id": "E08_COM_E_2",
+   "faixa_meses": 96,
+   "faixa": "8 anos (3º ano)",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Apresenta trabalhos com apoio de roteiro ou imagens (EF35LP20)",
+   "pergunta": "Seu filho(a): apresenta trabalhos com apoio de roteiro ou imagens (EF35LP20)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, habilidades de Língua Portuguesa e Matemática por ano (consultadas via Profez) — https://profez.com.br/bncc/lingua-portuguesa/1-ano"
+   ]
+  },
+  {
+   "id": "E08_FAL_1",
+   "faixa_meses": 96,
+   "faixa": "8 anos (3º ano)",
+   "dominio": "FAL",
+   "dominios_secundarios": [],
+   "texto": "Fala de forma audível e articulada, ajustando o volume ao contexto (EF15LP09)",
+   "pergunta": "Seu filho(a): fala de forma audível e articulada, ajustando o volume ao contexto (EF15LP09)?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, habilidades de Língua Portuguesa e Matemática por ano (consultadas via Profez) — https://profez.com.br/bncc/lingua-portuguesa/1-ano",
+    "ASHA, Your Child's Communication, 1º ao 5º ano (1st–5th grade) — https://inte.asha.org/public/speech/development/firstgrade/"
+   ]
+  },
+  {
+   "id": "E08_SOC_1",
+   "faixa_meses": 96,
+   "faixa": "8 anos (3º ano)",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Amizades ganham importância; bullying passa a ser assunto de toda consulta",
+   "pergunta": "Seu filho(a): amizades ganham importância; bullying passa a ser assunto de toda consulta?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "CDC, Middle Childhood 6–8 anos — https://www.restoredcdc.org/www.cdc.gov/child-development/positive-parenting-tips/middle-childhood-6-8-years.html",
+    "AAP Bright Futures, consultas de 5 a 10 anos — https://downloads.aap.org/AAP/PDF/Bright%20Futures/BF4_MiddleChildhoodVisits.pdf"
+   ]
+  },
+  {
+   "id": "E08_BRI_1",
+   "faixa_meses": 96,
+   "faixa": "8 anos (3º ano)",
+   "dominio": "BRI",
+   "dominios_secundarios": [],
+   "texto": "Mantém um plano por várias jogadas em jogos de tabuleiro e estratégia",
+   "pergunta": "Seu filho(a): mantém um plano por várias jogadas em jogos de tabuleiro e estratégia?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Harvard Center on the Developing Child, funções executivas 7–12 anos — https://developingchild.harvard.edu/wp-content/uploads/2024/10/Executive-Function-Activities-for-7-to-12-year-olds.pdf"
+   ]
+  },
+  {
+   "id": "E08_MOT_A_1",
+   "faixa_meses": 96,
+   "faixa": "8 anos (3º ano)",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Corre em zigue-zague, faz estrela e pega bolas pequenas",
+   "pergunta": "Seu filho(a): corre em zigue-zague, faz estrela e pega bolas pequenas?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Raising Children Network, desenvolvimento de 6 a 8 anos — https://raisingchildren.net.au/school-age/development/development-tracker/6-8-years"
+   ]
+  },
+  {
+   "id": "E08_MOT_F_1",
+   "faixa_meses": 96,
+   "faixa": "8 anos (3º ano)",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Mantém a letra legível ao longo de um texto inteiro",
+   "pergunta": "Seu filho(a): mantém a letra legível ao longo de um texto inteiro?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Kid Sense, quadro de desenvolvimento motor fino — https://childdevelopment.com.au/resources/child-development-charts/fine-motor-developmental-chart/"
+   ]
+  },
+  {
+   "id": "E08_MOT_F_2",
+   "faixa_meses": 96,
+   "faixa": "8 anos (3º ano)",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Recorta formas irregulares",
+   "pergunta": "Seu filho(a): recorta formas irregulares?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Raising Children Network, desenvolvimento de 6 a 8 anos — https://raisingchildren.net.au/school-age/development/development-tracker/6-8-years"
+   ]
+  },
+  {
+   "id": "E08_AUT_1",
+   "faixa_meses": 96,
+   "faixa": "8 anos (3º ano)",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Escova os dentes e faz a higiene diária sem ajuda",
+   "pergunta": "Seu filho(a): escova os dentes e faz a higiene diária sem ajuda?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Raising Children Network, desenvolvimento de 6 a 8 anos — https://raisingchildren.net.au/school-age/development/development-tracker/6-8-years"
+   ]
+  },
+  {
+   "id": "E08_AUT_2",
+   "faixa_meses": 96,
+   "faixa": "8 anos (3º ano)",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Guarda a própria roupa e faz o próprio lanche",
+   "pergunta": "Seu filho(a): guarda a própria roupa e faz o próprio lanche?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "AAP HealthyChildren.org, tarefas e responsabilidades por idade — https://www.healthychildren.org/English/family-life/family-dynamics/communication-discipline/Pages/Chores-and-Responsibility.aspx"
+   ]
+  },
+  {
+   "id": "E08_ATE_1",
+   "faixa_meses": 96,
+   "faixa": "8 anos (3º ano)",
+   "dominio": "ATE",
+   "dominios_secundarios": [],
+   "texto": "Segue regras complexas em esportes e jogos",
+   "pergunta": "Seu filho(a): segue regras complexas em esportes e jogos?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Harvard Center on the Developing Child, funções executivas 7–12 anos — https://developingchild.harvard.edu/wp-content/uploads/2024/10/Executive-Function-Activities-for-7-to-12-year-olds.pdf"
+   ]
+  },
+  {
+   "id": "E09_COG_1",
+   "faixa_meses": 108,
+   "faixa": "9 anos (4º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Lê com fluência, faz inferências, segue instruções escritas e faz anotações",
+   "pergunta": "Seu filho(a): lê com fluência, faz inferências, segue instruções escritas e faz anotações?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "ASHA, Your Child's Communication, 1º ao 5º ano (1st–5th grade) — https://inte.asha.org/public/speech/development/firstgrade/"
+   ]
+  },
+  {
+   "id": "E09_COG_2",
+   "faixa_meses": 108,
+   "faixa": "9 anos (4º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Escreve vários parágrafos sobre um tema e revisa o texto",
+   "pergunta": "Seu filho(a): escreve vários parágrafos sobre um tema e revisa o texto?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "ASHA, Your Child's Communication, 1º ao 5º ano (1st–5th grade) — https://inte.asha.org/public/speech/development/firstgrade/"
+   ]
+  },
+  {
+   "id": "E09_COG_3",
+   "faixa_meses": 108,
+   "faixa": "9 anos (4º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Multiplica e divide (divisor de até 2 algarismos) (EF04MA06, EF04MA07)",
+   "pergunta": "Seu filho(a): multiplica e divide (divisor de até 2 algarismos) (EF04MA06, EF04MA07)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, Matemática por ano (consultada via Profez) — https://profez.com.br/bncc/matematica/1-ano"
+   ]
+  },
+  {
+   "id": "E09_COG_4",
+   "faixa_meses": 108,
+   "faixa": "9 anos (4º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Reconhece frações como 1/2, 1/4 e 1/10 e resolve problemas de troco (EF04MA09, EF04MA25)",
+   "pergunta": "Seu filho(a): reconhece frações como 1/2, 1/4 e 1/10 e resolve problemas de troco (EF04MA09, EF04MA25)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, Matemática por ano (consultada via Profez) — https://profez.com.br/bncc/matematica/1-ano"
+   ]
+  },
+  {
+   "id": "E09_COM_R_1",
+   "faixa_meses": 108,
+   "faixa": "9 anos (4º ano)",
+   "dominio": "COM_R",
+   "dominios_secundarios": [],
+   "texto": "Forma opinião a partir do que ouve e entende alguma linguagem figurada",
+   "pergunta": "Seu filho(a): forma opinião a partir do que ouve e entende alguma linguagem figurada?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "ASHA, Your Child's Communication, 1º ao 5º ano (1st–5th grade) — https://inte.asha.org/public/speech/development/firstgrade/"
+   ]
+  },
+  {
+   "id": "E09_COM_E_1",
+   "faixa_meses": 108,
+   "faixa": "9 anos (4º ano)",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Argumenta, defende um ponto de vista e faz apresentações claras (EF35LP15)",
+   "pergunta": "Seu filho(a): argumenta, defende um ponto de vista e faz apresentações claras (EF35LP15)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "ASHA, Your Child's Communication, 1º ao 5º ano (1st–5th grade) — https://inte.asha.org/public/speech/development/firstgrade/",
+    "BNCC, habilidades de Língua Portuguesa e Matemática por ano (consultadas via Profez) — https://profez.com.br/bncc/lingua-portuguesa/1-ano"
+   ]
+  },
+  {
+   "id": "E09_SOC_1",
+   "faixa_meses": 108,
+   "faixa": "9 anos (4º ano)",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Tem amizades mais fortes e começa a ver com clareza o ponto de vista do outro",
+   "pergunta": "Seu filho(a): tem amizades mais fortes e começa a ver com clareza o ponto de vista do outro?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "CDC, Middle Childhood 9–11 anos — https://restoredcdc.org/www.cdc.gov/child-development/positive-parenting-tips/middle-childhood-9-11-years-old.html"
+   ]
+  },
+  {
+   "id": "E09_SOC_2",
+   "faixa_meses": 108,
+   "faixa": "9 anos (4º ano)",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Sente mais pressão dos colegas",
+   "pergunta": "Seu filho(a): sente mais pressão dos colegas?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "CDC, Middle Childhood 9–11 anos — https://restoredcdc.org/www.cdc.gov/child-development/positive-parenting-tips/middle-childhood-9-11-years-old.html"
+   ]
+  },
+  {
+   "id": "E09_BRI_1",
+   "faixa_meses": 108,
+   "faixa": "9 anos (4º ano)",
+   "dominio": "BRI",
+   "dominios_secundarios": [],
+   "texto": "Pratica esportes e jogos com regras complexas",
+   "pergunta": "Seu filho(a): pratica esportes e jogos com regras complexas?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Harvard Center on the Developing Child, funções executivas 7–12 anos — https://developingchild.harvard.edu/wp-content/uploads/2024/10/Executive-Function-Activities-for-7-to-12-year-olds.pdf"
+   ]
+  },
+  {
+   "id": "E09_MOT_A_1",
+   "faixa_meses": 108,
+   "faixa": "9 anos (4º ano)",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Usa os movimentos básicos em esportes e jogos (fase de transição, 7–10 anos)",
+   "pergunta": "Seu filho(a): usa os movimentos básicos em esportes e jogos (fase de transição, 7–10 anos)?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Gallahue & Ozmun, fases do desenvolvimento motor (resumo em EFDeportes) — https://efdeportes.com/efd160/desenvolvimento-motor-grosso-com-criancas.htm"
+   ]
+  },
+  {
+   "id": "E09_MOT_A_2",
+   "faixa_meses": 108,
+   "faixa": "9 anos (4º ano)",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Executa as 12 habilidades do TGMD: correr, galopar, pular num pé, saltar, deslocar-se de lado, rebater, quicar, pegar, chutar e arremessar por cima e por baixo",
+   "pergunta": "Seu filho(a): executa as 12 habilidades do TGMD: correr, galopar, pular num pé, saltar, deslocar-se de lado, rebater, quicar, pegar, chutar e arremessar por cima e por baixo?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Valentini et al. 2008, validação do TGMD-2 no Brasil (3–10 anos) — https://periodicos.ufsc.br/index.php/rbcdh/article/view/1980-0037.2008v10n4p399",
+    "França et al. 2016, habilidades avaliadas pelo TGMD-2 — https://periodicos.ufjf.br/index.php/hurevista/article/download/2568/904/15699"
+   ]
+  },
+  {
+   "id": "E09_MOT_F_1",
+   "faixa_meses": 108,
+   "faixa": "9 anos (4º ano)",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Escreve textos mais longos; digita, se a escola ensina",
+   "pergunta": "Seu filho(a): escreve textos mais longos; digita, se a escola ensina?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Understood.org, escrita esperada por idade — https://www.understood.org/en/articles/writing-skills-what-to-expect-at-different-ages"
+   ]
+  },
+  {
+   "id": "E09_AUT_1",
+   "faixa_meses": 108,
+   "faixa": "9 anos (4º ano)",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Faz tarefas domésticas como limpar e ajudar a cozinhar",
+   "pergunta": "Seu filho(a): faz tarefas domésticas como limpar e ajudar a cozinhar?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "CDC, Middle Childhood 9–11 anos — https://restoredcdc.org/www.cdc.gov/child-development/positive-parenting-tips/middle-childhood-9-11-years-old.html"
+   ]
+  },
+  {
+   "id": "E09_AUT_2",
+   "faixa_meses": 108,
+   "faixa": "9 anos (4º ano)",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Cumpre tarefas atribuídas pela família",
+   "pergunta": "Seu filho(a): cumpre tarefas atribuídas pela família?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "AAP Bright Futures, formulários da consulta de 9 anos — https://myprivia.com/sites/default/files/2024-08/burk_Bright-Futures-9-Year-Visit.pdf"
+   ]
+  },
+  {
+   "id": "E09_REG_1",
+   "faixa_meses": 108,
+   "faixa": "9 anos (4º ano)",
+   "dominio": "REG",
+   "dominios_secundarios": [],
+   "texto": "Ganha senso de responsabilidade junto com a independência",
+   "pergunta": "Seu filho(a): ganha senso de responsabilidade junto com a independência?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "CDC, Middle Childhood 9–11 anos — https://restoredcdc.org/www.cdc.gov/child-development/positive-parenting-tips/middle-childhood-9-11-years-old.html"
+   ]
+  },
+  {
+   "id": "E09_ATE_1",
+   "faixa_meses": 108,
+   "faixa": "9 anos (4º ano)",
+   "dominio": "ATE",
+   "dominios_secundarios": [],
+   "texto": "Mantém a atenção por mais tempo e enfrenta desafios escolares maiores",
+   "pergunta": "Seu filho(a): mantém a atenção por mais tempo e enfrenta desafios escolares maiores?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "CDC, Middle Childhood 9–11 anos — https://restoredcdc.org/www.cdc.gov/child-development/positive-parenting-tips/middle-childhood-9-11-years-old.html"
+   ]
+  },
+  {
+   "id": "E10_COG_1",
+   "faixa_meses": 120,
+   "faixa": "10 anos (5º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Lê notícias e textos instrucionais com autonomia; lê gráficos e tabelas (EF05LP09, EF05LP23)",
+   "pergunta": "Seu filho(a): lê notícias e textos instrucionais com autonomia; lê gráficos e tabelas (EF05LP09, EF05LP23)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, habilidades de Língua Portuguesa e Matemática por ano (consultadas via Profez) — https://profez.com.br/bncc/lingua-portuguesa/1-ano"
+   ]
+  },
+  {
+   "id": "E10_COG_2",
+   "faixa_meses": 120,
+   "faixa": "10 anos (5º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Acentua palavras e usa conectivos para dar coesão ao texto (EF05LP03, EF05LP27)",
+   "pergunta": "Seu filho(a): acentua palavras e usa conectivos para dar coesão ao texto (EF05LP03, EF05LP27)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, habilidades de Língua Portuguesa e Matemática por ano (consultadas via Profez) — https://profez.com.br/bncc/lingua-portuguesa/1-ano"
+   ]
+  },
+  {
+   "id": "E10_COG_3",
+   "faixa_meses": 120,
+   "faixa": "10 anos (5º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Usa frações equivalentes e porcentagens (EF05MA04, EF05MA06)",
+   "pergunta": "Seu filho(a): usa frações equivalentes e porcentagens (EF05MA04, EF05MA06)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, Matemática por ano (consultada via Profez) — https://profez.com.br/bncc/matematica/1-ano"
+   ]
+  },
+  {
+   "id": "E10_COG_4",
+   "faixa_meses": 120,
+   "faixa": "10 anos (5º ano)",
+   "dominio": "COG",
+   "dominios_secundarios": [],
+   "texto": "Resolve problemas com as 4 operações, inclusive com decimais (EF05MA07, EF05MA08)",
+   "pergunta": "Seu filho(a): resolve problemas com as 4 operações, inclusive com decimais (EF05MA07, EF05MA08)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "BNCC, Matemática por ano (consultada via Profez) — https://profez.com.br/bncc/matematica/1-ano"
+   ]
+  },
+  {
+   "id": "E10_COM_R_1",
+   "faixa_meses": 120,
+   "faixa": "10 anos (5º ano)",
+   "dominio": "COM_R",
+   "dominios_secundarios": [],
+   "texto": "Tira conclusões do que ouve nas disciplinas",
+   "pergunta": "Seu filho(a): tira conclusões do que ouve nas disciplinas?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "ASHA, Your Child's Communication, 1º ao 5º ano (1st–5th grade) — https://inte.asha.org/public/speech/development/firstgrade/"
+   ]
+  },
+  {
+   "id": "E10_COM_E_1",
+   "faixa_meses": 120,
+   "faixa": "10 anos (5º ano)",
+   "dominio": "COM_E",
+   "dominios_secundarios": [],
+   "texto": "Faz apresentações planejadas e argumenta respeitando outras opiniões (EF05LP19)",
+   "pergunta": "Seu filho(a): faz apresentações planejadas e argumenta respeitando outras opiniões (EF05LP19)?",
+   "informante_principal": "professor",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "ASHA, Your Child's Communication, 1º ao 5º ano (1st–5th grade) — https://inte.asha.org/public/speech/development/firstgrade/",
+    "BNCC, habilidades de Língua Portuguesa e Matemática por ano (consultadas via Profez) — https://profez.com.br/bncc/lingua-portuguesa/1-ano"
+   ]
+  },
+  {
+   "id": "E10_SOC_1",
+   "faixa_meses": 120,
+   "faixa": "10 anos (5º ano)",
+   "dominio": "SOC",
+   "dominios_secundarios": [],
+   "texto": "Amizades mais complexas; mais atenção ao próprio corpo com a puberdade",
+   "pergunta": "Seu filho(a): amizades mais complexas; mais atenção ao próprio corpo com a puberdade?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "CDC, Middle Childhood 9–11 anos — https://restoredcdc.org/www.cdc.gov/child-development/positive-parenting-tips/middle-childhood-9-11-years-old.html"
+   ]
+  },
+  {
+   "id": "E10_MOT_A_1",
+   "faixa_meses": 120,
+   "faixa": "10 anos (5º ano)",
+   "dominio": "MOT_A",
+   "dominios_secundarios": [],
+   "texto": "Conclui a fase de transição motora; fim da faixa do TGMD (3–10 anos)",
+   "pergunta": "Seu filho(a): conclui a fase de transição motora; fim da faixa do TGMD (3–10 anos)?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Gallahue & Ozmun, fases do desenvolvimento motor (resumo em EFDeportes) — https://efdeportes.com/efd160/desenvolvimento-motor-grosso-com-criancas.htm",
+    "Valentini et al. 2008, validação do TGMD-2 no Brasil (3–10 anos) — https://periodicos.ufsc.br/index.php/rbcdh/article/view/1980-0037.2008v10n4p399"
+   ]
+  },
+  {
+   "id": "E10_MOT_F_1",
+   "faixa_meses": 120,
+   "faixa": "10 anos (5º ano)",
+   "dominio": "MOT_F",
+   "dominios_secundarios": [],
+   "texto": "Planeja, rascunha e revisa textos",
+   "pergunta": "Seu filho(a): planeja, rascunha e revisa textos?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Understood.org, escrita esperada por idade — https://www.understood.org/en/articles/writing-skills-what-to-expect-at-different-ages"
+   ]
+  },
+  {
+   "id": "E10_AUT_1",
+   "faixa_meses": 120,
+   "faixa": "10 anos (5º ano)",
+   "dominio": "AUT",
+   "dominios_secundarios": [],
+   "texto": "Passeia com o animal, guarda as compras e ajuda a preparar refeições",
+   "pergunta": "Seu filho(a): passeia com o animal, guarda as compras e ajuda a preparar refeições?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "AAP HealthyChildren.org, tarefas e responsabilidades por idade — https://www.healthychildren.org/English/family-life/family-dynamics/communication-discipline/Pages/Chores-and-Responsibility.aspx"
+   ]
+  },
+  {
+   "id": "E10_ATE_1",
+   "faixa_meses": 120,
+   "faixa": "10 anos (5º ano)",
+   "dominio": "ATE",
+   "dominios_secundarios": [],
+   "texto": "Funções executivas seguem se desenvolvendo até a adolescência",
+   "pergunta": "Seu filho(a): funções executivas seguem se desenvolvendo até a adolescência?",
+   "informante_principal": "ambos",
+   "momento": "fim do ano escolar",
+   "fonte": [
+    "Harvard Center on the Developing Child, Working Paper 11 — https://developingchild.harvard.edu/wp-content/uploads/2024/10/How-Early-Experiences-Shape-the-Development-of-Executive-Function.pdf"
+   ]
+  }
+ ],
+ "regua_6_10": {
+  "dominios_por_ano_escolar": [
+   "COG",
+   "COM_R",
+   "COM_E"
+  ],
+  "dominios_por_idade": [
+   "FAL",
+   "MOT_A",
+   "MOT_F",
+   "AUT",
+   "BRI",
+   "SOC"
+  ],
+  "dominios_por_impacto": [
+   "REG",
+   "ATE",
+   "SEN",
+   "SOC"
+  ],
+  "sem_classificacao": [
+   "SAU",
+   "CTX"
+  ]
+ }
+}

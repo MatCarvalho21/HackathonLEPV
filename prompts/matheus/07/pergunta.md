@@ -1,0 +1,1 @@
+Tudo bem, vamos expandir para 10. Pensando em cada uma dos domínios como isso tipo: suficiente, insuficiente, normal sla sabe. 0 a 5 está muito pouco. Mas fundamente isso no máximo de fontes que vocÊ conseguir.

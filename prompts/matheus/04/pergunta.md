@@ -1,0 +1,1 @@
+Complicou demais, criança não tem acesso e precisamos para o hackathon uma coisa mais direta. Tipo matrícula e não sei oque.
