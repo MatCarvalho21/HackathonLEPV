@@ -1,78 +1,119 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft, ArrowRight, Baby, BookOpen, Check, ChevronDown, CircleHelp,
-  ClipboardList, Heart, Home, MessageCircle, Plus, School, ShieldCheck,
-  Sparkles, Users, X,
+  ClipboardList, Download, Heart, Home, Info, LogIn, MessageCircle, MessagesSquare, Plus, School, ShieldCheck,
+  Flower2, Puzzle, Sparkles, Sprout, UserPlus, Users, X,
 } from 'lucide-react';
 import {
   ANSWER_LABELS, AREA_PROMPTS, CONDITIONS, DOMAIN_META, buildQuestionnaire,
 } from './questionnaire.js';
-import { api, lerSessao, salvarSessao } from './jornada/api.js';
+import { api, lerSessao, rotuloFuncao, salvarSessao, sessaoDeLogin, VINCULOS } from './jornada/api.js';
 import { Agente, Proposta } from './jornada/Agente.jsx';
 import { Painel, TIPOS, resumoRegistro } from './jornada/Painel.jsx';
 import { Chat } from './jornada/Chat.jsx';
+import { Canal } from './jornada/Canal.jsx';
+import { Compartilhar } from './jornada/Compartilhar.jsx';
+import { Cadastro, Login } from './jornada/Acesso.jsx';
+import { SaibaMais } from './jornada/SaibaMais.jsx';
+import { IconeDominio, IconeTipo } from './jornada/icones.jsx';
+import { Notificacoes } from './jornada/Notificacoes.jsx';
 import './jornada/pp.css';
 
-// Os dados ficam no backend (banco local SQLite → futuro Supabase). No navegador fica só a sessão.
+// Os dados ficam no backend (banco local SQLite → futuro Supabase). No navegador fica só a sessão de login.
 function App() {
   const [sessao, setSessao] = useState(lerSessao);
   const [criancas, setCriancas] = useState([]);
+  const [convites, setConvites] = useState([]);
   const [screen, setScreen] = useState(() => (lerSessao() ? 'dashboard' : 'home'));
   const [activeId, setActiveId] = useState(null);
   const [sessaoAgente, setSessaoAgente] = useState(null);
   const [avaliacaoVista, setAvaliacaoVista] = useState(null);
   const [abaPainel, setAbaPainel] = useState('geral');
+  const [reavForm, setReavForm] = useState(null); // {payload, comentario} ao atualizar o formulário na reavaliação
+  const [tipoCadastro, setTipoCadastro] = useState('responsavel');
   const [modal, setModal] = useState('');
   const [notice, setNotice] = useState('');
   const [showProfile, setShowProfile] = useState(false);
   const role = sessao?.papel || 'responsavel';
+  const acompanhante = role === 'professor'; // "professor" é o papel interno de todo acompanhante
 
   useEffect(() => {
     if (!notice) return undefined;
-    const timer = setTimeout(() => setNotice(''), 3200);
+    const timer = setTimeout(() => setNotice(''), 3600);
     return () => clearTimeout(timer);
   }, [notice]);
+  useEffect(() => {
+    const expirou = (e) => { sair(false); setNotice(e.detail || 'Sua sessão expirou. Entre de novo.'); };
+    window.addEventListener('pp-sessao-expirada', expirou);
+    return () => window.removeEventListener('pp-sessao-expirada', expirou);
+  }, []);
 
   async function recarregar() {
     if (!sessao) return [];
-    try { const cs = await api.criancas(sessao); setCriancas(cs); return cs; }
-    catch (e) { setNotice(e.message); if (/não encontrado/i.test(e.message)) sair(); return []; }
+    try {
+      const [cs, cv] = await Promise.all([api.criancas(role), acompanhante ? api.convites() : Promise.resolve([])]);
+      setCriancas(cs); setConvites(cv); return cs;
+    } catch (e) { setNotice(e.message); return []; }
   }
-  useEffect(() => { recarregar(); }, [sessao?.id]);
+  useEffect(() => { recarregar(); }, [sessao?.token, sessao?.papel]);
 
   const activeEstado = criancas.find((c) => c.crianca.id === activeId) || criancas[0];
   const activeChild = activeEstado && { ...activeEstado.crianca, name: activeEstado.crianca.nome, birthDate: activeEstado.crianca.data_nascimento, interests: activeEstado.crianca.interesses };
 
-  function entrar(novaSessao, aviso) {
-    salvarSessao(novaSessao); setSessao(novaSessao); setActiveId(null); setScreen('dashboard');
+  function entrar(resp, aviso, papelPreferido = null, extra = {}) {
+    const nova = { ...sessaoDeLogin(resp, papelPreferido), ...extra };
+    salvarSessao(nova); setSessao(nova); setActiveId(null); setScreen('dashboard');
     if (aviso) setNotice(aviso);
   }
-  function sair() { salvarSessao(null); setSessao(null); setCriancas([]); setActiveId(null); setScreen('home'); }
-
-  async function saveParent(values) {
-    const r = await api.criarResponsavel({ nome: values.nome, email: values.email, telefone: values.telefone || null });
-    entrar({ papel: 'responsavel', id: r.id, nome: r.nome, parentesco: values.parentesco }, 'Conta de responsável criada.');
+  function trocarPerfil(papel) {
+    const p = sessao.perfis.find((x) => x.papel === papel);
+    const nova = { ...sessao, papel: p.papel, id: p.id, funcao: p.funcao };
+    salvarSessao(nova); setSessao(nova); setActiveId(null); setCriancas([]); setScreen('dashboard'); setShowProfile(false);
   }
-  async function saveTeacher(values) {
-    const r = await api.criarProfessor({ nome: values.nome, email: values.email, escola: values.escola, turma: values.turma });
-    entrar({ papel: 'professor', id: r.id, nome: r.nome }, 'Conta de professor criada.');
+  async function adicionarPerfil() {
+    setShowProfile(false);
+    const novo = role === 'responsavel' ? 'acompanhante' : 'responsavel';
+    try {
+      const r = await api.adicionarPerfil({ tipo: novo, funcao: 'familiar' });
+      const nova = { ...sessao, perfis: r.perfis };
+      salvarSessao(nova); setSessao(nova);
+      setNotice(novo === 'acompanhante' ? 'Perfil de acompanhante criado. Troque de perfil para ver as crianças compartilhadas com você.' : 'Perfil de responsável criado. Troque de perfil para cadastrar uma criança.');
+    } catch (e) { setNotice(e.message); }
+  }
+  function sair(avisarServidor = true) {
+    if (avisarServidor) api.sair();
+    salvarSessao(null); setSessao(null); setCriancas([]); setConvites([]); setActiveId(null); setScreen('home'); setShowProfile(false);
+  }
+
+  async function fazerLogin(email, senha) { entrar(await api.entrar(email, senha), 'Bem-vindo(a) de volta!'); }
+  async function criarConta(corpo, vinculo) {
+    const r = await api.cadastro(corpo);
+    entrar(r, corpo.tipo === 'responsavel' ? 'Conta criada! Comece cadastrando a criança.' : 'Conta criada! As crianças compartilhadas com o seu e-mail aparecem aqui.',
+      null, vinculo ? { parentesco: vinculo } : {});
   }
   async function entrarDemo() {
-    const r = await api.demoEntrar();
-    entrar({ papel: 'responsavel', id: r.responsavel.id, nome: r.responsavel.nome, parentesco: 'Mãe' }, 'Bem-vinda, Ana! A Lia já tem um plano; a Nina está pronta para o formulário.');
+    entrar(await api.demoEntrar(), 'Bem-vinda, Ana! A Lia já tem um plano; a Nina está pronta para o formulário.', null, { parentesco: 'Mãe' });
   }
   async function entrarDemoProfessor() {
-    const r = await api.demoProfessor();
-    entrar({ papel: 'professor', id: r.professor.id, nome: r.professor.nome }, `Bem-vinda, ${r.professor.nome.split(' ')[0]}! Estas são as crianças da sua turma.`);
+    entrar(await api.demoProfessor(), 'Bem-vinda, Carla! Estas são as crianças compartilhadas com você.', 'professor');
   }
   async function saveChild(values) {
     try {
       const e = await api.criarCrianca({
-        nome: values.name, data_nascimento: values.birthDate, responsavel_id: sessao.id, parentesco: sessao.parentesco || null,
+        nome: values.name, data_nascimento: values.birthDate, parentesco: values.parentesco || sessao.parentesco || null,
         interesses: values.interests.split(',').map((v) => v.trim()).filter(Boolean),
       });
       await recarregar(); setActiveId(e.crianca.id); setModal(''); setScreen('form');
     } catch (e) { setNotice(e.message); }
+  }
+  async function responderConvite(c, aceitar) {
+    try {
+      await (aceitar ? api.aceitarConvite(c.id) : api.recusarConvite(c.id));
+      setNotice(aceitar ? `Agora você acompanha ${c.crianca_nome}.` : 'Convite recusado.'); recarregar();
+    } catch (e) { setNotice(e.message); }
+  }
+  async function baixarResumo(cid) {
+    try { await api.baixarResumo(cid); setNotice('Resumo em PDF baixado.'); } catch (e) { setNotice(e.message); }
   }
 
   /** Abre a criança na etapa certa da jornada: formulário → agente → proposta → painel. */
@@ -80,14 +121,14 @@ function App() {
     setActiveId(id);
     try {
       const e = await api.estado(id);
-      if (role === 'professor' && e.etapa !== 'vigente') {
-        // Professor não preenche formulário, não dispara o agente e não responde às perguntas dele.
+      if (acompanhante && e.etapa !== 'vigente') {
+        // Acompanhante não preenche formulário, não dispara o agente e não responde às perguntas dele.
         if (e.etapa === 'proposta') { setAvaliacaoVista(e.avaliacao_proposta_id); setScreen('proposta'); }
-        else setNotice(`O perfil de ${e.crianca.nome} ainda está sendo montado pela família. Você já pode registrar observações em “Diário e dúvidas”.`);
+        else setNotice(`O perfil de ${e.crianca.nome} ainda está sendo montado pela família. Você já pode registrar observações e usar o canal.`);
         return;
       }
       if (e.etapa === 'formulario') setScreen('form');
-      else if (e.etapa === 'formulario_enviado') { const s = await api.iniciarAgente(e.formulario_id, false, sessao.id); setSessaoAgente(s.sessao_id); setScreen('agente'); }
+      else if (e.etapa === 'formulario_enviado') { const s = await api.iniciarAgente(e.formulario_id); setSessaoAgente(s.sessao_id); setScreen('agente'); }
       else if (e.etapa === 'analise') { setSessaoAgente(e.sessao_id); setScreen('agente'); }
       else if (e.etapa === 'proposta') { setAvaliacaoVista(e.avaliacao_proposta_id); setScreen('proposta'); }
       else { setAbaPainel(aba); setScreen('painel'); }
@@ -95,97 +136,157 @@ function App() {
   }
 
   async function generateAssessment(formPayload, { demo = false } = {}) {
-    const f = await api.enviarFormulario({ ...formPayload, consentimento: true, crianca_id: activeChild.id, autor_id: sessao.id });
-    const s = await api.iniciarAgente(f.id, demo, sessao.id);
+    const f = await api.enviarFormulario({ ...formPayload, consentimento: true, crianca_id: activeChild.id });
+    const s = await api.iniciarAgente(f.id, demo);
     setSessaoAgente(s.sessao_id); setScreen('agente'); recarregar();
+  }
+  /** Reavaliação com formulário atualizado: abre o formulário com as últimas respostas. */
+  async function atualizarFormulario(comentario) {
+    try { setReavForm({ payload: await api.formularioAtual(activeChild.id), comentario }); setScreen('form-reavaliacao'); }
+    catch (e) { setNotice(e.message); }
+  }
+  async function enviarReavaliacao(formPayload) {
+    const f = await api.enviarFormulario({ ...formPayload, consentimento: true, crianca_id: activeChild.id });
+    const s = await api.reavaliar(activeChild.id, { comentario: reavForm?.comentario || '', formulario_id: f.id });
+    setReavForm(null); setSessaoAgente(s.sessao_id); setScreen('agente'); recarregar();
   }
 
   const voltar = () => { recarregar(); setScreen('dashboard'); };
+  /** Abre o lugar de cada notificação: registro → linha do tempo; canal → canal; perfil → painel; convites → visão geral. */
+  async function abrirNotificacao(n) {
+    const cs = await recarregar();
+    const est = cs.find((c) => c.crianca.id === n.crianca_id);
+    if (n.tipo === 'convite' || !est) { setScreen('dashboard'); return; }
+    setActiveId(n.crianca_id);
+    if (n.tipo === 'canal') setScreen('canal');
+    else if (n.tipo === 'acesso') setScreen(acompanhante ? 'dashboard' : 'compartilhar');
+    else if (est.etapa === 'vigente') { setAbaPainel(n.tipo === 'registro' ? 'linha' : 'geral'); setScreen('painel'); }
+    else setScreen(n.tipo === 'registro' ? 'journal' : 'dashboard');
+  }
   /** Reavaliação: acompanhar o agente (sessao_id) ou revisar a proposta pronta (avaliacao_id). */
   function abrirReavaliacao({ sessao_id: sid, avaliacao_id: avId }) {
     if (sid) { setSessaoAgente(sid); setScreen('agente'); } else { setAvaliacaoVista(avId); setScreen('proposta'); }
   }
   const vigente = activeEstado?.etapa === 'vigente';
+  const naCrianca = ['form', 'form-reavaliacao', 'agente', 'proposta'].includes(screen) || (screen === 'painel' && !['chat', 'canal'].includes(abaPainel));
+  const perfilAtual = sessao?.perfis?.find((p) => p.papel === role);
+  const outroPerfil = sessao?.perfis?.find((p) => p.papel !== role);
 
   return (
     <div className="app-shell">
-      {screen !== 'home' && <aside className="sidebar">
-        <button className="brand" onClick={voltar} aria-label="Ir para início"><span className="brand-mark"><Heart size={19} fill="currentColor" /></span><span>PLACEHOLDER<span className="brand-dot">.</span></span></button>
-        <div className="side-label">ESPAÇO DE ACOMPANHAMENTO</div>
+      {sessao && !['home', 'login', 'signup'].includes(screen) && <aside className="sidebar">
+        <button className="brand" onClick={voltar} aria-label="Ir para início"><span className="brand-mark"><Heart size={19} fill="currentColor" /></span><span className="brand-nome">AjudaP<span className="brand-dot">.ai</span></span></button>
+        <div className="side-label">{acompanhante ? 'ESPAÇO DO ACOMPANHANTE' : 'ESPAÇO DA FAMÍLIA'}</div>
         <button className={`nav-link ${screen === 'dashboard' ? 'selected' : ''}`} onClick={voltar}><Home size={18} /> Visão geral</button>
-        {activeChild && <button className={`nav-link ${['form', 'agente', 'proposta'].includes(screen) || (screen === 'painel' && abaPainel !== 'chat') ? 'selected' : ''}`} onClick={() => abrirCrianca(activeChild.id)}><Baby size={18} /> {activeChild.name}</button>}
-        {activeChild && vigente && <button className={`nav-link ${screen === 'painel' && abaPainel === 'chat' ? 'selected' : ''}`} onClick={() => abrirCrianca(activeChild.id, 'chat')}><Sparkles size={18} /> Conversar</button>}
-        {activeChild && <button className={`nav-link ${screen === 'journal' ? 'selected' : ''}`} onClick={() => setScreen('journal')}><MessageCircle size={18} /> Diário e dúvidas</button>}
-        <div className="sidebar-bottom"><div className="safe-note"><ShieldCheck size={17} /><span>Espaço de demonstração<br /><b>Dados no banco local do servidor</b></span></div><button className="profile-switch" onClick={() => setShowProfile((v) => !v)}><span className="avatar">{role === 'professor' ? 'P' : 'R'}</span><span className="profile-label"><b>{sessao?.nome}</b><small>{role === 'professor' ? 'Professor(a)' : 'Responsável'}</small></span><ChevronDown size={16} /></button>
-          {showProfile && <div className="profile-menu"><button onClick={() => { sair(); setShowProfile(false); }}>Trocar perfil / sair</button></div>}
+        <Notificacoes ativo={!!sessao?.token} onAbrir={abrirNotificacao} />
+        {activeChild && <>
+          <div className="side-label side-crianca">{activeChild.name.toUpperCase()}</div>
+          <button className={`nav-link ${naCrianca ? 'selected' : ''}`} onClick={() => abrirCrianca(activeChild.id)}><Baby size={18} /> {vigente ? 'Painel' : 'Perfil'}</button>
+          {vigente && <button className={`nav-link ${screen === 'painel' && abaPainel === 'chat' ? 'selected' : ''}`} onClick={() => abrirCrianca(activeChild.id, 'chat')}><Sparkles size={18} /> Assistente (IA)</button>}
+          <button className={`nav-link ${screen === 'canal' || (screen === 'painel' && abaPainel === 'canal') ? 'selected' : ''}`} onClick={() => setScreen('canal')}><MessagesSquare size={18} /> Canal da equipe</button>
+          <button className={`nav-link ${screen === 'journal' ? 'selected' : ''}`} onClick={() => setScreen('journal')}><MessageCircle size={18} /> Diário e dúvidas</button>
+          {!acompanhante && <button className={`nav-link ${screen === 'compartilhar' ? 'selected' : ''}`} onClick={() => setScreen('compartilhar')}><UserPlus size={18} /> Compartilhar</button>}
+        </>}
+        <div className="sidebar-bottom">
+          <button className="safe-note quiet-button" onClick={() => setModal('saiba')}><Info size={17} /><span>Como funciona a plataforma<br /><b>Saiba mais</b></span></button>
+          <button className="profile-switch" onClick={() => setShowProfile((v) => !v)} aria-expanded={showProfile}><span className="avatar">{sessao.nome?.slice(0, 1).toUpperCase()}</span><span className="profile-label"><b>{sessao.nome}</b><small>{acompanhante ? `Acompanhante · ${rotuloFuncao(sessao.funcao)}` : 'Responsável pelo perfil'}</small></span><ChevronDown size={16} /></button>
+          {showProfile && <div className="profile-menu">
+            <small>{sessao.conta?.email}</small>
+            {outroPerfil ? <button onClick={() => trocarPerfil(outroPerfil.papel)}>Usar como {outroPerfil.papel === 'professor' ? 'acompanhante' : 'responsável'}</button>
+              : <button onClick={adicionarPerfil}>Criar perfil de {role === 'responsavel' ? 'acompanhante' : 'responsável'}</button>}
+            <button onClick={() => sair()}>Sair</button>
+          </div>}
         </div>
       </aside>}
-      <main className={`main-area ${screen === 'home' ? 'welcome-area' : ''}`}>
-        {screen === 'home' && <Welcome onChoose={(nextRole) => setScreen(nextRole === 'responsavel' ? 'signup-parent' : 'signup-teacher')} hasAccount={!!sessao} onContinue={() => setScreen('dashboard')} onDemo={entrarDemo} onDemoProfessor={entrarDemoProfessor} />}
-        {screen === 'signup-parent' && <Signup kind="responsavel" onBack={() => setScreen('home')} onSave={saveParent} />}
-        {screen === 'signup-teacher' && <Signup kind="professor" onBack={() => setScreen('home')} onSave={saveTeacher} />}
-        {screen === 'dashboard' && <Dashboard role={role} criancas={criancas} activeEstado={activeEstado} onOpenJournal={() => setScreen('journal')} onAddChild={() => setModal('child')} onSelectChild={setActiveId} onOpenChild={abrirCrianca} onReavaliacao={(cid, alvo) => { setActiveId(cid); abrirReavaliacao(alvo); }} onTeacherChild={() => setNotice('Peça ao responsável para vincular a criança à sua turma. Crianças vinculadas aparecem aqui.')} />}
-        {screen === 'form' && activeChild && role === 'responsavel' && <ChildForm key={activeChild.id} child={activeChild} relationship={role === 'professor' ? 'Professor(a)' : activeEstado?.parentesco || sessao?.parentesco || ''} informante={role} onBack={voltar} onSubmit={generateAssessment} />}
-        {screen === 'form' && !activeChild && <EmptyChild onAdd={() => setModal('child')} />}
-        {screen === 'agente' && sessaoAgente && <Agente sessaoId={sessaoAgente} nomeCrianca={activeChild?.name} responsavelId={sessao?.id} podeResponder={role === 'responsavel'} onVoltar={voltar} onConcluida={(avId) => { setAvaliacaoVista(avId); setScreen('proposta'); recarregar(); }} />}
-        {screen === 'proposta' && avaliacaoVista && <Proposta avaliacaoId={avaliacaoVista} responsavelId={sessao?.id} podeDecidir={role === 'responsavel'} onVoltar={() => { recarregar(); if (vigente) setScreen('painel'); else voltar(); }}
-          onAjuste={(sid) => { setSessaoAgente(sid); setScreen('agente'); }}
-          onAprovada={async () => { const eraVigente = vigente; await recarregar(); setAbaPainel('geral'); setScreen('painel'); setNotice(eraVigente ? 'Nova versão aprovada! A evolução fica em “Perfil e versões”.' : 'Perfil aprovado! Este é o painel de acompanhamento.'); }} />}
-        {screen === 'painel' && activeChild && <Painel criancaId={activeChild.id} sessao={sessao} abaInicial={abaPainel} onVoltar={voltar} onAviso={setNotice} onVerVersao={(id) => { setAvaliacaoVista(id); setScreen('proposta'); }} onReavaliacao={abrirReavaliacao} />}
-        {screen === 'journal' && activeChild && <ChildJournal child={activeChild} sessao={sessao} onBack={voltar} onAviso={setNotice} />}
+      <main className={`main-area ${!sessao || ['home', 'login', 'signup'].includes(screen) ? 'welcome-area' : ''}`}>
+        {(!sessao && !['login', 'signup'].includes(screen) || screen === 'home') && <Welcome onCriarConta={(t) => { setModal(''); setScreen('signup'); setTipoCadastro(t); }} onEntrar={() => setScreen('login')} hasAccount={!!sessao} onContinue={() => setScreen('dashboard')} onDemo={entrarDemo} onDemoProfessor={entrarDemoProfessor} onSaibaMais={() => setModal('saiba')} />}
+        {screen === 'login' && <Login onVoltar={() => setScreen('home')} onEntrar={fazerLogin} onCriarConta={() => setScreen('signup')} />}
+        {screen === 'signup' && <Cadastro tipo={tipoCadastro} onTrocarTipo={setTipoCadastro} onVoltar={() => setScreen('home')} onCriar={criarConta} onEntrar={() => setScreen('login')} />}
+        {sessao && <>
+          {screen === 'dashboard' && <Dashboard role={role} funcao={perfilAtual?.funcao} nome={sessao.nome} criancas={criancas} convites={convites} activeEstado={activeEstado} onResponderConvite={responderConvite} onOpenJournal={() => setScreen('journal')} onOpenCanal={() => setScreen('canal')} onCompartilhar={() => setScreen('compartilhar')} onAddChild={() => setModal('child')} onSelectChild={setActiveId} onOpenChild={abrirCrianca} onBaixarResumo={baixarResumo} onReavaliacao={(cid, alvo) => { setActiveId(cid); abrirReavaliacao(alvo); }} onSaibaMais={() => setModal('saiba')} />}
+          {screen === 'form' && activeChild && !acompanhante && <ChildForm key={activeChild.id} child={activeChild} relationship={activeEstado?.parentesco || sessao?.parentesco || ''} onBack={voltar} onSubmit={generateAssessment} />}
+          {screen === 'form-reavaliacao' && activeChild && reavForm && !acompanhante && <ChildForm key={`reav-${activeChild.id}`} modo="reavaliacao" child={activeChild} initialPayload={reavForm.payload} relationship={activeEstado?.parentesco || sessao?.parentesco || ''} onBack={() => { setReavForm(null); setScreen('painel'); }} onSubmit={enviarReavaliacao} />}
+          {screen === 'form' && !activeChild && <EmptyChild onAdd={() => setModal('child')} />}
+          {screen === 'agente' && sessaoAgente && <Agente sessaoId={sessaoAgente} nomeCrianca={activeChild?.name} podeResponder={!acompanhante} onVoltar={voltar} onConcluida={(avId) => { setAvaliacaoVista(avId); setScreen('proposta'); recarregar(); }} />}
+          {screen === 'proposta' && avaliacaoVista && <Proposta avaliacaoId={avaliacaoVista} podeDecidir={!acompanhante} onVoltar={() => { recarregar(); if (vigente) setScreen('painel'); else voltar(); }}
+            onAjuste={(sid) => { setSessaoAgente(sid); setScreen('agente'); }}
+            onAprovada={async () => { const eraVigente = vigente; await recarregar(); setAbaPainel('geral'); setScreen('painel'); setNotice(eraVigente ? 'Nova versão aprovada! A evolução fica em “Perfil e versões”.' : 'Perfil aprovado! Este é o painel de acompanhamento.'); }} />}
+          {screen === 'painel' && activeChild && <Painel criancaId={activeChild.id} sessao={sessao} abaInicial={abaPainel} onVoltar={voltar} onAviso={setNotice} onVerVersao={(id) => { setAvaliacaoVista(id); setScreen('proposta'); }} onReavaliacao={abrirReavaliacao} onAtualizarFormulario={atualizarFormulario} onBaixarResumo={() => baixarResumo(activeChild.id)} onCompartilhar={() => setScreen('compartilhar')} />}
+          {screen === 'journal' && activeChild && <ChildJournal child={activeChild} sessao={sessao} onBack={voltar} onAviso={setNotice} />}
+          {screen === 'canal' && activeChild && <div className="page-wrap pp"><button className="back-link" onClick={voltar}><ArrowLeft size={16} /> Voltar à visão geral</button><Canal criancaId={activeChild.id} nomeCrianca={activeChild.name} onCompartilhar={acompanhante ? null : () => setScreen('compartilhar')} /></div>}
+          {screen === 'compartilhar' && activeChild && !acompanhante && <Compartilhar crianca={activeChild} onVoltar={voltar} onAviso={setNotice} />}
+        </>}
       </main>
-      {modal === 'child' && <ChildModal onClose={() => setModal('')} onSave={saveChild} />}
-      {notice && <div className="toast"><Check size={16} />{notice}</div>}
-      <footer className="global-footer">Demonstração • Dados no banco local (SQLite) • Use dados fictícios • {sessao && <button onClick={sair}>Sair</button>}</footer>
+      {modal === 'child' && <ChildModal vinculo={sessao?.parentesco} onClose={() => setModal('')} onSave={saveChild} />}
+      {modal === 'saiba' && <SaibaMais onFechar={() => setModal('')} />}
+      {notice && <div className="toast" role="status"><Check size={16} />{notice}</div>}
     </div>
   );
 }
 
-function Welcome({ onChoose, hasAccount, onContinue, onDemo, onDemoProfessor }) {
+function Welcome({ onCriarConta, onEntrar, hasAccount, onContinue, onDemo, onDemoProfessor, onSaibaMais }) {
   const [entrando, setEntrando] = useState(false);
   const demo = (fn) => async () => { setEntrando(true); try { await fn(); } catch (e) { window.alert(e.message); setEntrando(false); } };
   return <div className="welcome-wrap">
-    <header className="welcome-header"><div className="brand"><span className="brand-mark"><Heart size={19} fill="currentColor" /></span><span>PLACEHOLDER<span className="brand-dot">.</span></span></div><span className="demo-tag"><span /> Ambiente de demonstração</span></header>
-    <section className="hero"><div className="hero-copy"><div className="eyebrow"><Sparkles size={15} /> DESENVOLVIMENTO COM CUIDADO</div><h1>Cada criança tem<br />seu próprio <em>jeito de florescer.</em></h1><p>Um espaço para família e escola observarem conquistas, compreenderem necessidades e combinarem próximos passos, juntos.</p><div className="hero-actions"><button className="btn-primary" onClick={() => onChoose('responsavel')}>Começar como responsável <ArrowRight size={17} /></button><button className="btn-secondary" disabled={entrando} onClick={demo(onDemo)}><Sparkles size={16} /> {entrando ? 'Preparando…' : 'Entrar na demonstração (família da Lia)'}</button><button className="btn-secondary" disabled={entrando} onClick={demo(onDemoProfessor)}><School size={16} /> Entrar como professora (demo)</button>{hasAccount && <button className="btn-text" onClick={onContinue}>Continuar de onde parei</button>}</div><div className="hero-proof"><span><ShieldCheck size={16} /> Foco no bem-estar da criança</span><span><Users size={16} /> Família e escola em parceria</span></div></div><div className="hero-art"><div className="sun" /><div className="art-note note-one"><span>🌼</span><b>Pequenos passos,<br />grandes descobertas</b></div><div className="art-card"><div className="art-card-head"><span className="art-avatar">✿</span><span><small>UM DIA DE CADA VEZ</small><b>O que já está florescendo?</b></span></div><div className="growth-row"><i>💬</i><span><b>Comunicação</b><small>Expressa escolhas</small></span><span className="growth-pill">+ progresso</span></div><div className="growth-row"><i>🧩</i><span><b>Aprendizagem</b><small>Curiosidade por histórias</small></span><span className="growth-pill">✦ força</span></div><div className="art-footer"><span>Seu ritmo também é progresso.</span><Heart size={15} /></div></div><div className="art-flower flower-a">✿</div><div className="art-flower flower-b">✿</div><div className="art-note note-two">🌱 <span>Juntos, com<br />mais acolhimento</span></div></div></section>
-    <section className="choose-section"><div><span className="section-kicker">VAMOS COMEÇAR?</span><h2>Como você participa desse cuidado?</h2><p>Escolha seu perfil para criar um espaço de acompanhamento.</p></div><div className="role-cards"><button className="role-card" onClick={() => onChoose('responsavel')}><span className="role-icon parent-icon"><Heart size={21} /></span><span className="role-text"><b>Sou responsável</b><small>Quero acompanhar o desenvolvimento da criança</small></span><ArrowRight size={18} /></button><button className="role-card" onClick={() => onChoose('professor')}><span className="role-icon teacher-icon"><BookOpen size={21} /></span><span className="role-text"><b>Sou professor(a)</b><small>Quero apoiar as crianças da minha turma</small></span><ArrowRight size={18} /></button></div></section>
+    <header className="welcome-header"><div className="brand brand-completa"><span className="brand-mark"><Heart size={19} fill="currentColor" /></span><span className="brand-nome">AjudaP<span className="brand-dot">.ai</span></span><span className="brand-tagline">Acompanhamento e Suporte</span></div>
+      <div className="welcome-header-acoes"><button className="btn-text" onClick={onSaibaMais}>Saiba mais</button>{hasAccount ? <button className="btn-secondary" onClick={onContinue}>Continuar <ArrowRight size={15} /></button> : <button className="btn-secondary" onClick={onEntrar}><LogIn size={15} /> Entrar</button>}</div></header>
+    <section className="hero"><div className="hero-copy"><div className="eyebrow"><Sparkles size={15} /> DESENVOLVIMENTO COM CUIDADO</div><h1>Cada criança tem<br />seu próprio <em>jeito de florescer.</em></h1><p>Um espaço para a família, a escola e os profissionais observarem conquistas, compreenderem necessidades e combinarem próximos passos, juntos.</p>
+      <div className="hero-actions"><button className="btn-primary" onClick={() => onCriarConta('responsavel')}>Criar conta <ArrowRight size={17} /></button><button className="btn-secondary" onClick={onEntrar}><LogIn size={16} /> Já tenho conta</button></div>
+      <div className="hero-demo"><span>Experimente sem cadastro:</span><button className="btn-text" disabled={entrando} onClick={demo(onDemo)}><Sparkles size={15} /> {entrando ? 'Preparando…' : 'Família da Lia (responsável)'}</button><button className="btn-text" disabled={entrando} onClick={demo(onDemoProfessor)}><School size={15} /> Professora Carla (acompanhante)</button></div>
+      <div className="hero-proof"><span><ShieldCheck size={16} /> Foco no bem-estar da criança</span><span><Users size={16} /> Família, escola e saúde em parceria</span></div></div><div className="hero-art"><div className="sun" /><div className="art-note note-one"><span className="art-ic flor"><Flower2 size={20} /></span><b>Pequenos passos,<br />grandes descobertas</b></div><div className="art-card"><div className="art-card-head"><span className="art-avatar"><Flower2 size={22} /></span><span><small>UM DIA DE CADA VEZ</small><b>O que já está florescendo?</b></span></div><div className="growth-row"><i><MessageCircle size={17} /></i><span><b>Comunicação</b><small>Expressa escolhas</small></span><span className="growth-pill">+ progresso</span></div><div className="growth-row"><i><Puzzle size={17} /></i><span><b>Aprendizagem</b><small>Curiosidade por histórias</small></span><span className="growth-pill">+ força</span></div><div className="art-footer"><span>Seu ritmo também é progresso.</span><Heart size={15} /></div></div><div className="art-flower flower-a"><Flower2 size={34} /></div><div className="art-flower flower-b"><Flower2 size={30} /></div><div className="art-note note-two"><span className="art-ic broto"><Sprout size={18} /></span> <span>Juntos, com<br />mais acolhimento</span></div></div></section>
+    <section className="choose-section"><div><span className="section-kicker">VAMOS COMEÇAR?</span><h2>Como você participa desse cuidado?</h2><p>Escolha como quer criar a sua conta.</p></div><div className="role-cards"><button className="role-card" onClick={() => onCriarConta('responsavel')}><span className="role-icon parent-icon"><Heart size={21} /></span><span className="role-text"><b>Sou responsável pela criança</b><small>Mãe, pai, avó, tutor legal ou cuidador: cadastro a criança e decido quem acompanha</small></span><ArrowRight size={18} /></button><button className="role-card" onClick={() => onCriarConta('acompanhante')}><span className="role-icon teacher-icon"><BookOpen size={21} /></span><span className="role-text"><b>Acompanho uma criança</b><small>Professor, pedagogo, médico, terapeuta ou familiar convidado pelo responsável</small></span><ArrowRight size={18} /></button></div></section>
     <div className="welcome-bottom"><span>Construído para apoiar, nunca para rotular.</span><span>Privacidade e respeito em cada etapa <ShieldCheck size={15} /></span></div>
   </div>;
 }
 
-function Signup({ kind, onBack, onSave }) {
-  const parent = kind === 'responsavel';
-  const [erro, setErro] = useState('');
-  async function submit(event) { event.preventDefault(); setErro(''); const values = Object.fromEntries(new FormData(event.currentTarget)); try { await onSave(values); } catch (e) { setErro(e.message); } }
-  return <section className="page-wrap narrow-page"><button className="back-link" onClick={onBack}><ArrowLeft size={16} /> Voltar</button><div className="form-heading"><span className={`step-icon ${parent ? 'parent-icon' : 'teacher-icon'}`}>{parent ? <Heart size={20} /> : <School size={20} />}</span><span className="section-kicker">CRIAR CONTA DE {parent ? 'RESPONSÁVEL' : 'PROFESSOR(A)'}</span><h1>Vamos nos conhecer.</h1><p>Este perfil ajuda a organizar o acompanhamento nesta demonstração.</p></div><form className="panel signup-panel" onSubmit={submit}><div className="field-grid"><label>Nome completo<input name="nome" placeholder="Como podemos chamar você?" required /></label><label>E-mail<input name="email" type="email" placeholder="voce@email.com" required pattern="[^@\s]+@[^@\s]+\.[^@\s]+" title="Use o formato nome@dominio.com (com ponto depois do @)" /></label>{parent ? <><label>Telefone <span className="optional">opcional</span><input name="telefone" type="tel" placeholder="(00) 00000-0000" /></label><label>Parentesco<input name="parentesco" placeholder="Ex.: mãe, pai, avó" required /></label></> : <><label>Escola<input name="escola" placeholder="Nome da escola" required /></label><label>Turma<input name="turma" placeholder="Ex.: 2º ano A" required /></label></>}</div><div className="privacy-callout"><ShieldCheck size={18} /><span><b>Privacidade na demonstração</b><small>Os dados ficam no banco local da plataforma. Use dados fictícios.</small></span></div>{erro && <div className="questionnaire-error">{erro}</div>}<button className="btn-primary full-button" type="submit">Criar meu espaço <ArrowRight size={17} /></button></form><p className="mock-note">Demonstração: não há senha nem envio de e-mail; o e-mail identifica a sua conta.</p></section>;
-}
-
 const ETAPA_ROTULO = { formulario: 'Começar', formulario_enviado: 'Enviado', analise: 'Em análise', proposta: 'Revisar', vigente: 'Plano' };
 
-function Dashboard({ role, criancas, activeEstado, onOpenJournal, onAddChild, onSelectChild, onOpenChild, onReavaliacao, onTeacherChild }) {
+function Dashboard({ role, funcao, nome, criancas, convites, activeEstado, onResponderConvite, onOpenJournal, onOpenCanal, onCompartilhar, onAddChild, onSelectChild, onOpenChild, onBaixarResumo, onReavaliacao, onSaibaMais }) {
   const teacher = role === 'professor';
   const activeChild = activeEstado?.crianca;
   const etapa = activeEstado?.etapa;
-  return <div className="page-wrap dashboard-page"><header className="topbar"><div><span className="section-kicker">{teacher ? 'ESPAÇO DA ESCOLA' : 'ESPAÇO DA FAMÍLIA'}</span><h1>{teacher ? 'Olá, professor(a).' : 'Olá, que bom ter você aqui.'}</h1><p>Um passo de cada vez, com atenção ao que faz cada criança única.</p></div><span className="today-chip"><span className="status-dot" /> Demonstração ativa</span></header>
-    {teacher ? <div className="teacher-banner"><div className="banner-symbol"><School size={24} /></div><div><b>Seu espaço de turma</b><p>Aqui aparecem as crianças vinculadas à sua turma. Abra cada uma para ler o perfil, registrar o que observa na escola, contar quais estratégias do plano funcionaram e conversar com o assistente. O perfil e as metas ficam com a família, e seus registros entram nas reavaliações.</p></div><button className="btn-secondary" onClick={onTeacherChild}><CircleHelp size={16} /> Como funciona</button></div> : null}
-    <div className="dash-section-title"><div><h2>{teacher ? 'Crianças acompanhadas' : 'Seu acompanhamento'}</h2><p>{criancas.length ? `${criancas.length} perfil${criancas.length > 1 ? 's' : ''}` : teacher ? 'Nenhuma criança vinculada à sua turma ainda.' : 'Comece criando um perfil para a criança.'}</p></div>{!teacher && <button className="btn-secondary" onClick={onAddChild}><Plus size={17} /> Adicionar criança</button>}</div>
-    {!criancas.length ? <div className="empty-card"><span className="empty-illustration">🌱</span><h3>Um novo começo começa por aqui.</h3><p>{teacher ? 'Quando um responsável vincular a criança à sua turma, ela aparece aqui.' : 'Crie um perfil simples para iniciar o formulário e construir as primeiras metas de acompanhamento.'}</p>{!teacher && <button className="btn-primary" onClick={onAddChild}><Plus size={17} /> Cadastrar criança</button>}</div> : <div className="dashboard-grid"><div className="children-list panel"><div className="panel-heading"><span><Users size={17} /> PERFIS</span>{!teacher && <button className="icon-button" onClick={onAddChild} title="Adicionar criança"><Plus size={18} /></button>}</div>{criancas.map(({ crianca: child, etapa: e }) => <button className={`child-row ${activeChild?.id === child.id ? 'active' : ''}`} key={child.id} onClick={() => onSelectChild(child.id)}><span className="child-avatar">{child.nome?.slice(0, 1).toUpperCase()}</span><span className="child-row-text"><b>{child.nome}</b><small>{ageText(child.data_nascimento)} {child.interesses?.length ? `· ${child.interesses.slice(0, 2).join(', ')}` : ''}</small></span><span className={`mini-status ${e === 'vigente' ? 'has-plan' : ''}`}>{ETAPA_ROTULO[e]}</span></button>)}</div>
+  const primeiroNome = (nome || '').split(' ')[0];
+  return <div className="page-wrap dashboard-page"><header className="topbar"><div><span className="section-kicker">{teacher ? `ESPAÇO DO ACOMPANHANTE · ${rotuloFuncao(funcao).toUpperCase()}` : 'ESPAÇO DA FAMÍLIA'}</span><h1>Olá, {primeiroNome || 'que bom ter você aqui'}.</h1><p>Um passo de cada vez, com atenção ao que faz cada criança única.</p></div><span className="today-chip"><span className="status-dot" /> Demonstração ativa</span></header>
+    {teacher && <div className="teacher-banner"><div className="banner-symbol"><School size={24} /></div><div><b>Crianças compartilhadas com você</b><p>Aqui aparecem as crianças cujo responsável compartilhou o perfil com o seu e-mail. Abra cada uma para ler o perfil, registrar o que você observa, contar quais estratégias funcionaram, falar com a família no canal e conversar com o assistente. O perfil e as metas ficam com a família, e seus registros entram nas reavaliações.</p></div><button className="btn-secondary" onClick={onSaibaMais}><CircleHelp size={16} /> Como funciona</button></div>}
+    {teacher && !!convites.length && <section className="panel convites"><div className="panel-heading"><span><UserPlus size={17} /> CONVITES PARA ACOMPANHAR</span></div>
+      {convites.map((c) => <div key={c.id} className="convite-linha"><span className="child-avatar">{c.crianca_nome.slice(0, 1)}</span><span><b>{c.crianca_nome}</b><small>{c.responsavel_nome} convidou você como {c.funcao_rotulo.toLowerCase()}</small></span>
+        <button className="btn-secondary" onClick={() => onResponderConvite(c, false)}>Recusar</button><button className="btn-primary" onClick={() => onResponderConvite(c, true)}><Check size={15} /> Aceitar</button></div>)}</section>}
+    <div className="dash-section-title"><div><h2>{teacher ? 'Crianças que você acompanha' : 'Seu acompanhamento'}</h2><p>{criancas.length ? `${criancas.length} perfil${criancas.length > 1 ? 's' : ''}` : teacher ? 'Nenhuma criança compartilhada com você ainda.' : 'Comece criando um perfil para a criança.'}</p></div>{!teacher && <button className="btn-secondary" onClick={onAddChild}><Plus size={17} /> Adicionar criança</button>}</div>
+    {!criancas.length ? <div className="empty-card"><span className="empty-illustration"><Sprout size={30} /></span><h3>{teacher ? 'Aguardando um convite.' : 'Um novo começo começa por aqui.'}</h3><p>{teacher ? 'Peça ao responsável pela criança para compartilhar o perfil com o e-mail da sua conta. O convite aparece aqui para você aceitar.' : 'Crie um perfil simples para iniciar o formulário e construir as primeiras metas de acompanhamento.'}</p>{!teacher && <button className="btn-primary" onClick={onAddChild}><Plus size={17} /> Cadastrar criança</button>}</div> : <div className="dashboard-grid"><div className="children-list panel"><div className="panel-heading"><span><Users size={17} /> PERFIS</span>{!teacher && <button className="icon-button" onClick={onAddChild} title="Adicionar criança"><Plus size={18} /></button>}</div>{criancas.map(({ crianca: child, etapa: e, funcao_rotulo: fr }) => <button className={`child-row ${activeChild?.id === child.id ? 'active' : ''}`} key={child.id} onClick={() => onSelectChild(child.id)}><span className="child-avatar">{child.nome?.slice(0, 1).toUpperCase()}</span><span className="child-row-text"><b>{child.nome}</b><small>{ageText(child.data_nascimento)}{teacher && fr ? ` · você: ${fr.toLowerCase()}` : child.interesses?.length ? ` · ${child.interesses.slice(0, 2).join(', ')}` : ''}</small></span><span className={`mini-status ${e === 'vigente' ? 'has-plan' : ''}`}>{ETAPA_ROTULO[e]}</span></button>)}</div>
       <div className="overview-card panel">{activeChild ? <><div className="overview-head"><div><span className="section-kicker">PERFIL DA CRIANÇA</span><h3>{activeChild.nome}</h3><p>{ageText(activeChild.data_nascimento)}{activeChild.interesses?.length ? ` · Gosta de ${activeChild.interesses.join(', ')}` : ''}</p></div><span className="child-avatar large">{activeChild.nome?.slice(0, 1).toUpperCase()}</span></div><div className="overview-divider" />
+        <div className="overview-acoes">
         {etapa === 'vigente' && <><div className="plan-summary"><span className="summary-icon"><Sparkles size={19} /></span><span><b>Plano de acompanhamento</b><small>{activeEstado.metas} metas · versão {activeEstado.versoes_aprovadas} do perfil</small></span><span className="plan-state accepted">{activeEstado.reavaliacao ? 'Em reavaliação' : 'Em acompanhamento'}</span></div>
-          {activeEstado.reavaliacao && !teacher && <button className="btn-secondary full-button journal-open-button" onClick={() => onReavaliacao(activeChild.id, activeEstado.reavaliacao.etapa === 'proposta' ? { avaliacao_id: activeEstado.reavaliacao.avaliacao_id } : { sessao_id: activeEstado.reavaliacao.sessao_id })}><Sparkles size={16} /> {activeEstado.reavaliacao.etapa === 'proposta' ? 'Revisar a nova versão do perfil' : 'Acompanhar a reavaliação'}</button>}<button className="btn-primary full-button" onClick={() => onOpenChild(activeChild.id)}>Abrir painel <ArrowRight size={17} /></button><button className="btn-secondary full-button journal-open-button" onClick={() => onOpenChild(activeChild.id, 'chat')}><Sparkles size={16} /> Conversar sobre {activeChild.nome}</button></>}
+          {activeEstado.reavaliacao && !teacher && <button className="btn-secondary full-button" onClick={() => onReavaliacao(activeChild.id, activeEstado.reavaliacao.etapa === 'proposta' ? { avaliacao_id: activeEstado.reavaliacao.avaliacao_id } : { sessao_id: activeEstado.reavaliacao.sessao_id })}><Sparkles size={16} /> {activeEstado.reavaliacao.etapa === 'proposta' ? 'Revisar a nova versão do perfil' : 'Acompanhar a reavaliação'}</button>}
+          <button className="btn-primary full-button" onClick={() => onOpenChild(activeChild.id)}>Abrir painel <ArrowRight size={17} /></button>
+          <div className="botoes-duplos"><button className="btn-secondary" onClick={() => onOpenChild(activeChild.id, 'chat')}><Sparkles size={16} /> Assistente (IA)</button><button className="btn-secondary" onClick={() => onBaixarResumo(activeChild.id)}><Download size={16} /> Resumo em PDF</button></div></>}
         {etapa === 'proposta' && <><div className="plan-summary"><span className="summary-icon"><Sparkles size={19} /></span><span><b>Proposta de perfil</b><small>O agente terminou. {teacher ? 'Aguardando a família aprovar.' : 'Leia, peça ajustes ou aprove.'}</small></span><span className="plan-state">Para revisar</span></div><button className="btn-primary full-button" onClick={() => onOpenChild(activeChild.id)}>{teacher ? 'Ver proposta (somente leitura)' : 'Ver proposta'} <ArrowRight size={17} /></button></>}
         {etapa === 'analise' && <><div className="plan-summary"><span className="summary-icon"><Sparkles size={19} /></span><span><b>Mapeamento em andamento</b><small>{teacher ? 'O agente está analisando o formulário da família.' : 'O agente está analisando o formulário (pode ter uma pergunta para você).'}</small></span><span className="plan-state">Em análise</span></div>{!teacher && <button className="btn-primary full-button" onClick={() => onOpenChild(activeChild.id)}>Acompanhar <ArrowRight size={17} /></button>}</>}
-        {teacher && ['formulario', 'formulario_enviado'].includes(etapa) && <div className="start-assessment"><span className="start-icon"><ClipboardList size={23} /></span><h3>Perfil em construção pela família.</h3><p>Quando a família aprovar o perfil, você verá as áreas, as metas e as dicas. Enquanto isso, já dá para registrar observações da escola.</p></div>}
-        {!teacher && etapa === 'formulario_enviado' && <><div className="start-assessment"><span className="start-icon"><ClipboardList size={23} /></span><h3>Formulário recebido.</h3><p>Falta gerar o mapeamento de perfil com o agente.</p><button className="btn-primary" onClick={() => onOpenChild(activeChild.id)}>Gerar mapeamento <ArrowRight size={17} /></button></div></>}
-        {!teacher && etapa === 'formulario' && <><div className="start-assessment"><span className="start-icon"><ClipboardList size={23} /></span><h3>Vamos conhecer o momento atual?</h3><p>Responda sobre interesses, rotina e experiências. Não precisa saber tudo: cada observação ajuda a construir um primeiro retrato.</p><button className="btn-primary" onClick={() => onOpenChild(activeChild.id)}>Começar formulário <ArrowRight size={17} /></button></div><div className="form-meta"><span><span className="tiny-dot green-dot" /> Cerca de 5 minutos</span><span><ShieldCheck size={14} /> Depois, um agente de IA monta o perfil</span></div></>}
-        <button className="btn-secondary full-button journal-open-button" onClick={onOpenJournal}><MessageCircle size={16} /> Diário e dúvidas</button></> : null}</div></div>}
-    <div className="support-strip"><span className="support-icon"><Heart size={18} /></span><span><b>O desenvolvimento não é uma corrida.</b><small>Este espaço organiza observações e ideias para apoiar conversas entre família e escola.</small></span><button className="quiet-link" onClick={() => window.alert('O perfil e as metas são propostas de um agente de IA, revisadas pela família. Não substituem avaliação profissional.')}>Saiba mais <ArrowRight size={14} /></button></div>
+        {teacher && ['formulario', 'formulario_enviado'].includes(etapa) && <div className="start-assessment"><span className="start-icon"><ClipboardList size={23} /></span><h3>Perfil em construção pela família.</h3><p>Quando a família aprovar o perfil, você verá as áreas, as metas e as dicas. Enquanto isso, já dá para registrar observações e conversar no canal.</p></div>}
+        {!teacher && etapa === 'formulario_enviado' && <div className="start-assessment"><span className="start-icon"><ClipboardList size={23} /></span><h3>Formulário recebido.</h3><p>Falta gerar o mapeamento de perfil com o agente.</p><button className="btn-primary" onClick={() => onOpenChild(activeChild.id)}>Gerar mapeamento <ArrowRight size={17} /></button></div>}
+        {!teacher && etapa === 'formulario' && <><div className="start-assessment"><span className="start-icon"><ClipboardList size={23} /></span><h3>Vamos conhecer o momento atual?</h3><p>Responda sobre interesses, rotina e experiências. Não precisa saber tudo: cada observação ajuda a construir um primeiro retrato.</p><button className="btn-primary" onClick={() => onOpenChild(activeChild.id)}>Começar formulário <ArrowRight size={17} /></button></div><div className="form-meta"><span><span className="tiny-dot green-dot" /> De 15 a 25 minutos</span><span><ShieldCheck size={14} /> Depois, um agente de IA monta o perfil</span></div></>}
+        <div className="botoes-duplos"><button className="btn-secondary" onClick={onOpenCanal}><MessagesSquare size={16} /> Canal da equipe</button><button className="btn-secondary" onClick={onOpenJournal}><MessageCircle size={16} /> Diário e dúvidas</button></div>
+        {!teacher && <button className="btn-text full-button" onClick={onCompartilhar}><UserPlus size={16} /> Compartilhar com professores, médicos e familiares</button>}
+        </div></> : null}</div></div>}
+    <div className="support-strip"><span className="support-icon"><Heart size={18} /></span><span><b>O desenvolvimento não é uma corrida.</b><small>Este espaço organiza observações e ideias para apoiar conversas entre família, escola e profissionais.</small></span><button className="quiet-link" onClick={onSaibaMais}>Saiba mais <ArrowRight size={14} /></button></div>
   </div>;
 }
 
-function ChildForm({ child, initialPayload = null, relationship, informante, onBack, onSubmit }) {
+const PERFIL_VAZIO = {
+  prioridades: '', idiomas: '', prematuridade: 'nao_sei', perda_habilidades: 'nao_sei',
+  condicoes_relatadas: [], outra_condicao: '', documento_comprobatorio: 'nao_sei', tipo_documento: '', observacoes_saude: '',
+};
+
+/** Formulário de 14 áreas. Em `modo="reavaliacao"` abre com as últimas respostas para atualizar o que mudou. */
+function ChildForm({ child, initialPayload = null, relationship, modo = 'inicial', onBack, onSubmit }) {
+  const reav = modo === 'reavaliacao';
   const [usouExemplo, setUsouExemplo] = useState(false);
-  const [step, setStep] = useState(() => initialPayload ? 15 : 0);
-  const [profile, setProfile] = useState(() => initialPayload?.perfil || ({
+  const [step, setStep] = useState(0);
+  const [profile, setProfile] = useState(() => initialPayload ? {
+    ...PERFIL_VAZIO, ...initialPayload.perfil,
+    apelido: child.name, idade_meses: ageMonthsFromBirth(child.birthDate), // a idade é a de hoje
+    ano_escolar: initialPayload.perfil.ano_escolar ? String(initialPayload.perfil.ano_escolar) : '',
+    vinculo: initialPayload.perfil.vinculo || relationship,
+  } : ({
     apelido: child.name,
     idade_meses: ageMonthsFromBirth(child.birthDate),
     ano_escolar: '',
@@ -195,7 +296,8 @@ function ChildForm({ child, initialPayload = null, relationship, informante, onB
     condicoes_relatadas: [], outra_condicao: '', documento_comprobatorio: 'nao_sei', tipo_documento: '', observacoes_saude: '',
   }));
   const [answers, setAnswers] = useState(initialPayload?.respostas || {});
-  const [contexts, setContexts] = useState(initialPayload?.dominios || {});
+  const [contexts, setContexts] = useState(() => Object.fromEntries(Object.entries(initialPayload?.dominios || {})
+    .map(([k, v]) => [k, { ...emptyDomainContext(), ...v }])));
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -245,9 +347,10 @@ function ChildForm({ child, initialPayload = null, relationship, informante, onB
   async function finish() {
     if (!consent) { setError('Confirme que revisou as informações e autoriza o registro local da demonstração.'); return; }
     setBusy(true); setError('');
+    const ids = new Set(schema.dominios.flatMap((d) => d.perguntas.map((q) => q.id)));
     const payload = {
       versao: schema.versao,
-      informante,
+      informante: 'responsavel',
       perfil: {
         ...profile,
         idade_meses: Number(profile.idade_meses),
@@ -255,7 +358,7 @@ function ChildForm({ child, initialPayload = null, relationship, informante, onB
         interesses: profile.interesses || '',
         condicoes_relatadas: profile.condicoes_relatadas,
       },
-      respostas: answers,
+      respostas: Object.fromEntries(Object.entries(answers).filter(([id]) => ids.has(id))), // só as perguntas da idade atual
       dominios: Object.fromEntries(schema.dominios.map((domain) => [domain.id, contexts[domain.id] || emptyDomainContext()])),
     };
     try { await onSubmit(payload, { demo: usouExemplo }); }
@@ -266,10 +369,22 @@ function ChildForm({ child, initialPayload = null, relationship, informante, onB
   const sectionName = step === 0 ? 'Conhecendo a criança' : step === 15 ? 'Revisão' : DOMAIN_META[current?.id]?.label || 'Área';
   const progress = step === 0 ? 0 : step === 15 ? 100 : Math.round((step / 15) * 100);
   return <div className="page-wrap questionnaire-page">
-    <button className="back-link" onClick={onBack}><ArrowLeft size={16} /> Voltar ao perfil</button>
-    <div className="questionnaire-header"><div><span className="section-kicker">FORMULÁRIO INICIAL · {child.name.toUpperCase()}</span><h1>Um retrato amplo, feito com escuta.</h1><p>Observe habilidades, interesses, apoios e barreiras em diferentes situações. Este formulário não diagnostica nem mede o potencial da criança.</p></div><div className="questionnaire-status"><span>ETAPA {step === 0 ? '1' : step === 15 ? '16' : step + 1} DE 16</span><b>{sectionName}</b></div></div>
+    <button className="back-link" onClick={onBack}><ArrowLeft size={16} /> {reav ? 'Cancelar e voltar ao painel' : 'Voltar ao perfil'}</button>
+    <div className="questionnaire-header"><div><span className="section-kicker">{reav ? 'ATUALIZAÇÃO PARA A REAVALIAÇÃO' : 'FORMULÁRIO INICIAL'} · {child.name.toUpperCase()}</span><h1>{reav ? 'O que mudou desde a última vez?' : 'Um retrato amplo, feito com escuta.'}</h1><p>{reav ? 'As respostas anteriores já estão preenchidas. Revise cada área e atualize o que mudou; as perguntas novas da idade atual aparecem em branco.' : 'Observe habilidades, interesses, apoios e barreiras em diferentes situações. Este formulário não diagnostica nem mede o potencial da criança.'}</p></div><div className="questionnaire-status"><span>ETAPA {step === 0 ? '1' : step === 15 ? '16' : step + 1} DE 16</span><b>{sectionName}</b></div></div>
     <div className="questionnaire-progress"><div><span>PROGRESSO</span><span>{progress}%</span></div><div className="progress-track"><i style={{ width: `${progress}%` }} /></div></div>
     {error && <div className="questionnaire-error" role="alert">{error}</div>}
+
+    {step === 0 && !reav && <section className="pp-como-funciona panel">
+      <span className="section-kicker"><Info size={13} /> ANTES DE COMEÇAR · COMO FUNCIONA</span>
+      <h2>O que acontece com as suas respostas</h2>
+      <ol className="pp-etapas">
+        <li><b>Você responde</b><span>Dados iniciais e 14 áreas do desenvolvimento, com perguntas para a idade da criança. Leva de 15 a 25 minutos e dá para voltar e editar.</span></li>
+        <li><b>A IA organiza</b><span>Um agente lê tudo, consulta materiais oficiais e monta uma proposta de perfil com metas e dicas. Se faltar algo importante, ele pergunta para você.</span></li>
+        <li><b>Você decide</b><span>Você lê a proposta, pede ajustes e só então aprova. Depois, pode compartilhar com a escola e outros profissionais.</span></li>
+      </ol>
+      <div className="pp-importante"><MessageCircle size={18} /><div><b>Quanto mais completo, melhor o resultado</b><p>Os campos de texto são a parte mais valiosa para o agente. Conte exemplos do dia a dia, o que já funciona e o que ainda é difícil. Responder só “sim” ou “não” gera um perfil mais genérico. Se não souber algo, marque “Não sei”: isso não conta como dificuldade.</p></div></div>
+    </section>}
+    {step === 0 && reav && <div className="pp-importante reav"><Info size={18} /><div><b>Atualize com calma</b><p>Revise os dados iniciais e passe por cada área. Mude só o que mudou e acrescente exemplos novos: eles ajudam o agente a mostrar a evolução. Na revisão final, você confere tudo antes de enviar.</p></div></div>}
 
     {step === 0 && <section className="questionnaire-card panel">
       <span className="section-kicker">01 / CONHECENDO A CRIANÇA</span><h2>Começamos pelo contexto de vocês.</h2><p className="questionnaire-lead">As respostas são relatos da família. “Não sei” ou “não se aplica” são opções válidas; não transformam falta de informação em dificuldade.</p>
@@ -302,22 +417,23 @@ function ChildForm({ child, initialPayload = null, relationship, informante, onB
         <label className="long-answer">Há alguma recomendação, adaptação ou informação do documento que você queira resumir?<textarea maxLength={2000} value={profile.observacoes_saude} onChange={(event) => setProfileValue('observacoes_saude', event.target.value)} placeholder="Opcional. Não inclua números de documentos, dados de terceiros ou informações que não sejam necessárias." /></label>
         <div className="questionnaire-notice"><ShieldCheck size={17} /> Nesta demonstração não há envio de arquivo. Use somente dados fictícios; não digite laudos reais. Informação de saúde é sensível e exige proteção e base legal adequada antes de uso real.</div>
       </div>
-      <div className="questionnaire-notice"><Sparkles size={17} /> <span><b>Demonstração:</b> não quer digitar? <button type="button" className="btn-text" onClick={preencherExemplo}>Preencher com respostas de exemplo</button> (criança de 3 anos e 2 meses; o agente fará uma pergunta extra).</span></div><div className="form-actions"><div><button className="btn-primary" onClick={startObservations}>Começar observações <ArrowRight size={16} /></button><small className="field-hint">Obrigatórios: nome, idade em meses, vínculo e prioridade da família.</small></div></div>
+      {!reav && <div className="questionnaire-notice"><Sparkles size={17} /> <span><b>Demonstração:</b> não quer digitar? <button type="button" className="btn-text" onClick={preencherExemplo}>Preencher com respostas de exemplo</button> (criança de 3 anos e 2 meses; o agente fará uma pergunta extra).</span></div>}<div className="form-actions"><div><button className="btn-primary" onClick={startObservations}>Começar observações <ArrowRight size={16} /></button><small className="field-hint">Obrigatórios: nome, idade em meses, vínculo e prioridade da família.</small></div></div>
     </section>}
 
-    {current && <section className="questionnaire-card panel"><div className="domain-intro"><span className="domain-emoji">{DOMAIN_META[current.id]?.icon}</span><div><span className="section-kicker">ÁREA {step} DE 14 · {current.natureza === 'contextual' ? 'RELATO CONTEXTUAL' : 'OBSERVAÇÃO POR IDADE'}</span><h2>{current.nome}</h2><p>{current.faixa_referencia_meses ? `Perguntas de referência: ${current.faixa_referencia_meses} meses (${Math.floor(current.faixa_referencia_meses / 12)} anos${current.faixa_referencia_meses % 12 ? ` e ${current.faixa_referencia_meses % 12} meses` : ''}).` : 'Esta área é registrada pelo contexto e impacto no cotidiano, sem classificação por marcos etários.'}</p></div></div>
+    {current && <section className="questionnaire-card panel"><div className="domain-intro"><span className="domain-emoji"><IconeDominio codigo={current.id} size={22} /></span><div><span className="section-kicker">ÁREA {step} DE 14 · {current.natureza === 'contextual' ? 'RELATO CONTEXTUAL' : 'OBSERVAÇÃO POR IDADE'}</span><h2>{current.nome}</h2><p>{current.faixa_referencia_meses ? `Perguntas de referência: ${current.faixa_referencia_meses} meses (${Math.floor(current.faixa_referencia_meses / 12)} anos${current.faixa_referencia_meses % 12 ? ` e ${current.faixa_referencia_meses % 12} meses` : ''}).` : 'Esta área é registrada pelo contexto e impacto no cotidiano, sem classificação por marcos etários.'}</p></div></div>
       <div className="domain-guidance"><b>Para orientar o relato</b><p>{AREA_PROMPTS[current.id]}</p></div>
+      {step % 4 === 1 && <div className="pp-lembrete"><MessageCircle size={16} /><span>Lembrete: um exemplo concreto vale mais que uma resposta curta. Ex.: “pede água falando ‘água’ quando está com sede, mas na escola ainda aponta”.</span></div>}
       {current.perguntas.length ? <div className="milestone-list"><h3>O que você observa?</h3><p>Considere oportunidades e apoios. Cada item pode receber uma resposta diferente.</p>{current.perguntas.map((question) => <fieldset className="milestone-question" key={question.id}><legend>{question.pergunta}</legend><div className="milestone-options">{Object.entries(schema.opcoes).map(([value, label]) => <label className={answers[question.id]?.resposta === value ? 'selected' : ''} key={value}><input type="radio" required name={question.id} value={value} checked={answers[question.id]?.resposta === value} onChange={() => setAnswers((previous) => ({ ...previous, [question.id]: { ...previous[question.id], resposta: value, exemplo: previous[question.id]?.exemplo || '' } }))} />{label}</label>)}</div><label className="inline-example">Exemplo ou apoio utilizado <span className="optional">opcional</span><textarea rows="2" maxLength={2000} value={answers[question.id]?.exemplo || ''} onChange={(event) => setAnswers((previous) => ({ ...previous, [question.id]: { ...previous[question.id], exemplo: event.target.value } }))} placeholder="Em que situação aconteceu? Que ajuda foi oferecida?" /></label><details className="source-detail"><summary>Ver referência e faixa</summary><small>{Array.isArray(question.fonte) ? question.fonte.join(' · ') : question.fonte} · {question.faixa}</small></details></fieldset>)}</div> : <div className="questionnaire-notice"><CircleHelp size={17} /> Não há um marco específico selecionado para esta área e idade. O relato do cotidiano e o impacto na participação são especialmente importantes.</div>}
       <div className="domain-writing"><h3>Conte mais sobre esta área</h3><label>O que a criança já faz bem ou demonstra interesse?<textarea maxLength={2000} value={ctx.pontos_fortes} onChange={(event) => setContextValue('pontos_fortes', event.target.value)} placeholder="Habilidades, preferências, situações em que participa com confiança…" /></label><label>O que é difícil, e em quais situações costuma precisar de apoio?<textarea maxLength={2000} value={ctx.desafios} onChange={(event) => setContextValue('desafios', event.target.value)} placeholder={current.pergunta_contexto} /></label><label>O que vocês já tentaram? O que ajudou, ajudou em parte ou não funcionou?<textarea maxLength={2000} value={ctx.apoios} onChange={(event) => setContextValue('apoios', event.target.value)} placeholder="Inclua o apoio, o contexto e como a criança reagiu…" /></label><label>Outros comentários ou exemplos que queira guardar<textarea maxLength={2000} value={ctx.observacoes} onChange={(event) => setContextValue('observacoes', event.target.value)} placeholder="Opcional…" /></label></div>
       <div className="form-profile-grid"><label>Onde você observa estas situações?<select value={ctx.contexto} onChange={(event) => setContextValue('contexto', event.target.value)}>{[['nao_sei', 'Não sei'], ['casa', 'Em casa'], ['escola', 'Na escola'], ['ambos', 'Em casa e na escola'], ['outro', 'Em outro lugar']].map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label className="unknown-option"><input type="checkbox" checked={ctx.nao_sei} onChange={(event) => setContextValue('nao_sei', event.target.checked)} /> Ainda não sei informar sobre esta área</label></div>
       <div className="form-actions"><button className="btn-secondary" onClick={() => go(step - 1)}><ArrowLeft size={16} /> Etapa anterior</button><button className="btn-primary" onClick={nextDomain}>{step === 14 ? 'Revisar formulário' : 'Próxima área'} <ArrowRight size={16} /></button></div>
     </section>}
 
-    {step === 15 && <section className="questionnaire-card panel"><span className="section-kicker">REVISÃO · ANTES DE REGISTRAR</span><h2>Confira este retrato inicial.</h2><p className="questionnaire-lead">Revise cada área e ajuste o que quiser. Os relatos permanecem separados das interpretações e sugestões futuras do modelo.</p><div className="review-profile"><b>{profile.apelido}</b><span>{profile.idade_meses} meses · {profile.ano_escolar ? `${profile.ano_escolar}º ano` : 'ano escolar não informado'} · Relato de {profile.vinculo}</span><p><b>Prioridade da família:</b> {profile.prioridades}</p><p><b>Interesses e pontos fortes:</b> {profile.interesses || 'Não informado'}</p><p><b>Condição relatada:</b> {profile.condicoes_relatadas.length ? profile.condicoes_relatadas.map((id) => CONDITIONS.find(([conditionId]) => conditionId === id)?.[1] || profile.outra_condicao).filter(Boolean).join('; ') : 'Não informada'}</p><p><b>Documento:</b> {profile.documento_comprobatorio === 'sim' ? `${profile.tipo_documento || 'Tipo não informado'} — documento não anexado` : profile.documento_comprobatorio === 'nao' ? 'Família relata que não há' : 'Não informado'}</p><p><b>Informações ou adaptações de saúde resumidas:</b> {profile.observacoes_saude || profile.outra_condicao || 'Não informado'}</p><button className="btn-secondary" onClick={() => go(0)}>Editar dados iniciais</button></div>
-        {schema.dominios.map((domain, index) => <details className="review-domain" key={domain.id}><summary><span>{DOMAIN_META[domain.id]?.icon} {domain.nome}</span><small>{index + 1}/14</small></summary>{domain.perguntas.map((question) => <p key={question.id}><b>{question.pergunta}</b><br />{ANSWER_LABELS[answers[question.id]?.resposta] || 'Sem resposta'}{answers[question.id]?.exemplo ? ` — ${answers[question.id].exemplo}` : ''}</p>)}<p><b>Pontos fortes:</b> {contexts[domain.id]?.pontos_fortes || 'Não informado'}</p><p><b>Dificuldades e apoios necessários:</b> {contexts[domain.id]?.desafios || (contexts[domain.id]?.nao_sei ? 'Ainda não sabe informar' : 'Não informado')}</p><p><b>O que ajuda / já foi tentado:</b> {contexts[domain.id]?.apoios || 'Não informado'}</p><p><b>Contexto:</b> {contexts[domain.id]?.contexto || 'Não informado'}</p><button className="btn-secondary" onClick={() => go(index + 1)}>Editar esta área</button></details>)}
+    {step === 15 && <section className="questionnaire-card panel"><span className="section-kicker">REVISÃO · ANTES DE REGISTRAR</span><h2>{reav ? 'Confira as respostas atualizadas.' : 'Confira este retrato inicial.'}</h2><p className="questionnaire-lead">Revise cada área e ajuste o que quiser. Áreas com “Não informado” deixam o perfil menos preciso: se puder, volte e conte um exemplo. Os relatos permanecem separados das interpretações e sugestões do agente.</p><div className="review-profile"><b>{profile.apelido}</b><span>{profile.idade_meses} meses · {profile.ano_escolar ? `${profile.ano_escolar}º ano` : 'ano escolar não informado'} · Relato de {profile.vinculo}</span><p><b>Prioridade da família:</b> {profile.prioridades}</p><p><b>Interesses e pontos fortes:</b> {profile.interesses || 'Não informado'}</p><p><b>Condição relatada:</b> {profile.condicoes_relatadas.length ? profile.condicoes_relatadas.map((id) => CONDITIONS.find(([conditionId]) => conditionId === id)?.[1] || profile.outra_condicao).filter(Boolean).join('; ') : 'Não informada'}</p><p><b>Documento:</b> {profile.documento_comprobatorio === 'sim' ? `${profile.tipo_documento || 'Tipo não informado'} — documento não anexado` : profile.documento_comprobatorio === 'nao' ? 'Família relata que não há' : 'Não informado'}</p><p><b>Informações ou adaptações de saúde resumidas:</b> {profile.observacoes_saude || profile.outra_condicao || 'Não informado'}</p><button className="btn-secondary" onClick={() => go(0)}>Editar dados iniciais</button></div>
+        {schema.dominios.map((domain, index) => <details className="review-domain" key={domain.id}><summary><span className="pp-com-icone"><IconeDominio codigo={domain.id} size={17} /> {domain.nome}</span><small>{index + 1}/14</small></summary>{domain.perguntas.map((question) => <p key={question.id}><b>{question.pergunta}</b><br />{ANSWER_LABELS[answers[question.id]?.resposta] || 'Sem resposta'}{answers[question.id]?.exemplo ? ` — ${answers[question.id].exemplo}` : ''}</p>)}<p><b>Pontos fortes:</b> {contexts[domain.id]?.pontos_fortes || 'Não informado'}</p><p><b>Dificuldades e apoios necessários:</b> {contexts[domain.id]?.desafios || (contexts[domain.id]?.nao_sei ? 'Ainda não sabe informar' : 'Não informado')}</p><p><b>O que ajuda / já foi tentado:</b> {contexts[domain.id]?.apoios || 'Não informado'}</p><p><b>Contexto:</b> {contexts[domain.id]?.contexto || 'Não informado'}</p><button className="btn-secondary" onClick={() => go(index + 1)}>Editar esta área</button></details>)}
         <label className="consent-box"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} /><span><b>Confirmo que revisei as informações e autorizo o registro destas informações no banco da demonstração.</b><small>Inclui relatos de desenvolvimento e, se preenchidas, informações de saúde. Use somente dados fictícios nesta versão.</small></span></label>
-        <div className="questionnaire-notice"><ShieldCheck size={17} /> As respostas são relatos familiares, não avaliação clínica validada. Ao concluir, um agente de IA organiza um mapa de perfil com metas e dicas, sem diagnóstico. Você revisa, pede ajustes e só então aprova.</div>
-        <div className="form-actions"><button className="btn-secondary" onClick={() => go(14)}><ArrowLeft size={16} /> Voltar</button><button className="btn-primary" disabled={!consent || busy} onClick={finish}>{busy ? 'Enviando ao agente…' : 'Concluir e gerar mapeamento'} <Check size={16} /></button></div>
+        <div className="questionnaire-notice"><ShieldCheck size={17} /> As respostas são relatos familiares, não avaliação clínica validada. {reav ? 'Ao concluir, o agente compara com o perfil atual e os registros do período e propõe uma nova versão, mostrando a evolução. Você revisa, pede ajustes e só então aprova.' : 'Ao concluir, um agente de IA organiza um mapa de perfil com metas e dicas, sem diagnóstico. Você revisa, pede ajustes e só então aprova.'}</div>
+        <div className="form-actions"><button className="btn-secondary" onClick={() => go(14)}><ArrowLeft size={16} /> Voltar</button><button className="btn-primary" disabled={!consent || busy} onClick={finish}>{busy ? 'Enviando ao agente…' : reav ? 'Concluir e gerar a reavaliação' : 'Concluir e gerar mapeamento'} <Check size={16} /></button></div>
       </section>}
     <aside className="questionnaire-aside"><div><ShieldCheck size={18} /><b>Relato, não diagnóstico</b><p>As perguntas ajudam a organizar o que a família observa. Não atribuem condição, escore ou prognóstico.</p></div><div><Sparkles size={18} /><b>Forças e apoios também contam</b><p>Em cada área, registre interesses, o que já funciona e que barreiras afetam a participação.</p></div><div><BookOpen size={18} /><b>Referências visíveis</b><p>Quando houver marco selecionado, abra “Ver referência e faixa” para conferir de onde veio a pergunta.</p></div></aside>
   </div>;
@@ -349,7 +465,7 @@ function ChildJournal({ child, sessao, onBack, onAviso }) {
   const [registros, setRegistros] = useState([]);
   const [goals, setGoals] = useState([]);
   const actorRole = sessao?.papel || 'responsavel';
-  const actorLabel = actorRole === 'professor' ? 'Professor(a)' : 'Responsável';
+  const actorLabel = actorRole === 'professor' ? `acompanhante (${rotuloFuncao(sessao?.funcao).toLowerCase()})` : 'responsável';
   async function carregar() {
     const p = await api.painel(child.id);
     setRegistros(p.registros);
@@ -365,7 +481,7 @@ function ChildJournal({ child, sessao, onBack, onAviso }) {
     const resultado = RESULTADO_REGISTRO[v.result];
     try {
       await api.registrar(child.id, {
-        tipo: 'observacao', autor: actorRole, autor_id: sessao.id, texto: v.observation,
+        tipo: 'observacao', texto: v.observation,
         local: CONTEXTO_LOCAL[v.context] || null, meta_id: v.goalId || null, dominios: meta ? [meta.dominio] : [],
         ocorrido_em: v.eventDate ? new Date(`${v.eventDate}T12:00:00`).toISOString() : null,
         dados: { activity: v.activity, reaction: v.reaction, support: v.support, result: v.result, comments: v.comments, contexto: v.context },
@@ -399,7 +515,7 @@ function ChildJournal({ child, sessao, onBack, onAviso }) {
     </div>
 
     {tab === 'history' && <section className="journal-history">
-      {!registros.length ? <div className="empty-card journal-empty"><span className="empty-illustration">🌱</span><h3>O histórico começa com uma observação.</h3><p>Registre uma situação de casa ou da escola, ou converse com o assistente sobre uma dúvida.</p><div><button className="btn-primary" onClick={() => setTab('observation')}><Plus size={16} /> Registrar observação</button><button className="btn-secondary" onClick={() => setTab('question')}><CircleHelp size={16} /> Tirar uma dúvida</button></div></div> : <div className="journal-timeline">{registros.map((entry) => <article className="journal-entry panel" key={entry.id}><div className="journal-entry-head"><span className="journal-kind"><ClipboardList size={14} /> {TIPOS[entry.tipo]?.icone} {TIPOS[entry.tipo]?.rotulo}</span><time>{dateLabel(entry.ocorrido_em)}</time></div><h3>{entry.dados?.activity || TIPOS[entry.tipo]?.rotulo || 'Situação observada'}</h3><p className="journal-observation-text">{entry.dados?.activity ? entry.texto : resumoRegistro(entry, goals)}</p><div className="journal-facts"><span>{contextLabel(entry)}</span>{entry.meta_id && <span>Meta: {goals.find((goal) => goal.id === entry.meta_id)?.texto.slice(0, 50) || 'Acompanhamento geral'}</span>}{entry.dados?.result && <span>Resultado percebido: {resultLabel(entry.dados.result)}</span>}</div>{entry.dados?.reaction && <p><b>Reação da criança:</b> {entry.dados.reaction}</p>}{entry.dados?.support && <p><b>Apoio tentado:</b> {entry.dados.support}</p>}{entry.dados?.comments && <p><b>Outros comentários:</b> {entry.dados.comments}</p>}<div className="journal-entry-foot"><span>{entry.autor_nome} · {entry.autor === 'professor' ? 'Professor(a)' : 'Responsável'}</span></div></article>)}</div>}
+      {!registros.length ? <div className="empty-card journal-empty"><span className="empty-illustration"><Sprout size={30} /></span><h3>O histórico começa com uma observação.</h3><p>Registre uma situação de casa ou da escola, ou converse com o assistente sobre uma dúvida.</p><div><button className="btn-primary" onClick={() => setTab('observation')}><Plus size={16} /> Registrar observação</button><button className="btn-secondary" onClick={() => setTab('question')}><CircleHelp size={16} /> Tirar uma dúvida</button></div></div> : <div className="journal-timeline">{registros.map((entry) => <article className="journal-entry panel" key={entry.id}><div className="journal-entry-head"><span className="journal-kind"><IconeTipo tipo={entry.tipo} size={14} /> {TIPOS[entry.tipo]?.rotulo}</span><time>{dateLabel(entry.ocorrido_em)}</time></div><h3>{entry.dados?.activity || TIPOS[entry.tipo]?.rotulo || 'Situação observada'}</h3><p className="journal-observation-text">{entry.dados?.activity ? entry.texto : resumoRegistro(entry, goals)}</p><div className="journal-facts"><span>{contextLabel(entry)}</span>{entry.meta_id && <span>Meta: {goals.find((goal) => goal.id === entry.meta_id)?.texto.slice(0, 50) || 'Acompanhamento geral'}</span>}{entry.dados?.result && <span>Resultado percebido: {resultLabel(entry.dados.result)}</span>}</div>{entry.dados?.reaction && <p><b>Reação da criança:</b> {entry.dados.reaction}</p>}{entry.dados?.support && <p><b>Apoio tentado:</b> {entry.dados.support}</p>}{entry.dados?.comments && <p><b>Outros comentários:</b> {entry.dados.comments}</p>}<div className="journal-entry-foot"><span>{entry.autor_nome} · {rotuloFuncao(entry.autor_funcao)}</span></div></article>)}</div>}
     </section>}
 
     {tab === 'observation' && <form className="journal-form panel" onSubmit={submitObservation}>
@@ -422,12 +538,12 @@ function ChildJournal({ child, sessao, onBack, onAviso }) {
   </div>;
 }
 
-function ChildModal({ onClose, onSave }) {
+function ChildModal({ vinculo, onClose, onSave }) {
   function submit(event) { event.preventDefault(); onSave(Object.fromEntries(new FormData(event.currentTarget))); }
-  return <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><form className="modal-card" onSubmit={submit}><div className="modal-header"><span className="role-icon parent-icon"><Baby size={21} /></span><button type="button" className="icon-button" onClick={onClose}><X size={18} /></button></div><span className="section-kicker">NOVO PERFIL</span><h2>Vamos conhecer a criança.</h2><p>Use um nome fictício para esta demonstração.</p><label>Como podemos chamá-la?<input name="name" placeholder="Ex.: Nina" required autoFocus /></label><label>Data de nascimento<input name="birthDate" type="date" required /></label><label>O que ela gosta? <span className="optional">separado por vírgulas</span><input name="interests" placeholder="Ex.: música, animais, água" /></label><button className="btn-primary full-button" type="submit">Salvar e continuar <ArrowRight size={16} /></button></form></div>;
+  return <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><form className="modal-card" onSubmit={submit}><div className="modal-header"><span className="role-icon parent-icon"><Baby size={21} /></span><button type="button" className="icon-button" onClick={onClose}><X size={18} /></button></div><span className="section-kicker">NOVO PERFIL</span><h2>Vamos conhecer a criança.</h2><p>Use um nome fictício para esta demonstração.</p><label>Como podemos chamá-la?<input name="name" placeholder="Ex.: Nina" required autoFocus /></label><label>Data de nascimento<input name="birthDate" type="date" required /></label><label>O que ela gosta? <span className="optional">separado por vírgulas</span><input name="interests" placeholder="Ex.: música, animais, água" /></label><label>Seu vínculo com a criança<select name="parentesco" defaultValue={VINCULOS.includes(vinculo) ? vinculo : 'Mãe'}>{VINCULOS.map((x) => <option key={x}>{x}</option>)}</select></label><button className="btn-primary full-button" type="submit">Salvar e continuar <ArrowRight size={16} /></button></form></div>;
 }
 
-function EmptyChild({ onAdd }) { return <div className="page-wrap"><div className="empty-card"><span className="empty-illustration">🌱</span><h3>Vamos começar pelo perfil.</h3><p>Cadastre uma criança para seguir com o formulário de observações.</p><button className="btn-primary" onClick={onAdd}><Plus size={17} /> Criar perfil</button></div></div>; }
+function EmptyChild({ onAdd }) { return <div className="page-wrap"><div className="empty-card"><span className="empty-illustration"><Sprout size={30} /></span><h3>Vamos começar pelo perfil.</h3><p>Cadastre uma criança para seguir com o formulário de observações.</p><button className="btn-primary" onClick={onAdd}><Plus size={17} /> Criar perfil</button></div></div>; }
 
 function ageText(date) {
   if (!date) return 'Idade não informada';

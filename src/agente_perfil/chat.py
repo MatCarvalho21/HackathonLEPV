@@ -29,8 +29,8 @@ MAX_BUSCAS_CHAT = 2
 HISTORICO_MENSAGENS = 16
 REGISTROS_NO_CONTEXTO = 15
 
-SISTEMA_CHAT = """Você é o assistente da plataforma Primeiros Passos. Conversa com quem cuida de uma criança \
-(responsável ou professor) sobre o desenvolvimento e o dia a dia DESSA criança.
+SISTEMA_CHAT = """Você é o assistente do AjudaP.ai, plataforma de acompanhamento e suporte. Conversa com quem cuida de uma criança \
+(o responsável pelo perfil ou um acompanhante: professor, pedagogo, médico, terapeuta, familiar) sobre o desenvolvimento e o dia a dia DESSA criança.
 
 Você recebe abaixo o RESUMO ATIVO da criança (perfil aprovado pela família, metas, estratégias já testadas) e os \
 REGISTROS RECENTES. Use-os sempre: personalize pelo nome, interesses e metas; não repita estratégias que já \
@@ -80,7 +80,7 @@ BUSCAR_REGISTROS = {
 def _linha_registro(r: dict) -> str:
     d = r.get("dados") or {}
     data = r["ocorrido_em"][:10]
-    quem = "prof" if r.get("autor") == "professor" else "resp"
+    quem = (r.get("autor_funcao") or "acompanhante") if r.get("autor") == "professor" else "resp"
     base = f"[reg:{r['id'][:8]}] {data} {quem} {r['tipo']}"
     if r.get("local"):
         base += f" ({r['local']})"
@@ -181,7 +181,14 @@ def responder(crianca_id: str, texto: str, autor: str, autor_id: str, conversa_i
     historico = repo.listar_mensagens(conversa["id"], limite=HISTORICO_MENSAGENS)
     msg_usuario = repo.inserir_mensagem(conversa["id"], "usuario", texto)
 
-    quem = "o(a) professor(a)" if autor == "professor" else "o(a) responsável"
+    if autor == "professor":
+        prof = repo.obter_professor(autor_id) or {}
+        funcao = next((c["funcao"] for c in repo.listar_compartilhamentos(crianca_id) if c["professor_id"] == autor_id),
+                      prof.get("funcao", "acompanhante"))
+        quem = (f"{prof.get('nome', '')}, acompanhante da criança (função: {funcao}). Pode registrar observações, mas "
+                "não altera perfil nem metas; o progresso das metas é registrado pelo responsável")
+    else:
+        quem = "o(a) responsável pelo perfil"
     mensagens = [{"role": "system", "content": f"{SISTEMA_CHAT}\nQuem está conversando agora: {quem}.\n"
                                                 f"Data de hoje: {datetime.now().strftime('%d/%m/%Y')}.\n\n"
                                                 f"=== RESUMO ATIVO DA CRIANÇA ===\n{contexto_crianca(crianca_id)}"}]

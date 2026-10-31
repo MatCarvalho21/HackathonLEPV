@@ -81,27 +81,31 @@ def preparar_retomada(sessao_id: str, respostas: dict[str, str]) -> dict:
     return sessao
 
 
-def preparar_reavaliacao(crianca_id: str, comentario: str | None = None) -> dict:
-    """Nova versão do perfil a partir do vigente + todos os registros desde então (sem formulário novo)."""
+def preparar_reavaliacao(crianca_id: str, comentario: str | None = None, formulario_id: str | None = None) -> dict:
+    """Nova versão do perfil a partir do vigente + todos os registros desde então (+ formulário atualizado, opcional)."""
     base = repo.avaliacao_vigente(crianca_id)
     if base is None:
         raise ErroAgente("A reavaliação parte de um perfil aprovado.")
-    sessao = _sessao_reavaliacao(base, comentario, [])
+    sessao = _sessao_reavaliacao(base, comentario, [], formulario_id)
     n = sessao["dossie"]["periodo"]["registros_desde_a_ultima_avaliacao"]
     _evento(sessao, f"Reuni o perfil vigente e {n} registro(s) feitos desde a última avaliação.")
+    if formulario_id:
+        _evento(sessao, "Recalculei as cores das áreas por idade com o formulário atualizado.")
     repo.salvar_sessao(sessao)
     return sessao
 
 
-def _sessao_reavaliacao(base: dict, comentario: str | None, mensagens_extras: list[dict]) -> dict:
-    dossie = montar_dossie_reavaliacao(base["crianca_id"], base, comentario)
-    formulario = repo.obter_formulario(base["formulario_id"])
+def _sessao_reavaliacao(base: dict, comentario: str | None, mensagens_extras: list[dict],
+                        formulario_id: str | None = None) -> dict:
+    dossie = montar_dossie_reavaliacao(base["crianca_id"], base, comentario, formulario_id)
+    formulario = repo.obter_formulario(formulario_id or base["formulario_id"])
     sessao = _nova_sessao(formulario, dossie, [
         {"role": "system", "content": SISTEMA_REAVALIACAO},
         {"role": "user", "content": mensagem_reavaliacao(dossie_para_prompt(dossie))},
         *mensagens_extras,
     ])
-    sessao.update(tipo="reavaliacao", reavaliacao={"base_id": base["id"], "pedido": comentario})
+    sessao.update(tipo="reavaliacao", reavaliacao={"base_id": base["id"], "pedido": comentario,
+                                                   "formulario_id": formulario_id})
     if comentario:
         sessao["respostas_extras"]["extra:pedido"] = {"dominio": None, "pergunta": "Pedido ao solicitar a reavaliação",
                                                       "resposta": comentario}
@@ -121,7 +125,8 @@ def preparar_ajuste(avaliacao_id: str, comentario: str) -> dict:
         base = repo.obter_avaliacao(anterior["perfil"]["reavaliacao"]["base_id"])
         if not base or base["status"] != "vigente":
             raise ErroAgente("O perfil usado como base desta reavaliação não está mais vigente.")
-        sessao = _sessao_reavaliacao(base, anterior["perfil"]["reavaliacao"].get("pedido"), [pedido_ajuste])
+        sessao = _sessao_reavaliacao(base, anterior["perfil"]["reavaliacao"].get("pedido"), [pedido_ajuste],
+                                     anterior["perfil"]["reavaliacao"].get("formulario_id"))
     else:
         formulario = repo.obter_formulario(anterior["formulario_id"])
         dossie = montar_dossie(formulario)
@@ -370,7 +375,9 @@ def _salvar_avaliacao(sessao: dict, relatorio: dict) -> str:
             "gerado_por": {"agente": VERSAO_AGENTE, "modelo": sessao["modelo"], "sessao_id": sessao["id"],
                            "ajustes_automaticos": sessao["ajustes_automaticos"]},
             **({"reavaliacao": {**comparar(repo.obter_avaliacao(sessao["reavaliacao"]["base_id"]), relatorio, formulario["crianca_id"]),
-                                "pedido": sessao["reavaliacao"].get("pedido")}}
+                                "pedido": sessao["reavaliacao"].get("pedido"),
+                                "formulario_id": sessao["reavaliacao"].get("formulario_id"),
+                                "formulario_atualizado": bool(sessao["reavaliacao"].get("formulario_id"))}}
                if sessao.get("tipo") == "reavaliacao" else {}),
         },
         "niveis": {d["codigo"]: d["status"] for d in relatorio["dominios"]},

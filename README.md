@@ -1,15 +1,24 @@
-# HackathonLEPV — Primeiros Passos
+# AjudaP.ai: Acompanhamento e Suporte
+
+Projeto do HackathonLEPV.
 
 Plataforma de acompanhamento do desenvolvimento infantil (0 a 10 anos). A jornada:
 
-1. O responsável (ou professor) cria a conta e cadastra a criança.
+1. O responsável pelo perfil (mãe, pai, avó, tutor legal…) cria a conta com e-mail e senha e cadastra a criança.
 2. Preenche o formulário inicial com 14 domínios. A fonte das perguntas é `prompts/matheus/07/ouput.json`.
 3. Um agente de IA (DeepSeek via Featherless) gera uma **proposta de perfil**: semáforo por domínio, foco, metas de curto, médio e longo prazo e dicas. Ele consulta a base vetorial (`chroma_db/`) e pode fazer perguntas extras ao responsável.
 4. O responsável pede ajustes ou aprova a proposta.
 5. Com o perfil aprovado, a família entra no **painel da criança**: metas com progresso, dicas e estratégias, registros (conquista, atividade, comportamento, saúde, observação), linha do tempo, diário e o **chat** com um assistente que conhece o perfil e os últimos registros.
-6. Depois de um tempo, o responsável pede uma **reavaliação**. O agente recebe o perfil vigente e todos os registros (quem fez, quando e o quê), o progresso das metas e as estratégias testadas. Ele pode fazer perguntas e propõe uma nova versão com o balanço da evolução (cores antes → agora, situação de cada meta, conquistas). O responsável pede ajustes ou aprova. A partir da segunda versão, o painel mostra a evolução entre as versões.
+6. O responsável **compartilha** o perfil com quem acompanha a criança (professor, pedagogo, médico, terapeuta, familiar): convida pelo e-mail, a pessoa cria a conta de acompanhante e aceita. Cada criança tem um **canal da equipe** para responsável e acompanhantes conversarem, e um **resumo em PDF** para baixar.
 
-**Papéis.** O **responsável** faz tudo. O **professor** vê as crianças da própria turma, lê o perfil, registra o dia a dia (atividade, comportamento, conquista, observação, estratégia testada) e usa o chat. Ele não preenche o formulário, não mexe no perfil nem nas metas e não registra progresso de meta nem saúde. O backend confere o papel e o vínculo e responde 403. Não há login real na demonstração.
+**Notificações.** Quando alguém da equipe registra algo ou escreve no canal, os outros (responsável e acompanhantes) recebem uma notificação no sino da barra lateral. Também há avisos de perfil aprovado e de convites. Cada notificação fica até a pessoa abrir (vira lida e leva ao lugar certo) ou apagar.
+7. Depois de um tempo, o responsável pede uma **reavaliação**: só com os registros ou atualizando o formulário, que vem pré-preenchido com as últimas respostas e tem as cores recalculadas. O agente recebe o perfil vigente e todos os registros (quem fez, função, quando e o quê), o progresso das metas e as estratégias testadas. Ele pode fazer perguntas e propõe uma nova versão com o balanço da evolução (cores antes → agora, situação de cada meta, conquistas). O responsável pede ajustes ou aprova. A partir da segunda versão, o painel mostra a evolução entre as versões.
+
+**Login e papéis.** Contas com e-mail e senha (hash PBKDF2) e sessão por token (`Authorization: Bearer`). O backend descobre pelo token quem age e o papel dele em cada criança; o corpo da requisição não decide isso. Uma conta pode ter os dois perfis (por exemplo, a avó que é responsável por uma criança e acompanhante de outra) e alterna no menu do perfil.
+- **Responsável pelo perfil:** faz tudo. Preenche o formulário, aprova, pede ajuste e reavaliação, registra progresso de metas e saúde, decide quem tem acesso.
+- **Acompanhante** (professor, pedagogo, médico, terapeuta, familiar): só nas crianças compartilhadas com ele. Lê o perfil, registra o dia a dia (atividade, comportamento, conquista, observação, estratégia testada), usa o canal, o assistente e o PDF. Não mexe no perfil, nas metas nem em quem tem acesso (o backend responde 403). Internamente o papel se chama `professor`, nome herdado do modelo original.
+
+Contas criadas antes do login (sem senha) são recuperadas criando a conta com o mesmo e-mail.
 
 O app principal é o da **raiz** (`index.html`, `src/App.jsx`, `src/jornada/`). A pasta `frontend/` guarda o primeiro protótipo do formulário e não faz parte do app integrado.
 
@@ -22,13 +31,25 @@ Mais detalhes: agente e chat em [src/agente_perfil/README.md](src/agente_perfil/
 | Backend FastAPI (`uvicorn backend.main:app`) | 8000 | API, agentes (perfil e chat), banco local, base vetorial |
 | Frontend Vite (React, raiz do repositório) | 5173 | Interface. Encaminha `/api` para `127.0.0.1:8000` |
 
-**Banco de dados local.** É um SQLite em `backend/data/plataforma.sqlite3` com o mesmo modelo do Postgres/Supabase (`prompts/matheus/04/output.sql` + `src/agente_perfil/migracao_postgres.sql`). As tabelas são escola, professor, turma, responsável, criança, responsável_criança, formulário, avaliação, registro, conversa, mensagem e sessão do agente. O esquema fica em [src/agente_perfil/schema_local.sql](src/agente_perfil/schema_local.sql) e é criado sozinho quando o backend sobe. Toda a leitura e escrita passa por [src/agente_perfil/repositorio.py](src/agente_perfil/repositorio.py). Para ir para o Supabase, basta trocar essa camada.
+**Banco de dados.** Toda a leitura e escrita passa por [src/agente_perfil/repositorio.py](src/agente_perfil/repositorio.py), que funciona com dois bancos:
+- **Supabase (Postgres):** é o padrão quando a `DATABASE_URL` está no `.env`. O esquema fica em [supabase/schema.sql](supabase/schema.sql): 17 tabelas, RLS ligado e sem políticas, ou seja, a API pública do Supabase não acessa nada e só o backend lê e escreve.
+- **SQLite local:** sem `DATABASE_URL`, usa `backend/data/plataforma.sqlite3`, criado sozinho a partir de [src/agente_perfil/schema_local.sql](src/agente_perfil/schema_local.sql).
 
-**Dados de demonstração.** Gere com `python -m backend.seed`, ou clique em "Entrar na demonstração" na tela inicial. A família criada:
+Configurar o Supabase:
+1. *SQL Editor* → cole e rode `supabase/schema.sql` (pode rodar de novo sem erro).
+2. *Connect* → *Session pooler* → copie a URI para o `.env`: `DATABASE_URL=postgresql://postgres.<ref>:<senha>@aws-0-<região>.pooler.supabase.com:5432/postgres`.
+3. Para trazer os dados do SQLite: `.venv/bin/python -m backend.migrar_para_supabase`. O script é idempotente e confere as contagens no fim.
+
+Limite de conexões: o Session pooler gratuito aceita 15 conexões no total, somando todos os processos. Cada processo do backend usa de 2 a 5 (`PG_POOL_MIN` / `PG_POOL_MAX`). Com vários processos no deploy, use o *Transaction pooler* (porta 6543), que já é compatível. Para latência baixa, rode o backend na mesma região AWS do projeto Supabase.
+
+Testes: `.venv/bin/python -m unittest backend.test_agente backend.test_main` usa um SQLite temporário. Com `TESTE_PG=1`, os mesmos testes rodam no Supabase, num schema temporário que é apagado no fim, sem tocar nos dados reais.
+
+**Dados de demonstração.** Gere com `python -m backend.seed`, ou clique em "Família da Lia (responsável)" na tela inicial. A família criada:
 - Ana (mãe), responsável.
 - **Lia**, com perfil aprovado (relatório real gerado pelo agente) e duas semanas de registros. Serve para testar o painel e o chat na hora.
 - **Nina**, só com o cadastro. Serve para rodar a jornada completa: formulário → agente → aprovação.
-- Prof. Carla, com a Lia e a Nina na turma dela. Entre por "Entrar como professora (demo)" na tela inicial.
+- Acompanhantes: Prof. Carla (Lia e Nina) e Dr. Rafael, pediatra (Lia). O canal da Lia já tem algumas mensagens.
+- Senha de todas as contas de demonstração: `demo1234` (`ana@`, `carla@` e `rafael@demo.primeirospassos`). Na tela inicial, "Família da Lia" e "Professora Carla" entram direto.
 
 ## Como acessar e subir a aplicação
 

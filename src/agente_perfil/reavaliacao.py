@@ -1,11 +1,13 @@
 """Reavaliação: nova versão do perfil a partir do perfil vigente + tudo o que foi registrado desde então.
 
-Não há formulário novo. O dossiê da reavaliação junta, por código:
+O responsável pode (opcional) atualizar o formulário antes. O dossiê da reavaliação junta, por código:
 - o perfil vigente (cores, foco, metas com escala GAS, dicas);
 - TODOS os registros do dia a dia, com data, autor (nome e papel) e conteúdo, separados entre
   "desde a última avaliação" e "anteriores" (são poucos tokens);
 - o histórico de progresso de cada meta (check-ins GAS) e o placar das estratégias testadas;
-- o pedido do responsável, se ele escreveu algum ao solicitar a reavaliação.
+- o pedido do responsável, se ele escreveu algum ao solicitar a reavaliação;
+- se houver, o FORMULÁRIO ATUALIZADO: com ele, as cores das áreas por idade voltam a ser calculadas
+  pelas regras (como na avaliação inicial), agora com as respostas novas.
 
 A comparação entre as versões (cor antes → depois, progresso de cada meta, volume de registros)
 é calculada aqui em código e guardada em `perfil.reavaliacao`; o modelo escreve a narrativa em
@@ -17,6 +19,9 @@ from datetime import date, datetime
 
 from src.agente_perfil import repositorio as repo
 from src.agente_perfil.dossie import CONTEXTUAIS, FUNCIONAIS, POR_IDADE, idade_por_extenso, montar_dossie
+
+FUNCOES = {"professor": "professor(a)", "pedagogo": "pedagogo(a)", "medico": "médico(a)", "terapeuta": "terapeuta",
+           "familiar": "familiar", "outro": "acompanhante", "responsavel": "responsável"}
 
 NOMES = {"COM_R": "Compreensão", "COM_E": "Comunicação expressiva", "FAL": "Fala e verbalização",
          "SOC": "Interação social", "BRI": "Brincadeira", "COG": "Cognição e aprendizagem", "MOT_A": "Motor amplo",
@@ -36,7 +41,8 @@ def _idade_meses(nascimento: str) -> int:
 
 
 def _papel(r: dict) -> str:
-    return "professor(a)" if r.get("autor") == "professor" else "responsável"
+    """Função de quem registrou: responsável, professor(a), médico(a), familiar..."""
+    return FUNCOES.get(r.get("autor_funcao") or ("responsavel" if r.get("autor") != "professor" else "outro"), "acompanhante")
 
 
 def linha_registro(r: dict) -> str:
@@ -79,10 +85,12 @@ def _checkins_por_meta(registros: list[dict]) -> dict[str, list[dict]]:
     return out
 
 
-def montar_dossie_reavaliacao(crianca_id: str, base: dict, comentario: str | None) -> dict:
+def montar_dossie_reavaliacao(crianca_id: str, base: dict, comentario: str | None,
+                              formulario_novo_id: str | None = None) -> dict:
     """Dossiê da reavaliação. `base` é a avaliação vigente que será comparada."""
     crianca = repo.obter_crianca(crianca_id)
     formulario = repo.obter_formulario(base["formulario_id"]) if base.get("formulario_id") else None
+    novo = montar_dossie(repo.obter_formulario(formulario_novo_id)) if formulario_novo_id else None
     rel = base["perfil"]["relatorio"]
     desde = base.get("aceita_em") or base["criado_em"]
     registros = repo.listar_registros(crianca_id, limite=1000)
@@ -95,8 +103,13 @@ def montar_dossie_reavaliacao(crianca_id: str, base: dict, comentario: str | Non
     if formulario:  # marcos e relatos do formulário original continuam citáveis
         evid_validas |= set(montar_dossie(formulario)["_evidencias_validas"])
     evid_validas |= set(base["perfil"].get("respostas_complementares", {}))
-
-    perfil_form = (formulario or {}).get("perfil", {})
+    calculado_novo = {}
+    if novo:
+        evid_validas |= set(novo["_evidencias_validas"])
+        calculado_novo = {d["codigo"]: d["status_calculado"] for d in novo["dominios"] if d["codigo"] in POR_IDADE}
+        perfil_form = repo.obter_formulario(formulario_novo_id)["perfil"]
+    else:
+        perfil_form = (formulario or {}).get("perfil", {})
     dominios = []
     for d in rel["dominios"]:
         cod = d["codigo"]
@@ -104,8 +117,9 @@ def montar_dossie_reavaliacao(crianca_id: str, base: dict, comentario: str | Non
         dominios.append({
             "codigo": cod, "nome": NOMES.get(cod, cod), "tipo": tipo,
             "status_anterior": d["status"],
-            # Na reavaliação nenhuma cor é fixada por regra, exceto as contextuais (sem cor).
-            "status_calculado": "contextual" if cod in CONTEXTUAIS else None,
+            # Sem formulário novo, nenhuma cor é fixada por regra (exceto as contextuais, sem cor).
+            # Com formulário novo, as áreas por idade usam a cor calculada pelas respostas atualizadas.
+            "status_calculado": "contextual" if cod in CONTEXTUAIS else calculado_novo.get(cod),
             "justificativa_anterior": d["justificativa_status"],
             "pontos_de_atencao_anteriores": [e["texto"] for e in d["pontos_de_atencao"]],
             "registros_no_periodo": sum(1 for r in novos if cod in (r.get("dominios") or [])),
@@ -120,6 +134,8 @@ def montar_dossie_reavaliacao(crianca_id: str, base: dict, comentario: str | Non
             "condicoes_relatadas_pela_familia": perfil_form.get("condicoes_relatadas") or [],
         },
         "pedido_do_responsavel": comentario,
+        "formulario_atualizado": ({k: v for k, v in novo.items() if not k.startswith("_") and k != "formulario_id"}
+                                  if novo else None),
         "periodo": {"avaliacao_vigente_aprovada_em": desde[:10], "hoje": date.today().isoformat(),
                     "dias": (datetime.now().date() - date.fromisoformat(desde[:10])).days,
                     "registros_desde_a_ultima_avaliacao": len(novos), "registros_anteriores": len(antigos)},
@@ -135,10 +151,11 @@ def montar_dossie_reavaliacao(crianca_id: str, base: dict, comentario: str | Non
                                  for e in repo.historico_estrategias(crianca_id)],
         "registros_desde_a_ultima_avaliacao": [linha_registro(r) for r in reversed(novos)],
         "registros_anteriores": [linha_registro(r) for r in reversed(antigos)],
-        "alertas_calculados": [],
+        "alertas_calculados": novo["alertas_calculados"] if novo else [],
         "dominios": dominios,
         "_evidencias_validas": sorted(evid_validas),
         "_base_id": base["id"],
+        "_formulario_novo_id": formulario_novo_id,
     }
 
 
