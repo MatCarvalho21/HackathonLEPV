@@ -9,7 +9,7 @@ import {
 } from './questionnaire.js';
 
 const STORE = 'placeholder-demo-v1';
-const emptyState = { parents: [], teachers: [], children: [], assessments: [] };
+const emptyState = { parents: [], teachers: [], children: [], assessments: [], history: [] };
 
 function readStore() {
   try { return { ...emptyState, ...JSON.parse(localStorage.getItem(STORE) || '{}') }; }
@@ -52,6 +52,20 @@ function App() {
     const child = { id: crypto.randomUUID(), ...values, interests: values.interests.split(',').map((v) => v.trim()).filter(Boolean), createdAt: new Date().toISOString(), turma_id: null };
     setData((current) => ({ ...current, children: [...current.children, child] }));
     setActiveId(child.id); setModal(''); setScreen('form');
+  }
+
+  function saveJournalEntry(entry) {
+    const author = role === 'professor' ? data.teachers.at(-1)?.nome : data.parents.at(-1)?.nome;
+    const savedEntry = {
+      ...entry,
+      id: crypto.randomUUID(),
+      childId: activeChild.id,
+      author: author || (role === 'professor' ? 'Professor(a)' : 'Responsável'),
+      authorRole: role,
+      createdAt: new Date().toISOString(),
+    };
+    setData((current) => ({ ...current, history: [...(current.history || []), savedEntry] }));
+    setNotice(entry.type === 'question' ? 'Dúvida guardada no histórico da criança.' : 'Observação guardada no histórico da criança.');
   }
 
   async function generateAssessment(formPayload) {
@@ -120,6 +134,7 @@ function App() {
         <div className="side-label">ESPAÇO DE ACOMPANHAMENTO</div>
         <button className={`nav-link ${screen === 'dashboard' ? 'selected' : ''}`} onClick={() => setScreen('dashboard')}><Home size={18} /> Visão geral</button>
         {activeChild && <button className={`nav-link ${['form', 'goals'].includes(screen) ? 'selected' : ''}`} onClick={() => setScreen(activeAssessment ? 'goals' : 'form')}><Baby size={18} /> {activeChild.name}</button>}
+        {activeChild && <button className={`nav-link ${screen === 'journal' ? 'selected' : ''}`} onClick={() => setScreen('journal')}><MessageCircle size={18} /> Diário e dúvidas</button>}
         <div className="sidebar-bottom"><div className="safe-note"><ShieldCheck size={17} /><span>Espaço de demonstração<br /><b>Seus dados ficam neste navegador</b></span></div><button className="profile-switch" onClick={() => setShowProfile((v) => !v)}><span className="avatar">{role === 'professor' ? 'P' : 'R'}</span><span className="profile-label"><b>{role === 'professor' ? data.teachers.at(-1)?.nome : data.parents.at(-1)?.nome}</b><small>{role === 'professor' ? 'Professor(a)' : 'Responsável'}</small></span><ChevronDown size={16} /></button>
           {showProfile && <div className="profile-menu"><button onClick={() => { setScreen('home'); setShowProfile(false); }}>Trocar perfil / sair</button></div>}
         </div>
@@ -128,10 +143,11 @@ function App() {
         {screen === 'home' && <Welcome onChoose={(nextRole) => { setRole(nextRole); setScreen(nextRole === 'responsavel' ? 'signup-parent' : 'signup-teacher'); }} hasAccount={hasAccount} onContinue={() => setScreen('dashboard')} />}
         {screen === 'signup-parent' && <Signup kind="responsavel" onBack={() => setScreen('home')} onSave={saveParent} />}
         {screen === 'signup-teacher' && <Signup kind="professor" onBack={() => setScreen('home')} onSave={saveTeacher} />}
-        {screen === 'dashboard' && <Dashboard role={role} data={data} activeChild={activeChild} onAddChild={() => setModal('child')} onSelectChild={(id) => { setActiveId(id); setScreen(data.assessments.some((a) => a.childId === id) ? 'goals' : 'form'); }} onNewForm={() => { setFormEdit(null); setScreen('form'); }} onTeacherChild={() => setNotice('A vinculação de turma e alunos será conectada ao banco na próxima etapa.')} />}
+        {screen === 'dashboard' && <Dashboard role={role} data={data} activeChild={activeChild} historyCount={(data.history || []).filter((entry) => entry.childId === activeChild?.id).length} onOpenJournal={() => setScreen('journal')} onAddChild={() => setModal('child')} onSelectChild={(id) => { setActiveId(id); setScreen(data.assessments.some((a) => a.childId === id) ? 'goals' : 'form'); }} onNewForm={() => { setFormEdit(null); setScreen('form'); }} onTeacherChild={() => setNotice('A vinculação de turma e alunos será conectada ao banco na próxima etapa.')} />}
         {screen === 'form' && activeChild && <ChildForm key={formEdit ? 'editing' : activeChild.id} initialPayload={formEdit} child={activeChild} relationship={role === 'professor' ? 'Professor(a)' : data.parents.at(-1)?.parentesco || ''} informante={role} onBack={() => setScreen('dashboard')} onSubmit={generateAssessment} />}
         {screen === 'form' && !activeChild && <EmptyChild onAdd={() => setModal('child')} />}
         {screen === 'goals' && activeChild && <Goals child={activeChild} assessment={activeAssessment} onBack={() => setScreen('dashboard')} onAccept={acceptAssessment} onDone={markDemoDone} onEdit={() => { setFormEdit(activeAssessment?.payload || null); setScreen('form'); }} />}
+        {screen === 'journal' && activeChild && <ChildJournal child={activeChild} actorRole={role} entries={(data.history || []).filter((entry) => entry.childId === activeChild.id)} goals={activeAssessment?.metas || []} onBack={() => setScreen('dashboard')} onSave={saveJournalEntry} />}
       </main>
       {modal === 'child' && <ChildModal onClose={() => setModal('')} onSave={saveChild} />}
       {notice && <div className="toast"><Check size={16} />{notice}</div>}
@@ -155,7 +171,7 @@ function Signup({ kind, onBack, onSave }) {
   return <section className="page-wrap narrow-page"><button className="back-link" onClick={onBack}><ArrowLeft size={16} /> Voltar</button><div className="form-heading"><span className={`step-icon ${parent ? 'parent-icon' : 'teacher-icon'}`}>{parent ? <Heart size={20} /> : <School size={20} />}</span><span className="section-kicker">CRIAR CONTA DE {parent ? 'RESPONSÁVEL' : 'PROFESSOR(A)'}</span><h1>Vamos nos conhecer.</h1><p>Este perfil ajuda a organizar o acompanhamento nesta demonstração.</p></div><form className="panel signup-panel" onSubmit={submit}><div className="field-grid"><label>Nome completo<input name="nome" placeholder="Como podemos chamar você?" required /></label><label>E-mail<input name="email" type="email" placeholder="voce@email.com" required /></label>{parent ? <><label>Telefone <span className="optional">opcional</span><input name="telefone" type="tel" placeholder="(00) 00000-0000" /></label><label>Parentesco<input name="parentesco" placeholder="Ex.: mãe, pai, avó" required /></label></> : <><label>Escola<input name="escola" placeholder="Nome da escola" required /></label><label>Turma<input name="turma" placeholder="Ex.: 2º ano A" required /></label></>}</div><div className="privacy-callout"><ShieldCheck size={18} /><span><b>Privacidade na demonstração</b><small>Informações ficam salvas somente neste navegador. Use dados fictícios.</small></span></div><button className="btn-primary full-button" type="submit">Criar meu espaço <ArrowRight size={17} /></button></form><p className="mock-note">Esta versão não cria uma conta real nem envia seus dados.</p></section>;
 }
 
-function Dashboard({ role, data, activeChild, onAddChild, onSelectChild, onNewForm, onTeacherChild }) {
+function Dashboard({ role, data, activeChild, historyCount, onOpenJournal, onAddChild, onSelectChild, onNewForm, onTeacherChild }) {
   const teacher = role === 'professor';
   const children = data.children;
   const latest = activeChild && data.assessments.find((item) => item.childId === activeChild.id);
@@ -163,7 +179,7 @@ function Dashboard({ role, data, activeChild, onAddChild, onSelectChild, onNewFo
     {teacher ? <div className="teacher-banner"><div className="banner-symbol"><School size={24} /></div><div><b>Seu espaço de turma</b><p>Na próxima etapa, vamos conectar escola, turma e alunos ao banco SQL. Para esta demonstração, você pode iniciar um perfil fictício de criança.</p></div><button className="btn-secondary" onClick={onTeacherChild}><CircleHelp size={16} /> Como funciona</button></div> : null}
     <div className="dash-section-title"><div><h2>{teacher ? 'Crianças acompanhadas' : 'Seu acompanhamento'}</h2><p>{children.length ? `${children.length} perfil${children.length > 1 ? 's' : ''} nesta demonstração` : 'Comece criando um perfil para a criança.'}</p></div>{!teacher && <button className="btn-secondary" onClick={onAddChild}><Plus size={17} /> Adicionar criança</button>}</div>
     {!children.length ? <div className="empty-card"><span className="empty-illustration">🌱</span><h3>Um novo começo começa por aqui.</h3><p>Crie um perfil simples para iniciar o formulário e construir as primeiras metas de acompanhamento.</p><button className="btn-primary" onClick={onAddChild}><Plus size={17} /> Cadastrar criança</button></div> : <div className="dashboard-grid"><div className="children-list panel"><div className="panel-heading"><span><Users size={17} /> PERFIS</span><button className="icon-button" onClick={onAddChild} title="Adicionar criança"><Plus size={18} /></button></div>{children.map((child) => { const assessment = data.assessments.find((item) => item.childId === child.id); return <button className={`child-row ${activeChild?.id === child.id ? 'active' : ''}`} key={child.id} onClick={() => onSelectChild(child.id)}><span className="child-avatar">{child.name?.slice(0, 1).toUpperCase()}</span><span className="child-row-text"><b>{child.name}</b><small>{ageText(child.birthDate)} {child.interests?.length ? `· ${child.interests.slice(0, 2).join(', ')}` : ''}</small></span><span className={`mini-status ${assessment ? 'has-plan' : ''}`}>{assessment ? 'Plano' : 'Começar'}</span></button>; })}</div>
-      <div className="overview-card panel">{activeChild ? <><div className="overview-head"><div><span className="section-kicker">PERFIL DA CRIANÇA</span><h3>{activeChild.name}</h3><p>{ageText(activeChild.birthDate)}{activeChild.interests?.length ? ` · Gosta de ${activeChild.interests.join(', ')}` : ''}</p></div><span className="child-avatar large">{activeChild.name?.slice(0, 1).toUpperCase()}</span></div><div className="overview-divider" />{latest ? <><div className="plan-summary"><span className="summary-icon"><Sparkles size={19} /></span><span><b>{latest.status === 'vigente' ? 'Plano de acompanhamento' : 'Proposta de metas'}</b><small>{latest.metas.length} metas · atualizado agora</small></span><span className={`plan-state ${latest.status === 'vigente' ? 'accepted' : ''}`}>{latest.status === 'vigente' ? 'Em acompanhamento' : 'Para revisar'}</span></div><div className="goal-preview">{latest.metas.slice(0, 2).map((goal) => <div key={goal.id}><span className="goal-check"><Check size={13} /></span><span><b>{goal.nomeDominio}</b><small>{goal.texto}</small></span></div>)}{latest.metas.length === 0 && <p>O formulário não apontou uma área prioritária. Revise as respostas ou registre o que a família deseja acompanhar.</p>}</div><button className="btn-primary full-button" onClick={() => onSelectChild(activeChild.id)}>Ver perfil e metas <ArrowRight size={17} /></button></> : <><div className="start-assessment"><span className="start-icon"><ClipboardList size={23} /></span><h3>Vamos conhecer o momento atual?</h3><p>Responda sobre interesses, rotina e experiências. Não precisa saber tudo: cada observação ajuda a construir um primeiro retrato.</p><button className="btn-primary" onClick={onNewForm}>Começar formulário <ArrowRight size={17} /></button></div><div className="form-meta"><span><span className="tiny-dot green-dot" /> Cerca de 5 minutos</span><span><ShieldCheck size={14} /> Respostas editáveis</span></div></>}</> : null}</div></div>}
+      <div className="overview-card panel">{activeChild ? <><div className="overview-head"><div><span className="section-kicker">PERFIL DA CRIANÇA</span><h3>{activeChild.name}</h3><p>{ageText(activeChild.birthDate)}{activeChild.interests?.length ? ` · Gosta de ${activeChild.interests.join(', ')}` : ''}</p></div><span className="child-avatar large">{activeChild.name?.slice(0, 1).toUpperCase()}</span></div><div className="overview-divider" />{latest ? <><div className="plan-summary"><span className="summary-icon"><Sparkles size={19} /></span><span><b>{latest.status === 'vigente' ? 'Plano de acompanhamento' : 'Proposta de metas'}</b><small>{latest.metas.length} metas · atualizado agora</small></span><span className={`plan-state ${latest.status === 'vigente' ? 'accepted' : ''}`}>{latest.status === 'vigente' ? 'Em acompanhamento' : 'Para revisar'}</span></div><div className="goal-preview">{latest.metas.slice(0, 2).map((goal) => <div key={goal.id}><span className="goal-check"><Check size={13} /></span><span><b>{goal.nomeDominio}</b><small>{goal.texto}</small></span></div>)}{latest.metas.length === 0 && <p>O formulário não apontou uma área prioritária. Revise as respostas ou registre o que a família deseja acompanhar.</p>}</div><button className="btn-primary full-button" onClick={() => onSelectChild(activeChild.id)}>Ver perfil e metas <ArrowRight size={17} /></button></> : <><div className="start-assessment"><span className="start-icon"><ClipboardList size={23} /></span><h3>Vamos conhecer o momento atual?</h3><p>Responda sobre interesses, rotina e experiências. Não precisa saber tudo: cada observação ajuda a construir um primeiro retrato.</p><button className="btn-primary" onClick={onNewForm}>Começar formulário <ArrowRight size={17} /></button></div><div className="form-meta"><span><span className="tiny-dot green-dot" /> Cerca de 5 minutos</span><span><ShieldCheck size={14} /> Respostas editáveis</span></div></>}<button className="btn-secondary full-button journal-open-button" onClick={onOpenJournal}><MessageCircle size={16} /> Diário e dúvidas <span>{historyCount} registros</span></button></> : null}</div></div>}
     <div className="support-strip"><span className="support-icon"><Heart size={18} /></span><span><b>O desenvolvimento não é uma corrida.</b><small>Este espaço organiza observações e ideias para apoiar conversas entre família e escola.</small></span><button className="quiet-link" onClick={() => window.alert('As sugestões são propostas de demonstração e devem ser revisadas por adultos responsáveis.')}>Saiba mais <ArrowRight size={14} /></button></div>
   </div>;
 }
@@ -309,6 +325,12 @@ function ageMonthsFromBirth(date) {
   return Math.max(0, Math.min(months, 131));
 }
 
+function localDateInputValue() {
+  const local = new Date();
+  local.setMinutes(local.getMinutes() - local.getTimezoneOffset());
+  return local.toISOString().slice(0, 10);
+}
+
 function Goals({ child, assessment, onBack, onAccept, onDone, onEdit }) {
   if (!assessment) return <EmptyChild onAdd={onBack} />;
   const approved = assessment.status === 'vigente';
@@ -333,6 +355,84 @@ function Goals({ child, assessment, onBack, onAccept, onDone, onEdit }) {
       const context = assessment.dominios?.[domain.id] || {};
       return <details className="review-domain" key={domain.id}><summary><span>{DOMAIN_META[domain.id]?.icon} {domain.nome}</span><small>{context.contexto || 'Contexto não informado'}</small></summary><p><b>Pontos fortes e interesses:</b> {context.pontos_fortes || 'Não informado'}</p><p><b>Desafios e apoios necessários:</b> {context.desafios || (context.nao_sei ? 'Ainda não sabe informar' : 'Não informado')}</p><p><b>O que ajuda ou já foi tentado:</b> {context.apoios || 'Não informado'}</p><p><b>Outros comentários:</b> {context.observacoes || 'Não informado'}</p></details>;
     })}</section>
+  </div>;
+}
+
+function ChildJournal({ child, actorRole, entries, goals, onBack, onSave }) {
+  const [tab, setTab] = useState('history');
+  const actorLabel = actorRole === 'professor' ? 'Professor(a)' : 'Responsável';
+  const sortedEntries = [...entries].sort((left, right) => {
+    const leftDate = new Date(left.eventDate ? `${left.eventDate}T12:00:00` : left.createdAt).getTime();
+    const rightDate = new Date(right.eventDate ? `${right.eventDate}T12:00:00` : right.createdAt).getTime();
+    return rightDate - leftDate;
+  });
+
+  function submitObservation(event) {
+    event.preventDefault();
+    const values = Object.fromEntries(new FormData(event.currentTarget));
+    onSave({ ...values, type: 'observation' });
+    event.currentTarget.reset();
+    setTab('history');
+  }
+
+  function submitQuestion(event) {
+    event.preventDefault();
+    const values = Object.fromEntries(new FormData(event.currentTarget));
+    onSave({ ...values, type: 'question', status: 'aguardando_modelo' });
+    event.currentTarget.reset();
+    setTab('history');
+  }
+
+  function dateLabel(entry) {
+    const raw = entry.eventDate ? `${entry.eventDate}T12:00:00` : entry.createdAt;
+    const date = new Date(raw);
+    return Number.isNaN(date.getTime()) ? 'Data não informada' : date.toLocaleDateString('pt-BR', { dateStyle: 'medium' });
+  }
+
+  function contextLabel(value) {
+    return ({ casa: 'Em casa', escola: 'Na escola', comunidade: 'Na comunidade', outro: 'Outro lugar' })[value] || 'Contexto não informado';
+  }
+
+  function resultLabel(value) {
+    return ({ ajudou: 'Ajudou', parcialmente: 'Ajudou em parte', nao_ajudou: 'Não ajudou desta vez', incerto: 'Ainda não sabemos' })[value] || '';
+  }
+
+  return <div className="page-wrap journal-page">
+    <button className="back-link" onClick={onBack}><ArrowLeft size={16} /> Voltar ao perfil</button>
+    <header className="journal-header"><div><span className="section-kicker">HISTÓRICO DA CRIANÇA</span><h1>Diário e dúvidas de {child.name}.</h1><p>Registre o que aconteceu, como a criança reagiu e que apoios foram tentados. Cada entrada guarda quem compartilhou e quando.</p></div><span className="journal-count"><MessageCircle size={17} /> {entries.length} registros</span></header>
+    <div className="journal-notice"><ShieldCheck size={18} /><span><b>Demonstração local</b><small>Use dados fictícios. Os registros ficam neste navegador; o modelo ainda não está conectado e não responderá às dúvidas automaticamente.</small></span></div>
+    <div className="journal-tabs" role="tablist" aria-label="Seções do histórico">
+      <button type="button" className={tab === 'history' ? 'active' : ''} onClick={() => setTab('history')}><ClipboardList size={16} /> Histórico</button>
+      <button type="button" className={tab === 'observation' ? 'active' : ''} onClick={() => setTab('observation')}><Plus size={16} /> Nova observação</button>
+      <button type="button" className={tab === 'question' ? 'active' : ''} onClick={() => setTab('question')}><CircleHelp size={16} /> Dúvida sobre a criança</button>
+    </div>
+
+    {tab === 'history' && <section className="journal-history">
+      {!sortedEntries.length ? <div className="empty-card journal-empty"><span className="empty-illustration">🌱</span><h3>O histórico começa com uma observação.</h3><p>Registre uma situação de casa ou da escola, ou guarde uma dúvida para conversar quando o modelo estiver conectado.</p><div><button className="btn-primary" onClick={() => setTab('observation')}><Plus size={16} /> Registrar observação</button><button className="btn-secondary" onClick={() => setTab('question')}><CircleHelp size={16} /> Guardar uma dúvida</button></div></div> : <div className="journal-timeline">{sortedEntries.map((entry) => entry.type === 'question' ? <article className="journal-entry question-entry panel" key={entry.id}><div className="journal-entry-head"><span className="journal-kind question-kind"><CircleHelp size={14} /> Dúvida</span><time>{dateLabel(entry)}</time></div><p className="journal-question-text">{entry.question}</p><div className="journal-entry-foot"><span>{entry.author} · {entry.authorRole === 'professor' ? 'Professor(a)' : 'Responsável'}</span><span className="journal-pending">Aguardando integração do modelo</span></div></article> : <article className="journal-entry panel" key={entry.id}><div className="journal-entry-head"><span className="journal-kind"><ClipboardList size={14} /> Observação</span><time>{dateLabel(entry)}</time></div><h3>{entry.activity || 'Situação observada'}</h3><p className="journal-observation-text">{entry.observation}</p><div className="journal-facts"><span>{contextLabel(entry.context)}</span>{entry.goalId && <span>Meta: {goals.find((goal) => goal.id === entry.goalId)?.nomeDominio || 'Acompanhamento geral'}</span>}{entry.result && <span>Resultado percebido: {resultLabel(entry.result)}</span>}</div>{entry.behavior && <p><b>Comportamento ou ação:</b> {entry.behavior}</p>}{entry.reaction && <p><b>Reação da criança:</b> {entry.reaction}</p>}{entry.support && <p><b>Apoio tentado:</b> {entry.support}</p>}{entry.comments && <p><b>Outros comentários:</b> {entry.comments}</p>}<div className="journal-entry-foot"><span>{entry.author} · {entry.authorRole === 'professor' ? 'Professor(a)' : 'Responsável'}</span></div></article>)}</div>}
+    </section>}
+
+    {tab === 'observation' && <form className="journal-form panel" onSubmit={submitObservation}>
+      <div className="journal-form-heading"><span className="section-kicker">REGISTRAR NO HISTÓRICO</span><h2>O que aconteceu?</h2><p>Descreva uma situação concreta. O relato fica associado ao perfil de {child.name}.</p></div>
+      <div className="journal-form-grid">
+        <label>Data da situação<input name="eventDate" type="date" defaultValue={localDateInputValue()} required /></label>
+        <label>Onde aconteceu?<select name="context" defaultValue="casa"><option value="casa">Em casa</option><option value="escola">Na escola</option><option value="comunidade">Na comunidade</option><option value="outro">Outro lugar</option></select></label>
+        <label className="journal-wide">Atividade ou ação realizada<input name="activity" maxLength={180} placeholder="Ex.: brincadeira em grupo, tarefa de leitura, hora de se vestir" /></label>
+        <label className="journal-wide">Conte o que aconteceu<textarea name="observation" required maxLength={2000} placeholder="O que estava acontecendo antes? O que a criança fez? Inclua somente o que você observou." /></label>
+        <label>Como a criança reagiu?<textarea name="reaction" maxLength={1500} placeholder="Como demonstrou que gostou, não gostou, precisou de pausa ou de ajuda?" /></label>
+        <label>Que apoio foi tentado?<textarea name="support" maxLength={1500} placeholder="Ex.: instrução curta, imagem, escolha, pausa, mudança no ambiente…" /></label>
+        <label>O que aconteceu depois?<select name="result" defaultValue="incerto"><option value="incerto">Ainda não sabemos</option><option value="ajudou">O apoio pareceu ajudar</option><option value="parcialmente">Ajudou em parte</option><option value="nao_ajudou">Não ajudou desta vez</option></select></label>
+        <label>Relacionar a uma meta <span className="optional">opcional</span><select name="goalId" defaultValue=""><option value="">Acompanhamento geral</option>{goals.map((goal) => <option value={goal.id} key={goal.id}>{goal.nomeDominio}</option>)}</select></label>
+        <label className="journal-wide">Outro comentário <span className="optional">opcional</span><textarea name="comments" maxLength={1500} placeholder="Uma informação que ajude a entender o contexto…" /></label>
+      </div>
+      <div className="journal-form-footer"><span>Registrado por você como {actorLabel}</span><button className="btn-primary" type="submit"><Check size={16} /> Guardar no histórico</button></div>
+    </form>}
+
+    {tab === 'question' && <section className="journal-chat panel">
+      <div className="journal-form-heading"><span className="section-kicker">DÚVIDA SOBRE ESTA CRIANÇA</span><h2>O que você gostaria de entender?</h2><p>Guarde uma pergunta sobre uma situação, atividade ou apoio para retomar quando o assistente estiver integrado.</p></div>
+      <div className="chat-integration-note"><MessageCircle size={18} /><span><b>O assistente ainda não está conectado.</b><small>A pergunta será salva no histórico com seu perfil, mas não receberá resposta automática nesta versão.</small></span></div>
+      <form className="journal-question-form" onSubmit={submitQuestion}><label>Sua pergunta<textarea name="question" required minLength={5} maxLength={2000} placeholder={`Ex.: Como posso apoiar ${child.name} nas transições entre atividades?`} /></label><div className="journal-form-footer"><span>Registrado por você como {actorLabel}</span><button className="btn-primary" type="submit"><MessageCircle size={16} /> Guardar dúvida</button></div></form>
+      <div className="journal-question-history"><h3>Dúvidas já guardadas</h3>{entries.filter((entry) => entry.type === 'question').length ? entries.filter((entry) => entry.type === 'question').slice().reverse().map((entry) => <article className="chat-question" key={entry.id}><div className="journal-entry-head"><span className="journal-kind question-kind"><CircleHelp size={14} /> Pergunta</span><time>{dateLabel(entry)}</time></div><p>{entry.question}</p><span className="journal-pending">Aguardando integração do modelo</span></article>) : <p className="journal-muted">Ainda não há dúvidas guardadas neste perfil.</p>}</div>
+    </section>}
   </div>;
 }
 
