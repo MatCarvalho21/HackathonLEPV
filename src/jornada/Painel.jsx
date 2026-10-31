@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, RefreshCw, School, Sparkles } from 'lucide-react';
-import { api, dataCurta, dataDia, DOMINIOS, HORIZONTE, idade, mesesDesde } from './api.js';
+import { ArrowLeft, ClipboardList, Download, RefreshCw, School, Sparkles, UserPlus } from 'lucide-react';
+import { api, dataCurta, dataDia, DOMINIOS, HORIZONTE, idade, mesesDesde, rotuloFuncao } from './api.js';
+import { Canal } from './Canal.jsx';
 import { Dica, Evolucao, EvolucaoVersoes, Fontes, Meta, Semaforo } from './Relatorio.jsx';
 import { Chat } from './Chat.jsx';
 
 const ABAS = [
   ['geral', 'Visão geral'], ['metas', 'Metas'], ['dicas', 'Dicas e estratégias'], ['registrar', 'Novo registro'],
-  ['linha', 'Linha do tempo'], ['chat', 'Conversar'], ['historico', 'Perfil e versões'],
+  ['linha', 'Linha do tempo'], ['chat', 'Assistente (IA)'], ['canal', 'Canal da equipe'], ['historico', 'Perfil e versões'],
 ];
 
 export const TIPOS = {
@@ -36,7 +37,7 @@ export function resumoRegistro(x, metas = []) {
   return x.texto;
 }
 
-export function Painel({ criancaId, sessao, abaInicial = 'geral', onVoltar, onAviso, onVerVersao, onReavaliacao }) {
+export function Painel({ criancaId, sessao, abaInicial = 'geral', onVoltar, onAviso, onVerVersao, onReavaliacao, onAtualizarFormulario, onBaixarResumo, onCompartilhar }) {
   const [p, setP] = useState(null);
   const [aba, setAba] = useState(abaInicial);
   const [erro, setErro] = useState('');
@@ -45,7 +46,7 @@ export function Painel({ criancaId, sessao, abaInicial = 'geral', onVoltar, onAv
   useEffect(() => { setAba(abaInicial); }, [abaInicial]);
 
   async function registrar(body) {
-    await api.registrar(criancaId, { autor: sessao.papel, autor_id: sessao.id, ...body });
+    await api.registrar(criancaId, body); // o autor vem do login
     onAviso?.(`${TIPOS[body.tipo].icone} ${TIPOS[body.tipo].rotulo} registrado.`);
     await carregar();
   }
@@ -59,11 +60,11 @@ export function Painel({ criancaId, sessao, abaInicial = 'geral', onVoltar, onAv
   const L = av.evidencias_legiveis || {};
   const semana = p.registros.filter((x) => Date.now() - new Date(x.ocorrido_em) < 7 * 864e5).length;
   const meses = mesesDesde(c.data_nascimento) ?? p.perfil_formulario?.idade_meses;
-  const professor = sessao.papel === 'professor';
+  const professor = p.meu_papel === 'professor'; // acompanhante (papel interno "professor")
   const versao = p.avaliacoes.filter((a) => ['vigente', 'substituida'].includes(a.status)).length;
   const desdeVigente = p.registros.filter((x) => x.ocorrido_em >= av.aceita_em || x.criado_em >= av.aceita_em).length;
   const reav = p.estado.reavaliacao;
-  const reavProps = { criancaId, sessao, av, reav, desdeVigente, professor, onReavaliacao, onAviso };
+  const reavProps = { criancaId, av, reav, desdeVigente, professor, onReavaliacao, onAtualizarFormulario, onAviso };
 
   return <div className="page-wrap pp pp-painel">
     <button className="back-link" onClick={onVoltar}><ArrowLeft size={16} /> Voltar à visão geral</button>
@@ -76,17 +77,22 @@ export function Painel({ criancaId, sessao, abaInicial = 'geral', onVoltar, onAv
         <div><b>{semana}</b><small>registros na semana</small></div>
         <div><b>{p.estrategias.reduce((a, e) => a + e.funcionou, 0)}</b><small>estratégias que funcionaram</small></div>
       </div>
+      <div className="pp-cabecalho-acoes">
+        <button className="btn-secondary" onClick={onBaixarResumo}><Download size={16} /> Resumo em PDF</button>
+        {!professor && <button className="btn-secondary" onClick={onCompartilhar}><UserPlus size={16} /> Compartilhar</button>}
+      </div>
     </section>
-    {professor && <div className="teacher-banner pp-modo-prof"><div className="banner-symbol"><School size={20} /></div><div><b>Você está como professor(a)</b>
-      <p>Você lê o perfil, registra o que observa na escola (atividades, comportamentos, conquistas, observações e estratégias testadas) e conversa com o assistente. O perfil, as metas e o progresso das metas ficam com a família, e seus registros entram na próxima reavaliação.</p></div></div>}
+    {professor && <div className="teacher-banner pp-modo-prof"><div className="banner-symbol"><School size={20} /></div><div><b>Você está como acompanhante</b>
+      <p>Você lê o perfil, registra o que observa (atividades, comportamentos, conquistas, observações e estratégias testadas), fala com a família no canal e conversa com o assistente. O perfil, as metas e o progresso das metas ficam com a família, e seus registros entram na próxima reavaliação.</p></div></div>}
     <AvisoReavaliacao {...reavProps} />
     <nav className="journal-tabs pp-abas">{ABAS.map(([k, v]) => <button key={k} type="button" className={aba === k ? 'active' : ''} onClick={() => setAba(k)}>{v}</button>)}</nav>
     {aba === 'geral' && <><Geral r={r} L={L} p={p} av={av} irPara={setAba} professor={professor} /><PedirReavaliacao {...reavProps} /></>}
     {aba === 'metas' && <Metas r={r} L={L} checkins={p.checkins_metas} registrar={registrar} professor={professor} />}
     {aba === 'dicas' && <Dicas r={r} L={L} estrategias={p.estrategias} registrar={registrar} />}
-    {aba === 'registrar' && <Registrar r={r} registrar={registrar} professor={sessao.papel === 'professor'} />}
+    {aba === 'registrar' && <Registrar r={r} registrar={registrar} professor={professor} />}
     {aba === 'linha' && <Linha registros={p.registros} metas={r.metas} />}
     {aba === 'chat' && <Chat criancaId={criancaId} nomeCrianca={c.nome} sessao={sessao} />}
+    {aba === 'canal' && <Canal criancaId={criancaId} nomeCrianca={c.nome} onCompartilhar={professor ? null : onCompartilhar} />}
     {aba === 'historico' && <Historico p={p} av={av} onVerVersao={onVerVersao} reavProps={reavProps} />}
   </div>;
 }
@@ -102,7 +108,7 @@ function AvisoReavaliacao({ reav, professor, onReavaliacao }) {
     <button className="btn-primary" onClick={() => onReavaliacao?.({ avaliacao_id: reav.avaliacao_id })}>{professor ? 'Ver (somente leitura)' : 'Revisar'}</button></div>;
 }
 
-function PedirReavaliacao({ criancaId, sessao, av, reav, desdeVigente, professor, onReavaliacao, onAviso }) {
+function PedirReavaliacao({ criancaId, av, reav, desdeVigente, professor, onReavaliacao, onAtualizarFormulario, onAviso }) {
   const [aberto, setAberto] = useState(false);
   const [texto, setTexto] = useState('');
   const [ocupado, setOcupado] = useState(false);
@@ -110,7 +116,7 @@ function PedirReavaliacao({ criancaId, sessao, av, reav, desdeVigente, professor
   const dias = Math.floor((Date.now() - new Date(av.aceita_em)) / 864e5);
   async function pedir() {
     setOcupado(true);
-    try { const s = await api.reavaliar(criancaId, sessao.id, texto); onReavaliacao?.({ sessao_id: s.sessao_id }); }
+    try { const s = await api.reavaliar(criancaId, { comentario: texto }); onReavaliacao?.({ sessao_id: s.sessao_id }); }
     catch (e) { onAviso?.(e.message); setOcupado(false); }
   }
   return <section className="pp-bloco pp-pedir-reav">
@@ -118,10 +124,15 @@ function PedirReavaliacao({ criancaId, sessao, av, reav, desdeVigente, professor
     <h3>Hora de rever o perfil?</h3>
     <p>Perfil aprovado há {dias} dia(s), com {desdeVigente} registro(s) desde então. O agente lê o perfil atual e todos os registros (quem fez, quando e o que aconteceu), faz o balanço de cada meta, pode perguntar o que faltar e propõe uma nova versão para você revisar.</p>
     {!aberto ? <button className="btn-primary" onClick={() => setAberto(true)}><RefreshCw size={15} /> Solicitar reavaliação</button> : <>
-      <label className="pp-field">Quer contar algo ou sugerir um foco? <small>(opcional)</small>
+      <label className="pp-field">Quer contar algo ou sugerir um foco? (opcional)
         <textarea value={texto} maxLength={2000} onChange={(e) => setTexto(e.target.value)} placeholder='Ex.: "A fala melhorou muito. Agora quero focar no sono e na hora de dormir."' /></label>
-      <div className="form-actions"><button className="btn-secondary" disabled={ocupado} onClick={() => setAberto(false)}>Cancelar</button>
-        <button className="btn-primary" disabled={ocupado} onClick={pedir}>{ocupado ? 'Iniciando…' : 'Gerar nova versão'}</button></div></>}
+      <div className="pp-opcoes-reav">
+        <button type="button" className="pp-opcao" disabled={ocupado} onClick={() => onAtualizarFormulario?.(texto)}>
+          <ClipboardList size={20} /><span><b>Atualizar o formulário e reavaliar</b><small>Recomendado após alguns meses. As respostas anteriores vêm preenchidas: você muda só o que mudou, e as cores das áreas são recalculadas.</small></span></button>
+        <button type="button" className="pp-opcao" disabled={ocupado} onClick={pedir}>
+          <RefreshCw size={20} /><span><b>{ocupado ? 'Iniciando…' : 'Reavaliar só com os registros'}</b><small>Mais rápido. O agente usa o perfil atual e o que foi registrado no período.</small></span></button>
+      </div>
+      <button className="btn-text" disabled={ocupado} onClick={() => setAberto(false)}>Cancelar</button></>}
   </section>;
 }
 
@@ -289,7 +300,7 @@ function Linha({ registros, metas }) {
     {!lista.length && <p className="pp-sub">Nenhum registro ainda.</p>}
     <ol className="pp-timeline">{lista.map((x) => <li key={x.id}>
       <span className="pp-t-icone">{TIPOS[x.tipo].icone}</span>
-      <div><b>{TIPOS[x.tipo].rotulo}</b> <small>· {dataCurta(x.ocorrido_em)} · {x.autor_nome} ({x.autor === 'professor' ? 'professor(a)' : 'responsável'}){x.local ? ` · ${x.local}` : ''}</small>
+      <div><b>{TIPOS[x.tipo].rotulo}</b> <small>· {dataCurta(x.ocorrido_em)} · {x.autor_nome} ({rotuloFuncao(x.autor_funcao).toLowerCase()}){x.local ? ` · ${x.local}` : ''}</small>
         <p>{resumoRegistro(x, metas)}</p>
         {!!x.dominios.length && <div className="pp-chips">{x.dominios.map((d) => <span key={d} className="pp-chip mini">{DOMINIOS[d]}</span>)}</div>}
       </div></li>)}</ol>

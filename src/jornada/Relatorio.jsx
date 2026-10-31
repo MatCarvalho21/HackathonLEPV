@@ -165,7 +165,7 @@ export function Evolucao({ av, compacto = false }) {
       <div className="pp-kpis pp-evo-kpis">
         <div><b>{r.total}</b><small>registros no período</small></div>
         <div><b>{r.por_responsavel}</b><small>da família</small></div>
-        <div><b>{r.por_professor}</b><small>da escola</small></div>
+        <div><b>{r.por_professor}</b><small>dos acompanhantes</small></div>
         <div><b>{conta('melhorou')}</b><small>áreas avançaram</small></div>
       </div>
     </section>

@@ -11,6 +11,24 @@ CREATE TABLE IF NOT EXISTS escola (
   cidade TEXT
 );
 
+-- Contas de login (e-mail + senha). Uma conta pode ter perfil de responsável e/ou de acompanhante.
+CREATE TABLE IF NOT EXISTS conta (
+  id         TEXT PRIMARY KEY,
+  nome       TEXT NOT NULL,
+  email      TEXT UNIQUE NOT NULL,
+  senha_hash TEXT NOT NULL,
+  criado_em  TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS sessao_login (
+  token_hash TEXT PRIMARY KEY,
+  conta_id   TEXT NOT NULL REFERENCES conta(id),
+  criado_em  TEXT NOT NULL,
+  expira_em  TEXT NOT NULL
+);
+
+-- "professor" guarda todos os ACOMPANHANTES (professor, pedagogo, médico, terapeuta, familiar...);
+-- o nome da tabela segue o modelo original. A função fica em `funcao`.
 CREATE TABLE IF NOT EXISTS professor (
   id        TEXT PRIMARY KEY,
   escola_id TEXT REFERENCES escola(id),
@@ -131,6 +149,32 @@ CREATE TABLE IF NOT EXISTS registro (
   CHECK (tipo <> 'feedback_estrategia' OR (estrategia IS NOT NULL AND resultado IS NOT NULL))
 );
 
+-- Responsável compartilha o perfil com um acompanhante (convite por e-mail → aceito ou recusado).
+CREATE TABLE IF NOT EXISTS compartilhamento (
+  id             TEXT PRIMARY KEY,
+  crianca_id     TEXT NOT NULL REFERENCES crianca(id),
+  email          TEXT NOT NULL,
+  funcao         TEXT NOT NULL,
+  professor_id   TEXT REFERENCES professor(id),
+  responsavel_id TEXT NOT NULL REFERENCES responsavel(id),
+  status         TEXT NOT NULL DEFAULT 'pendente' CHECK (status IN ('pendente','ativo','recusado','revogado')),
+  criado_em      TEXT NOT NULL,
+  respondido_em  TEXT
+);
+
+-- Canal direto da criança: responsável e acompanhantes conversam entre si.
+CREATE TABLE IF NOT EXISTS canal_mensagem (
+  id             TEXT PRIMARY KEY,
+  crianca_id     TEXT NOT NULL REFERENCES crianca(id),
+  responsavel_id TEXT REFERENCES responsavel(id),
+  professor_id   TEXT REFERENCES professor(id),
+  texto          TEXT NOT NULL,
+  criado_em      TEXT NOT NULL,
+  CHECK ((responsavel_id IS NOT NULL) + (professor_id IS NOT NULL) = 1)
+);
+
+CREATE INDEX IF NOT EXISTS compartilhamento_crianca ON compartilhamento (crianca_id, status);
+CREATE INDEX IF NOT EXISTS canal_crianca_data ON canal_mensagem (crianca_id, criado_em);
 CREATE INDEX IF NOT EXISTS registro_crianca_data ON registro (crianca_id, ocorrido_em DESC);
 CREATE INDEX IF NOT EXISTS registro_crianca_estrategia ON registro (crianca_id, estrategia);
 CREATE INDEX IF NOT EXISTS mensagem_conversa ON mensagem (conversa_id, criado_em);

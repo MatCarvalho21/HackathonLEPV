@@ -4,7 +4,7 @@ import { api, idade, mesesDesde } from './api.js';
 import { Evolucao, Relatorio } from './Relatorio.jsx';
 
 /** Acompanha o agente ao vivo: eventos, perguntas extras e conclusão. */
-export function Agente({ sessaoId, nomeCrianca, responsavelId, podeResponder = true, onConcluida, onVoltar }) {
+export function Agente({ sessaoId, nomeCrianca, podeResponder = true, onConcluida, onVoltar }) {
   const [s, setS] = useState(null);
   const [erro, setErro] = useState('');
   const [respostas, setRespostas] = useState({});
@@ -30,7 +30,7 @@ export function Agente({ sessaoId, nomeCrianca, responsavelId, podeResponder = t
 
   async function enviar(pular = false) {
     setEnviando(true); setErro('');
-    try { await api.responder(sessaoId, pular ? {} : respostas, responsavelId); setRespostas({}); }
+    try { await api.responder(sessaoId, pular ? {} : respostas); setRespostas({}); }
     catch (e) { setErro(e.message); }
     finally { setEnviando(false); }
   }
@@ -75,7 +75,7 @@ export function Agente({ sessaoId, nomeCrianca, responsavelId, podeResponder = t
 }
 
 /** Proposta de perfil: leitura completa + pedir ajuste ou aprovar. */
-export function Proposta({ avaliacaoId, responsavelId, onAjuste, onAprovada, onVoltar, podeDecidir = true }) {
+export function Proposta({ avaliacaoId, onAjuste, onAprovada, onVoltar, podeDecidir = true }) {
   const [av, setAv] = useState(null);
   const [erro, setErro] = useState('');
   const [comentario, setComentario] = useState('');
@@ -84,12 +84,12 @@ export function Proposta({ avaliacaoId, responsavelId, onAjuste, onAprovada, onV
 
   async function ajustar() {
     setOcupado(true); setErro('');
-    try { const s = await api.ajustar(avaliacaoId, comentario, responsavelId); onAjuste(s.sessao_id); }
+    try { const s = await api.ajustar(avaliacaoId, comentario); onAjuste(s.sessao_id); }
     catch (e) { setErro(e.message); setOcupado(false); }
   }
   async function aprovar() {
     setOcupado(true); setErro('');
-    try { await api.aprovar(avaliacaoId, responsavelId); onAprovada(); }
+    try { await api.aprovar(avaliacaoId); onAprovada(); }
     catch (e) { setErro(e.message); setOcupado(false); }
   }
 

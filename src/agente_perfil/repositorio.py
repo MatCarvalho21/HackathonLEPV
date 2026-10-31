@@ -32,6 +32,22 @@ def caminho_banco() -> Path:
     return Path(os.getenv("FORM_DB", str(config.FORM_DB)))
 
 
+# Colunas novas em tabelas que já existiam: entram por ALTER TABLE no banco antigo.
+MIGRACOES = {
+    "responsavel": {"conta_id": "TEXT REFERENCES conta(id)"},
+    "professor": {"conta_id": "TEXT REFERENCES conta(id)", "funcao": "TEXT NOT NULL DEFAULT 'professor'",
+                  "instituicao": "TEXT"},
+}
+
+
+def _migrar(db) -> None:
+    for tabela, colunas in MIGRACOES.items():
+        existentes = {r[1] for r in db.execute(f"PRAGMA table_info({tabela})")}
+        for col, tipo in colunas.items():
+            if col not in existentes:
+                db.execute(f"ALTER TABLE {tabela} ADD COLUMN {col} {tipo}")
+
+
 @contextmanager
 def conexao():
     caminho = caminho_banco()
@@ -39,6 +55,7 @@ def conexao():
     db = sqlite3.connect(caminho, timeout=30)
     db.row_factory = sqlite3.Row
     db.executescript(SCHEMA)
+    _migrar(db)
     try:
         yield db
         db.commit()
@@ -130,8 +147,9 @@ def criancas_do_responsavel(rid: str) -> list[dict]:
 
 
 def criancas_do_professor(pid: str) -> list[dict]:
-    return _todos("SELECT c.* FROM crianca c JOIN turma t ON t.id = c.turma_id WHERE t.professor_id = ? "
-                  "ORDER BY c.nome", (pid,))
+    """Crianças compartilhadas com o acompanhante, com a função dele em cada uma."""
+    return _todos("SELECT c.*, cp.funcao FROM crianca c JOIN compartilhamento cp ON cp.crianca_id = c.id "
+                  "WHERE cp.professor_id = ? AND cp.status = 'ativo' ORDER BY c.nome", (pid,))
 
 
 def responsavel_tem_crianca(responsavel_id: str, crianca_id: str) -> bool:
@@ -140,7 +158,8 @@ def responsavel_tem_crianca(responsavel_id: str, crianca_id: str) -> bool:
 
 
 def professor_tem_crianca(professor_id: str, crianca_id: str) -> bool:
-    return _um("SELECT 1 AS ok FROM crianca c JOIN turma t ON t.id = c.turma_id WHERE c.id = ? AND t.professor_id = ?",
+    """Acompanhante só acessa crianças compartilhadas com ele (compartilhamento ativo; revogar corta o acesso)."""
+    return _um("SELECT 1 AS ok FROM compartilhamento WHERE crianca_id = ? AND professor_id = ? AND status = 'ativo'",
                (crianca_id, professor_id)) is not None
 
 
@@ -268,7 +287,10 @@ def inserir_registro(reg: dict) -> dict:
 def listar_registros(crianca_id: str, tipo: str | None = None, dominio: str | None = None,
                      texto: str | None = None, desde: str | None = None, limite: int = 200) -> list[dict]:
     sql = ("SELECT r.*, coalesce(resp.nome, prof.nome) AS autor_nome, "
-           "CASE WHEN r.professor_id IS NOT NULL THEN 'professor' ELSE 'responsavel' END AS autor "
+           "CASE WHEN r.professor_id IS NOT NULL THEN 'professor' ELSE 'responsavel' END AS autor, "
+           "CASE WHEN r.professor_id IS NOT NULL THEN coalesce((SELECT cp.funcao FROM compartilhamento cp "
+           "  WHERE cp.crianca_id = r.crianca_id AND cp.professor_id = r.professor_id AND cp.status = 'ativo' LIMIT 1), "
+           "  prof.funcao, 'professor') ELSE 'responsavel' END AS autor_funcao "
            "FROM registro r LEFT JOIN responsavel resp ON resp.id = r.responsavel_id "
            "LEFT JOIN professor prof ON prof.id = r.professor_id WHERE r.crianca_id = ?")
     args: list = [crianca_id]
@@ -329,3 +351,137 @@ def listar_mensagens(conversa_id: str, limite: int = 200) -> list[dict]:
 def atualizar_titulo_conversa(conversa_id: str, titulo: str) -> None:
     with conexao() as db:
         db.execute("UPDATE conversa SET titulo = ? WHERE id = ? AND titulo IS NULL", (titulo, conversa_id))
+
+
+# ------------------------------------------------------------------ contas e login
+def obter_conta_por_email(email: str) -> dict | None:
+    return _um("SELECT * FROM conta WHERE lower(email) = lower(?)", (email.strip(),))
+
+
+def obter_conta(conta_id: str) -> dict | None:
+    return _um("SELECT * FROM conta WHERE id = ?", (conta_id,))
+
+
+def criar_conta(nome: str, email: str, senha_hash: str) -> dict:
+    c = {"id": novo_id(), "nome": nome, "email": email.strip().lower(), "senha_hash": senha_hash, "criado_em": agora()}
+    with conexao() as db:
+        _inserir(db, "conta", c)
+    return c
+
+
+def perfis_da_conta(conta_id: str) -> dict:
+    """{'responsavel': dict|None, 'professor': dict|None} (professor = acompanhante)."""
+    return {"responsavel": _um("SELECT * FROM responsavel WHERE conta_id = ?", (conta_id,)),
+            "professor": _um("SELECT * FROM professor WHERE conta_id = ?", (conta_id,))}
+
+
+def ligar_perfil(tabela: str, perfil_id: str, conta_id: str) -> None:
+    assert tabela in ("responsavel", "professor")
+    with conexao() as db:
+        db.execute(f"UPDATE {tabela} SET conta_id = ? WHERE id = ?", (conta_id, perfil_id))
+
+
+def criar_acompanhante(nome: str, email: str, funcao: str, instituicao: str | None, conta_id: str | None) -> dict:
+    p = {"id": novo_id(), "nome": nome, "email": email.strip().lower(), "funcao": funcao,
+         "instituicao": instituicao, "conta_id": conta_id}
+    with conexao() as db:
+        _inserir(db, "professor", p)
+    return _um("SELECT * FROM professor WHERE id = ?", (p["id"],))
+
+
+def criar_sessao_login(token_hash: str, conta_id: str, expira_em: str) -> None:
+    with conexao() as db:
+        _inserir(db, "sessao_login", {"token_hash": token_hash, "conta_id": conta_id, "criado_em": agora(),
+                                      "expira_em": expira_em})
+
+
+def conta_do_token(token_hash: str) -> dict | None:
+    return _um("SELECT c.* FROM sessao_login s JOIN conta c ON c.id = s.conta_id "
+               "WHERE s.token_hash = ? AND s.expira_em > ?", (token_hash, agora()))
+
+
+def apagar_sessao_login(token_hash: str) -> None:
+    with conexao() as db:
+        db.execute("DELETE FROM sessao_login WHERE token_hash = ?", (token_hash,))
+
+
+# ------------------------------------------------------------------ compartilhamento
+def listar_compartilhamentos(crianca_id: str) -> list[dict]:
+    return _todos("SELECT cp.*, p.nome AS acompanhante_nome FROM compartilhamento cp "
+                  "LEFT JOIN professor p ON p.id = cp.professor_id "
+                  "WHERE cp.crianca_id = ? AND cp.status IN ('pendente','ativo') ORDER BY cp.criado_em", (crianca_id,))
+
+
+def obter_compartilhamento(cid: str) -> dict | None:
+    return _um("SELECT * FROM compartilhamento WHERE id = ?", (cid,))
+
+
+def criar_compartilhamento(crianca_id: str, email: str, funcao: str, responsavel_id: str) -> dict:
+    email = email.strip().lower()
+    existente = _um("SELECT * FROM compartilhamento WHERE crianca_id = ? AND email = ? AND status IN ('pendente','ativo')",
+                    (crianca_id, email))
+    if existente:
+        raise ValueError("Este e-mail já tem acesso ou um convite pendente para esta criança.")
+    prof = _um("SELECT p.id FROM professor p LEFT JOIN conta c ON c.id = p.conta_id "
+               "WHERE lower(p.email) = ? OR lower(c.email) = ? LIMIT 1", (email, email))
+    cp = {"id": novo_id(), "crianca_id": crianca_id, "email": email, "funcao": funcao,
+          "professor_id": prof["id"] if prof else None, "responsavel_id": responsavel_id,
+          "status": "pendente", "criado_em": agora()}
+    with conexao() as db:
+        _inserir(db, "compartilhamento", cp)
+    return cp
+
+
+def convites_do_acompanhante(professor_id: str, email: str) -> list[dict]:
+    return _todos("SELECT cp.*, c.nome AS crianca_nome, r.nome AS responsavel_nome FROM compartilhamento cp "
+                  "JOIN crianca c ON c.id = cp.crianca_id JOIN responsavel r ON r.id = cp.responsavel_id "
+                  "WHERE cp.status = 'pendente' AND (cp.professor_id = ? OR (cp.professor_id IS NULL AND cp.email = ?)) "
+                  "ORDER BY cp.criado_em DESC", (professor_id, email.strip().lower()))
+
+
+def responder_compartilhamento(cid: str, professor_id: str, status: str) -> None:
+    with conexao() as db:
+        db.execute("UPDATE compartilhamento SET status = ?, professor_id = ?, respondido_em = ? WHERE id = ?",
+                   (status, professor_id, agora(), cid))
+
+
+def revogar_compartilhamento(cid: str) -> None:
+    with conexao() as db:
+        db.execute("UPDATE compartilhamento SET status = 'revogado', respondido_em = ? WHERE id = ?", (agora(), cid))
+
+
+def equipe_da_crianca(crianca_id: str) -> list[dict]:
+    """Responsáveis + acompanhantes com acesso ativo (para o canal e a tela de compartilhamento)."""
+    resp = _todos("SELECT r.id, r.nome, 'responsavel' AS papel, coalesce(rc.parentesco, 'Responsável') AS funcao "
+                  "FROM responsavel r JOIN responsavel_crianca rc ON rc.responsavel_id = r.id WHERE rc.crianca_id = ?",
+                  (crianca_id,))
+    acomp = _todos("SELECT p.id, p.nome, 'professor' AS papel, cp.funcao FROM compartilhamento cp "
+                   "JOIN professor p ON p.id = cp.professor_id WHERE cp.crianca_id = ? AND cp.status = 'ativo'",
+                   (crianca_id,))
+    return resp + acomp
+
+
+# ------------------------------------------------------------------ canal da criança
+def inserir_mensagem_canal(crianca_id: str, papel: str, autor_id: str, texto: str) -> dict:
+    m = {"id": novo_id(), "crianca_id": crianca_id, "texto": texto, "criado_em": agora(),
+         "responsavel_id": autor_id if papel == "responsavel" else None,
+         "professor_id": autor_id if papel == "professor" else None}
+    with conexao() as db:
+        _inserir(db, "canal_mensagem", m)
+    return listar_canal(crianca_id, ids=[m["id"]])[0]
+
+
+def listar_canal(crianca_id: str, depois: str | None = None, ids: list[str] | None = None, limite: int = 300) -> list[dict]:
+    sql = ("SELECT m.*, coalesce(r.nome, p.nome) AS autor_nome, "
+           "CASE WHEN m.professor_id IS NOT NULL THEN 'professor' ELSE 'responsavel' END AS autor, "
+           "CASE WHEN m.professor_id IS NOT NULL THEN coalesce((SELECT cp.funcao FROM compartilhamento cp WHERE "
+           "  cp.crianca_id = m.crianca_id AND cp.professor_id = m.professor_id ORDER BY cp.criado_em DESC LIMIT 1), p.funcao) "
+           "  ELSE 'responsavel' END AS autor_funcao "
+           "FROM canal_mensagem m LEFT JOIN responsavel r ON r.id = m.responsavel_id "
+           "LEFT JOIN professor p ON p.id = m.professor_id WHERE m.crianca_id = ?")
+    args: list = [crianca_id]
+    if depois:
+        sql, args = sql + " AND m.criado_em > ?", args + [depois]
+    if ids:
+        sql, args = sql + f" AND m.id IN ({','.join('?' * len(ids))})", args + ids
+    return _todos(f"SELECT * FROM ({sql} ORDER BY m.criado_em DESC LIMIT ?) ORDER BY criado_em", args + [limite])

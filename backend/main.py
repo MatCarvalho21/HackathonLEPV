@@ -6,7 +6,7 @@ from pathlib import Path
 from uuid import uuid4
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, ConfigDict
@@ -38,10 +38,13 @@ from backend.avaliacoes import router as avaliacoes_router  # noqa: E402
 app.include_router(avaliacoes_router)
 from backend.plataforma import router as plataforma_router  # noqa: E402
 app.include_router(plataforma_router)
+from backend.auth import Ator, ator_atual, router as auth_router, so_responsavel  # noqa: E402
+app.include_router(auth_router)
 
 ROTULOS = {'nome': 'Nome', 'email': 'E-mail', 'telefone': 'Telefone', 'escola': 'Escola', 'turma': 'Turma',
            'data_nascimento': 'Data de nascimento', 'texto': 'Texto', 'comentario': 'Comentário',
-           'apelido': 'Nome da criança', 'vinculo': 'Vínculo', 'prioridades': 'Prioridades', 'parentesco': 'Parentesco'}
+           'apelido': 'Nome da criança', 'vinculo': 'Vínculo', 'prioridades': 'Prioridades', 'parentesco': 'Parentesco',
+           'senha': 'Senha', 'funcao': 'Função', 'instituicao': 'Instituição'}
 
 
 def mensagem_validacao(err: dict) -> str:
@@ -111,8 +114,8 @@ class Submission(Strict):
     respostas: dict[str, Observation]
     dominios: dict[str, DomainContext]
     consentimento: Literal[True]
-    crianca_id: str | None = None   # criança cadastrada na plataforma (sem ela, uma é criada a partir do perfil)
-    autor_id: str | None = None     # id do responsável ou professor que preencheu
+    crianca_id: str | None = None   # pela API é obrigatório; o seed e a CLI podem omitir (cria a criança)
+    autor_id: str | None = None     # ignorado na API: o autor vem do login
 
 def questionnaire(age: int, school: int | None):
     domains = []
@@ -139,12 +142,16 @@ def get_questionnaire(idade_meses: int = Query(ge=0,le=131), ano_escolar: int | 
     return questionnaire(idade_meses, ano_escolar)
 
 @app.post('/api/formularios', status_code=201)
+def enviar_formulario(data: Submission, ator: Ator = Depends(ator_atual)):
+    """Só o responsável pelo perfil preenche (acompanhante recebe 403)."""
+    if not data.crianca_id:
+        raise HTTPException(422, 'Informe a criança do formulário.')
+    responsavel_id = so_responsavel(ator, data.crianca_id)
+    return submit(data.model_copy(update={'informante': 'responsavel', 'autor_id': responsavel_id}))
+
+
 def submit(data: Submission):
-    if data.informante == 'professor':
-        raise HTTPException(403, 'O formulário do perfil é preenchido pelo responsável. Como professor(a), use os registros e o chat.')
-    from src.agente_perfil import repositorio
-    if data.autor_id and repositorio.obter_professor(data.autor_id):
-        raise HTTPException(403, 'O formulário do perfil é preenchido pelo responsável. Como professor(a), use os registros e o chat.')
+    """Valida e salva o formulário (usado pela rota, pelo seed e pela CLI)."""
     if data.versao != REFERENCE['versao']:
         raise HTTPException(409, 'O questionário foi atualizado. Reabra as perguntas.')
     schema = questionnaire(data.perfil.idade_meses, data.perfil.ano_escolar)

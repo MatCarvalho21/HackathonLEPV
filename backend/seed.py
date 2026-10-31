@@ -3,15 +3,21 @@
     python -m backend.seed            # cria (se ainda não existir) a família de demonstração
     python -m backend.seed --zerar    # apaga o banco local e recria
 
-Família criada:
-- Ana Souza (mãe), ana@demo.primeirospassos
+Família criada (senha de todas as contas: demo1234):
+- Ana Souza (mãe), ana@demo.primeirospassos — responsável pelo perfil da Lia e da Nina
 - Lia, 3a2m: formulário enviado + perfil APROVADO (relatório real gerado pelo agente,
   src/agente_perfil/exemplos/avaliacao_lia_aprovada.json) + 2 semanas de registros.
   Serve para testar painel e chat na hora, sem esperar o agente.
 - Nina, 3a2m: só cadastro. Serve para rodar a jornada completa (formulário → agente → aprovação);
   no formulário, use "Preencher com exemplo".
-- Prof. Carla (Creche Municipal Sol, turma Maternal II), com a Lia e a Nina na turma.
-  Entre por "Entrar como professora" para ver o lado da escola (registra e conversa, não altera o perfil).
+- Acompanhantes (a Ana compartilhou os perfis com eles):
+  - Prof. Carla Mendes, carla@demo.primeirospassos — professora da Lia e da Nina (Creche Municipal Sol)
+  - Dr. Rafael Lima, rafael@demo.primeirospassos — pediatra da Lia
+  Entre por "Entrar como professora" para ver o lado do acompanhante (registra, conversa no canal e com a
+  IA; não altera o perfil nem as metas).
+- Canal da Lia com algumas mensagens entre a família, a professora e o pediatra.
+
+Bancos criados antes do login ganham as contas, os compartilhamentos e o canal ao chamar semear_demo().
 """
 import argparse
 import json
@@ -21,6 +27,8 @@ from src.agente_perfil import config, repositorio as repo
 
 EMAIL_DEMO = "ana@demo.primeirospassos"
 EMAIL_PROFESSORA = "carla@demo.primeirospassos"
+EMAIL_PEDIATRA = "rafael@demo.primeirospassos"
+SENHA_DEMO = "demo1234"
 EXEMPLOS = config.ROOT / "src/agente_perfil/exemplos"
 
 
@@ -36,16 +44,67 @@ def _nascimento(meses: int) -> str:
 def semear_demo() -> dict:
     existente = next(iter(repo._todos("SELECT * FROM responsavel WHERE email = ?", (EMAIL_DEMO,))), None)
     if existente:
+        _garantir_login_e_equipe(existente)
         return existente
+    ana = _semear_familia()
+    _garantir_login_e_equipe(ana)
+    return ana
+
+
+def _conta_demo(nome: str, email: str) -> dict:
+    from backend.auth import hash_senha
+    return repo.obter_conta_por_email(email) or repo.criar_conta(nome, email, hash_senha(SENHA_DEMO))
+
+
+def _garantir_login_e_equipe(ana: dict) -> None:
+    """Idempotente: contas com senha, compartilhamentos ativos, pediatra e canal da Lia."""
+    conta_ana = _conta_demo("Ana Souza", EMAIL_DEMO)
+    if not ana.get("conta_id"):
+        repo.ligar_perfil("responsavel", ana["id"], conta_ana["id"])
+    carla = repo._um("SELECT * FROM professor WHERE email = ?", (EMAIL_PROFESSORA,))
+    conta_carla = _conta_demo("Carla Mendes", EMAIL_PROFESSORA)
+    if not carla.get("conta_id"):
+        repo.ligar_perfil("professor", carla["id"], conta_carla["id"])
+    rafael = repo._um("SELECT * FROM professor WHERE email = ?", (EMAIL_PEDIATRA,))
+    if not rafael:
+        conta_rafael = _conta_demo("Dr. Rafael Lima", EMAIL_PEDIATRA)
+        rafael = repo.criar_acompanhante("Dr. Rafael Lima", EMAIL_PEDIATRA, "medico", "UBS Jardim", conta_rafael["id"])
+
+    criancas = {c["nome"]: c for c in repo.criancas_do_responsavel(ana["id"])}
+    for nome, prof, funcao in [("Lia", carla, "professor"), ("Nina", carla, "professor"), ("Lia", rafael, "medico")]:
+        c = criancas.get(nome)
+        if c and not repo._um("SELECT 1 AS ok FROM compartilhamento WHERE crianca_id = ? AND professor_id = ?",
+                              (c["id"], prof["id"])):
+            cp = repo.criar_compartilhamento(c["id"], prof["email"], funcao, ana["id"])
+            repo.responder_compartilhamento(cp["id"], prof["id"], "ativo")
+
+    lia = criancas.get("Lia")
+    if lia and not repo.listar_canal(lia["id"], limite=1):
+        mensagens = [
+            (6.2, "responsavel", ana["id"], "Oi, Carla e Dr. Rafael! Criei este canal para a gente combinar as coisas da Lia. "
+                                          "Em casa estamos usando o aviso de 5 e 2 minutos antes de trocar de atividade."),
+            (5.9, "professor", carla["id"], "Que ótimo, Ana! Vou usar o mesmo aviso aqui na creche, com a música de guardar. "
+                                            "Ela gosta muito quando cantamos."),
+            (4, "professor", rafael["id"], "Ana, recebi o pedido da audiometria. Assim que tiver o resultado, me avise por aqui "
+                                           "para combinarmos o retorno com a fonoaudióloga."),
+            (1, "responsavel", ana["id"], "Combinado! A audiometria ficou para a semana que vem."),
+        ]
+        for dias, papel, autor, texto in mensagens:
+            m = repo.inserir_mensagem_canal(lia["id"], papel, autor, texto)
+            with repo.conexao() as db:
+                hora = (datetime.now(timezone.utc) - timedelta(days=dias)).replace(microsecond=0).isoformat()
+                db.execute("UPDATE canal_mensagem SET criado_em = ? WHERE id = ?", (hora, m["id"]))
+
+
+def _semear_familia() -> dict:
     from backend.main import Submission, submit
 
     ana = repo.criar_responsavel("Ana Souza", EMAIL_DEMO, "(21) 90000-0000")
     carla = repo.criar_professor("Carla Mendes", EMAIL_PROFESSORA, "Creche Municipal Sol", "Maternal II")
-    turma = repo._todos("SELECT id FROM turma WHERE professor_id = ?", (carla["id"],))[0]["id"]
 
-    lia = repo.criar_crianca("Lia", _nascimento(38), ["dinossauros", "água", "música", "quebra-cabeça"],
-                             ana["id"], "Mãe", turma_id=turma)
-    repo.criar_crianca("Nina", _nascimento(38), ["bichos", "massinha", "histórias"], ana["id"], "Mãe", turma_id=turma)
+    # o acesso da professora vem do compartilhamento (ver _garantir_login_e_equipe), não da turma
+    lia = repo.criar_crianca("Lia", _nascimento(38), ["dinossauros", "água", "música", "quebra-cabeça"], ana["id"], "Mãe")
+    repo.criar_crianca("Nina", _nascimento(38), ["bichos", "massinha", "histórias"], ana["id"], "Mãe")
 
     corpo = json.loads((EXEMPLOS / "formulario_lia_38m.json").read_text(encoding="utf-8"))
     form = submit(Submission.model_validate({**corpo, "crianca_id": lia["id"], "autor_id": ana["id"]}))

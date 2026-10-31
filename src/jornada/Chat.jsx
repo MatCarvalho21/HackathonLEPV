@@ -56,7 +56,7 @@ export function Chat({ criancaId, nomeCrianca, sessao }) {
     setErro(''); setTexto(''); setPensando(true);
     setMsgs((m) => [...m, { id: 'tmp', papel: 'usuario', conteudo, criado_em: new Date().toISOString() }]);
     try {
-      const r = await api.conversar(criancaId, { texto: conteudo, conversa_id: atual, autor: sessao.papel, autor_id: sessao.id });
+      const r = await api.conversar(criancaId, { texto: conteudo, conversa_id: atual });
       setMsgs((m) => [...m.filter((x) => x.id !== 'tmp'), r.mensagem_usuario, r.mensagem_assistente]);
       if (!atual) {
         setAtual(r.conversa.id);
