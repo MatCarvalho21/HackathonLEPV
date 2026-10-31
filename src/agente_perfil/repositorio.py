@@ -134,6 +134,16 @@ def criancas_do_professor(pid: str) -> list[dict]:
                   "ORDER BY c.nome", (pid,))
 
 
+def responsavel_tem_crianca(responsavel_id: str, crianca_id: str) -> bool:
+    return _um("SELECT 1 AS ok FROM responsavel_crianca WHERE responsavel_id = ? AND crianca_id = ?",
+               (responsavel_id, crianca_id)) is not None
+
+
+def professor_tem_crianca(professor_id: str, crianca_id: str) -> bool:
+    return _um("SELECT 1 AS ok FROM crianca c JOIN turma t ON t.id = c.turma_id WHERE c.id = ? AND t.professor_id = ?",
+               (crianca_id, professor_id)) is not None
+
+
 def vincular_turma(crianca_id: str, professor_id: str) -> None:
     with conexao() as db:
         t = db.execute("SELECT id FROM turma WHERE professor_id = ? LIMIT 1", (professor_id,)).fetchone()
@@ -193,6 +203,12 @@ def obter_sessao(sessao_id: str) -> dict | None:
     return json.loads(row["estado"]) if row else None
 
 
+def sessoes_ativas(crianca_id: str) -> list[dict]:
+    return [json.loads(r["estado"]) for r in _todos(
+        "SELECT estado FROM sessao_agente WHERE crianca_id = ? AND status IN ('executando','aguardando_responsavel') "
+        "ORDER BY atualizado_em DESC", (crianca_id,))]
+
+
 def sessao_ativa(crianca_id: str) -> dict | None:
     return _um("SELECT id, status, atualizado_em FROM sessao_agente WHERE crianca_id = ? "
                "AND status IN ('executando','aguardando_responsavel') ORDER BY atualizado_em DESC LIMIT 1", (crianca_id,))
@@ -227,7 +243,7 @@ def aprovar_avaliacao(avaliacao_id: str) -> dict:
 
 
 def listar_avaliacoes(crianca_id: str) -> list[dict]:
-    return _todos("SELECT id, status, tipo, avaliacao_anterior_id, comentario_responsavel, criado_em, aceita_em "
+    return _todos("SELECT id, status, tipo, avaliacao_anterior_id, comentario_responsavel, niveis, criado_em, aceita_em "
                   "FROM avaliacao WHERE crianca_id = ? ORDER BY criado_em", (crianca_id,))
 
 

@@ -7,7 +7,15 @@ Painel       GET  /api/criancas/{id}/painel
 Registros    GET|POST /api/criancas/{id}/registros
 Chat         GET  /api/criancas/{id}/conversas · GET /api/conversas/{id}/mensagens
              POST /api/criancas/{id}/chat {texto, conversa_id?, autor, autor_id}
-Demo         POST /api/demo/entrar · GET /api/demo/formulario-exemplo · POST /api/demo/formulario
+Reavaliação  POST /api/criancas/{id}/reavaliacoes {responsavel_id, comentario?} → 202 {sessao_id}
+Demo         POST /api/demo/entrar · POST /api/demo/entrar-professor
+             GET  /api/demo/formulario-exemplo · POST /api/demo/formulario
+
+Papéis (sem login real na demonstração: o cliente informa autor e autor_id, e o backend confere o vínculo):
+- responsável: tudo — formulário, agente, ajustes, aprovação, reavaliação, progresso de metas, saúde.
+- professor(a): só crianças da própria turma. Lê o perfil, registra o dia a dia (atividade, comportamento,
+  conquista, observação, estratégia testada) e usa o chat. Não preenche formulário, não mexe no perfil
+  nem nas metas, não registra progresso de meta nem saúde.
 """
 import json
 from datetime import date, datetime
@@ -16,8 +24,8 @@ from typing import Literal
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from backend.avaliacoes import enriquecer, tratar
-from src.agente_perfil import chat, config, repositorio as repo
+from backend.avaliacoes import _em_segundo_plano, enriquecer, tratar
+from src.agente_perfil import agente, chat, config, repositorio as repo
 
 router = APIRouter(tags=["plataforma"])
 EXEMPLO = config.ROOT / "src/agente_perfil/exemplos/formulario_lia_38m.json"
@@ -64,6 +72,11 @@ class NovoRegistro(BaseModel):
     ocorrido_em: datetime | None = None
 
 
+class PedidoReavaliacao(BaseModel):
+    responsavel_id: str
+    comentario: str = Field(default='', max_length=2000)
+
+
 class MensagemChat(BaseModel):
     texto: str = Field(min_length=1, max_length=4000)
     conversa_id: str | None = None
@@ -76,6 +89,41 @@ def _crianca_ou_404(cid: str) -> dict:
     if not c:
         raise HTTPException(404, "Criança não encontrada.")
     return c
+
+
+TIPOS_PROFESSOR = {'atividade', 'comportamento', 'conquista', 'observacao', 'feedback_estrategia'}
+
+
+def exigir_acesso(cid: str, autor: str, autor_id: str) -> None:
+    """Confere se quem age está ligado à criança (responsável dela ou professor da turma dela)."""
+    if autor == "responsavel":
+        if not repo.responsavel_tem_crianca(autor_id, cid):
+            raise HTTPException(403, "Este responsável não está vinculado a esta criança.")
+    elif not repo.professor_tem_crianca(autor_id, cid):
+        raise HTTPException(403, "Esta criança não está na sua turma.")
+
+
+def exigir_responsavel(cid: str, responsavel_id: str | None) -> None:
+    """Ações que mudam o perfil (agente, ajustes, aprovação, reavaliação) são só do responsável."""
+    if not responsavel_id:
+        return  # CLI e testes antigos chamam sem identidade
+    if repo.obter_professor(responsavel_id):
+        raise HTTPException(403, "Só o responsável pode alterar o perfil, as metas ou pedir avaliações.")
+    if not repo.responsavel_tem_crianca(responsavel_id, cid):
+        raise HTTPException(403, "Este responsável não está vinculado a esta criança.")
+
+
+def _reavaliacao_em_andamento(cid: str, vigente: dict | None) -> dict | None:
+    """Com perfil vigente, uma reavaliação pode estar rodando (sessão) ou aguardando aprovação (proposta)."""
+    if not vigente:
+        return None
+    sessao = next((x for x in repo.sessoes_ativas(cid) if x.get("tipo") == "reavaliacao"), None)
+    if sessao:
+        return {"etapa": "analise", "sessao_id": sessao["id"], "status": sessao["status"]}
+    proposta = repo.avaliacao_proposta(cid)
+    if proposta and proposta["tipo"] == "reavaliacao":
+        return {"etapa": "proposta", "avaliacao_id": proposta["id"]}
+    return None
 
 
 def estado_crianca(cid: str) -> dict:
@@ -98,6 +146,9 @@ def estado_crianca(cid: str) -> dict:
     return {"crianca": crianca, "etapa": etapa, "sessao_id": sessao["id"] if sessao else None,
             "avaliacao_proposta_id": proposta["id"] if proposta else None,
             "avaliacao_vigente_id": vigente["id"] if vigente else None,
+            "vigente_desde": vigente["aceita_em"] if vigente else None,
+            "versoes_aprovadas": sum(1 for a in repo.listar_avaliacoes(cid) if a["status"] in ("vigente", "substituida")),
+            "reavaliacao": _reavaliacao_em_andamento(cid, vigente),
             "formulario_id": form["id"] if form else None,
             "metas": len(vigente["metas"]) if vigente else 0}
 
@@ -180,12 +231,16 @@ def listar_registros(cid: str, tipo: str | None = None):
 @router.post("/api/criancas/{cid}/registros", status_code=201)
 def criar_registro(cid: str, body: NovoRegistro):
     _crianca_ou_404(cid)
+    exigir_acesso(cid, body.autor, body.autor_id)
+    if body.autor == "professor" and body.tipo not in TIPOS_PROFESSOR:
+        motivo = {"checkin_meta": "O progresso das metas é registrado pelo responsável.",
+                  "saude": "Registros de saúde são feitos pelo responsável.",
+                  "feedback_perfil": "Comentários que mudam o perfil são do responsável."}.get(body.tipo, "Tipo não permitido.")
+        raise HTTPException(403, motivo + " Como professor(a), registre como observação.")
     if body.tipo == "feedback_estrategia" and not (body.estrategia and body.resultado):
         raise HTTPException(422, "Informe a estratégia e o resultado.")
     if body.tipo == "checkin_meta" and (not body.meta_id or body.dados.get("nivel_gas") not in (-2, -1, 0, 1, 2)):
         raise HTTPException(422, "Informe a meta e o nível (de -2 a +2).")
-    if body.tipo == "saude" and body.autor != "responsavel":
-        raise HTTPException(422, "Registros de saúde são feitos pelo responsável.")
     if body.tipo not in ("checkin_meta", "feedback_estrategia") and not body.texto.strip() and not body.dados:
         raise HTTPException(422, "Descreva o registro.")
     vigente = repo.avaliacao_vigente(cid)
@@ -217,6 +272,7 @@ def mensagens(conversa_id: str):
 @router.post("/api/criancas/{cid}/chat")
 def conversar(cid: str, body: MensagemChat):
     _crianca_ou_404(cid)
+    exigir_acesso(cid, body.autor, body.autor_id)
     return tratar(chat.responder, cid, body.texto, body.autor, body.autor_id, body.conversa_id)
 
 
@@ -226,6 +282,23 @@ def contexto_chat(cid: str):
     return {"contexto": tratar(chat.contexto_crianca, cid)}
 
 
+# ------------------------------------------------------------------ reavaliação
+@router.post("/api/criancas/{cid}/reavaliacoes", status_code=202)
+def pedir_reavaliacao(cid: str, body: PedidoReavaliacao):
+    """O agente recebe o perfil vigente + todos os registros (quem, quando, o quê) e propõe uma nova versão."""
+    _crianca_ou_404(cid)
+    if repo.obter_professor(body.responsavel_id):
+        raise HTTPException(403, "Só o responsável pode pedir uma reavaliação.")
+    exigir_responsavel(cid, body.responsavel_id)
+    vigente = repo.avaliacao_vigente(cid)
+    if not vigente:
+        raise HTTPException(409, "A reavaliação parte de um perfil aprovado. Conclua a primeira avaliação antes.")
+    andamento = _reavaliacao_em_andamento(cid, vigente)
+    if andamento:
+        raise HTTPException(409, "Já existe uma reavaliação em andamento para esta criança.")
+    return _em_segundo_plano(tratar(agente.preparar_reavaliacao, cid, body.comentario.strip() or None))
+
+
 # ------------------------------------------------------------------ demo
 @router.post("/api/demo/entrar")
 def demo_entrar():
@@ -233,6 +306,15 @@ def demo_entrar():
     from backend.seed import semear_demo
     resp = semear_demo()
     return {"responsavel": resp, "criancas": criancas_responsavel(resp["id"])}
+
+
+@router.post("/api/demo/entrar-professor")
+def demo_entrar_professor():
+    """Entra como a Prof. Carla (turma da Lia e da Nina) para testar o lado da escola."""
+    from backend.seed import EMAIL_PROFESSORA, semear_demo
+    semear_demo()
+    prof = repo._todos("SELECT * FROM professor WHERE email = ?", (EMAIL_PROFESSORA,))[0]
+    return {"professor": prof, "criancas": criancas_professor(prof["id"])}
 
 
 @router.get("/api/demo/formulario-exemplo")

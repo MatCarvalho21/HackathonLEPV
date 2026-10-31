@@ -5,7 +5,10 @@
   POST /api/avaliacoes/sessoes/{id}/respostas  {respostas: {id: txt}}  → 202, retoma o loop
   GET  /api/avaliacoes/{id}                                            → avaliação (com evidências legíveis)
   POST /api/avaliacoes/{id}/ajustes            {comentario}            → 202, nova proposta
-  POST /api/avaliacoes/{id}/aprovar                                    → proposta vira vigente
+  POST /api/avaliacoes/{id}/aprovar           {responsavel_id?}       → proposta vira vigente
+
+Todas aceitam `responsavel_id`: quando vem, o backend confere que é o responsável da criança
+(professor recebe 403). O frontend sempre envia; CLI e testes antigos podem omitir.
 """
 import threading
 
@@ -17,16 +20,20 @@ from src.agente_perfil import agente, config, repositorio as repo
 router = APIRouter(tags=["avaliações"])
 
 
-class NovaAvaliacao(BaseModel):
+class Identidade(BaseModel):
+    responsavel_id: str | None = None
+
+
+class NovaAvaliacao(Identidade):
     formulario_id: str
     demo: bool = Field(default=False, description="Força uma rodada de perguntas extras (para demonstração)")
 
 
-class RespostasExtras(BaseModel):
+class RespostasExtras(Identidade):
     respostas: dict[str, str] = Field(default_factory=dict, description="{id_pergunta: resposta}; omitir = não respondeu")
 
 
-class Ajuste(BaseModel):
+class Ajuste(Identidade):
     comentario: str = Field(min_length=3, max_length=2000)
 
 
@@ -58,8 +65,24 @@ def enriquecer(av: dict | None) -> dict | None:
         ev[k] = {"tipo": "extra", "texto": f"{v['pergunta']} → {v['resposta']}"}
     for k, v in av["perfil"].get("fontes", {}).items():
         ev[k] = {"tipo": "fonte", "texto": f"{v['documento']} · {v['secao']}"}
+    if av["perfil"].get("reavaliacao"):
+        for r in repo.listar_registros(av["crianca_id"], limite=1000):
+            quem = f"{r.get('autor_nome') or ''} ({'professor(a)' if r['autor'] == 'professor' else 'responsável'})"
+            ev[f"reg:{r['id'][:8]}"] = {"tipo": "registro", "texto": f"{r['ocorrido_em'][:10]} · {quem}: "
+                                        f"{r.get('texto') or r.get('estrategia') or r['tipo']}"}
     return {**av, "evidencias_legiveis": ev, "crianca": formulario.get("perfil"),
             "crianca_cadastro": repo.obter_crianca(av["crianca_id"])}
+
+
+def _so_responsavel(crianca_id: str | None, responsavel_id: str | None) -> None:
+    from backend.plataforma import exigir_responsavel
+    if crianca_id:
+        exigir_responsavel(crianca_id, responsavel_id)
+
+
+def _crianca_da_avaliacao(avaliacao_id: str) -> str | None:
+    av = repo.obter_avaliacao(avaliacao_id)
+    return av["crianca_id"] if av else None
 
 
 def _em_segundo_plano(sessao: dict) -> dict:
@@ -69,6 +92,8 @@ def _em_segundo_plano(sessao: dict) -> dict:
 
 @router.post("/api/avaliacoes", status_code=202)
 def criar(body: NovaAvaliacao):
+    form = repo.obter_formulario(body.formulario_id)
+    _so_responsavel(form and form.get("crianca_id"), body.responsavel_id)
     return _em_segundo_plano(tratar(agente.preparar_inicio, body.formulario_id, body.demo))
 
 
@@ -82,6 +107,8 @@ def ver_sessao(sessao_id: str):
 
 @router.post("/api/avaliacoes/sessoes/{sessao_id}/respostas", status_code=202)
 def responder(sessao_id: str, body: RespostasExtras):
+    sessao = repo.obter_sessao(sessao_id)
+    _so_responsavel(sessao and sessao.get("crianca_id"), body.responsavel_id)
     return _em_segundo_plano(tratar(agente.preparar_retomada, sessao_id, body.respostas))
 
 
@@ -95,11 +122,13 @@ def ver(avaliacao_id: str):
 
 @router.post("/api/avaliacoes/{avaliacao_id}/ajustes", status_code=202)
 def ajustar(avaliacao_id: str, body: Ajuste):
+    _so_responsavel(_crianca_da_avaliacao(avaliacao_id), body.responsavel_id)
     return _em_segundo_plano(tratar(agente.preparar_ajuste, avaliacao_id, body.comentario))
 
 
 @router.post("/api/avaliacoes/{avaliacao_id}/aprovar")
-def aprovar(avaliacao_id: str):
+def aprovar(avaliacao_id: str, body: Identidade | None = None):
+    _so_responsavel(_crianca_da_avaliacao(avaliacao_id), body.responsavel_id if body else None)
     return tratar(repo.aprovar_avaliacao, avaliacao_id)
 
 

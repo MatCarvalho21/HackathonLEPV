@@ -10,7 +10,8 @@ Família criada:
   Serve para testar painel e chat na hora, sem esperar o agente.
 - Nina, 3a2m: só cadastro. Serve para rodar a jornada completa (formulário → agente → aprovação);
   no formulário, use "Preencher com exemplo".
-- Prof. Carla (Creche Municipal Sol, turma Maternal II), com a Lia na turma.
+- Prof. Carla (Creche Municipal Sol, turma Maternal II), com a Lia e a Nina na turma.
+  Entre por "Entrar como professora" para ver o lado da escola (registra e conversa, não altera o perfil).
 """
 import argparse
 import json
@@ -19,6 +20,7 @@ from datetime import date, datetime, timedelta, timezone
 from src.agente_perfil import config, repositorio as repo
 
 EMAIL_DEMO = "ana@demo.primeirospassos"
+EMAIL_PROFESSORA = "carla@demo.primeirospassos"
 EXEMPLOS = config.ROOT / "src/agente_perfil/exemplos"
 
 
@@ -38,12 +40,12 @@ def semear_demo() -> dict:
     from backend.main import Submission, submit
 
     ana = repo.criar_responsavel("Ana Souza", EMAIL_DEMO, "(21) 90000-0000")
-    carla = repo.criar_professor("Carla Mendes", "carla@demo.primeirospassos", "Creche Municipal Sol", "Maternal II")
+    carla = repo.criar_professor("Carla Mendes", EMAIL_PROFESSORA, "Creche Municipal Sol", "Maternal II")
     turma = repo._todos("SELECT id FROM turma WHERE professor_id = ?", (carla["id"],))[0]["id"]
 
     lia = repo.criar_crianca("Lia", _nascimento(38), ["dinossauros", "água", "música", "quebra-cabeça"],
                              ana["id"], "Mãe", turma_id=turma)
-    repo.criar_crianca("Nina", _nascimento(38), ["bichos", "massinha", "histórias"], ana["id"], "Mãe")
+    repo.criar_crianca("Nina", _nascimento(38), ["bichos", "massinha", "histórias"], ana["id"], "Mãe", turma_id=turma)
 
     corpo = json.loads((EXEMPLOS / "formulario_lia_38m.json").read_text(encoding="utf-8"))
     form = submit(Submission.model_validate({**corpo, "crianca_id": lia["id"], "autor_id": ana["id"]}))

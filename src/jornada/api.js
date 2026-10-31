@@ -24,15 +24,18 @@ export const api = {
   criarCrianca: (body) => req('POST', '/api/criancas', body),
   estado: (cid) => req('GET', `/api/criancas/${cid}/estado`),
   demoEntrar: () => req('POST', '/api/demo/entrar'),
+  demoProfessor: () => req('POST', '/api/demo/entrar-professor'),
   formularioExemplo: () => req('GET', '/api/demo/formulario-exemplo'),
   // formulário e agente
   enviarFormulario: (body) => req('POST', '/api/formularios', body),
-  iniciarAgente: (formulario_id, demo = false) => req('POST', '/api/avaliacoes', { formulario_id, demo }),
+  // ações que mudam o perfil levam o id do responsável: o backend recusa professor (403)
+  iniciarAgente: (formulario_id, demo = false, responsavel_id = null) => req('POST', '/api/avaliacoes', { formulario_id, demo, responsavel_id }),
   sessao: (id) => req('GET', `/api/avaliacoes/sessoes/${id}`),
-  responder: (id, respostas) => req('POST', `/api/avaliacoes/sessoes/${id}/respostas`, { respostas }),
+  responder: (id, respostas, responsavel_id) => req('POST', `/api/avaliacoes/sessoes/${id}/respostas`, { respostas, responsavel_id }),
   avaliacao: (id) => req('GET', `/api/avaliacoes/${id}`),
-  ajustar: (id, comentario) => req('POST', `/api/avaliacoes/${id}/ajustes`, { comentario }),
-  aprovar: (id) => req('POST', `/api/avaliacoes/${id}/aprovar`),
+  ajustar: (id, comentario, responsavel_id) => req('POST', `/api/avaliacoes/${id}/ajustes`, { comentario, responsavel_id }),
+  aprovar: (id, responsavel_id) => req('POST', `/api/avaliacoes/${id}/aprovar`, { responsavel_id }),
+  reavaliar: (cid, responsavel_id, comentario = '') => req('POST', `/api/criancas/${cid}/reavaliacoes`, { responsavel_id, comentario }),
   // acompanhamento
   painel: (cid) => req('GET', `/api/criancas/${cid}/painel`),
   registrar: (cid, body) => req('POST', `/api/criancas/${cid}/registros`, body),
@@ -71,5 +74,24 @@ export function idade(meses) {
   const a = Math.floor(meses / 12), m = meses % 12;
   return [a ? `${a} ano${a > 1 ? 's' : ''}` : '', m || !a ? `${m} ${m === 1 ? 'mês' : 'meses'}` : ''].filter(Boolean).join(' e ');
 }
+
+export const DIRECAO = {
+  melhorou: { rotulo: 'avançou', seta: '↑', classe: 'sobe' },
+  piorou: { rotulo: 'pede mais atenção', seta: '↓', classe: 'desce' },
+  mudou: { rotulo: 'mudou', seta: '↔', classe: 'muda' },
+  igual: { rotulo: 'estável', seta: '=', classe: 'igual' },
+};
+export const SITUACAO_META = {
+  alcancada: 'Alcançada 🎉', em_progresso: 'Em progresso', sem_progresso: 'Sem progresso ainda', sem_dados: 'Sem registros',
+};
+export const DESTINO_META = { concluida: 'concluída', mantida: 'continua', ajustada: 'ajustada', substituida: 'substituída' };
+
+export function mesesDesde(dataNascimento) {
+  if (!dataNascimento) return null;
+  const n = new Date(`${dataNascimento.slice(0, 10)}T12:00:00`), h = new Date();
+  return Math.max(0, (h.getFullYear() - n.getFullYear()) * 12 + h.getMonth() - n.getMonth() - (h.getDate() < n.getDate() ? 1 : 0));
+}
+
+export const dataDia = (iso) => new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 
 export const dataCurta = (iso) => new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });

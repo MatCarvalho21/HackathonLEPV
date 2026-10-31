@@ -77,3 +77,36 @@ def mensagem_ajuste(relatorio_anterior_json: str, comentario: str) -> str:
             "domínios afetados; as cores dos domínios por idade continuam as calculadas, mas mencione a correção. "
             "Se for uma preferência (ex.: 'quero focar no sono'), refaça foco, metas e dicas. Mantenha o resto.\n\n"
             f"Comentário do responsável: \"{comentario}\"\n\nRelatório anterior:\n```json\n{relatorio_anterior_json}\n```")
+
+
+SISTEMA_REAVALIACAO = SISTEMA + """
+# REAVALIAÇÃO (é o pedido desta vez)
+Não há formulário novo. Você recebe o PERFIL VIGENTE, aprovado pela família, e TODOS OS REGISTROS do dia a dia: \
+data, quem registrou (responsável ou professor(a), com nome) e o que aconteceu. Recebe também o progresso de cada \
+meta (check-ins na escala GAS) e o placar das estratégias testadas. Com isso, produza a NOVA versão do perfil e o \
+balanço da evolução. Estas regras valem por cima das anteriores:
+- Parta do perfil vigente. Nas áreas por idade e funcionais, `status_calculado` vem nulo: quem propõe a cor é você. \
+Mantenha o `status_anterior`, a menos que registros (`reg:xxxxxxxx`) ou respostas (`extra:...`) sustentem a mudança. \
+Área sem registro no período MANTÉM a cor: falta de registro não é piora nem melhora.
+- Toda área cuja cor mudou entra em `evolucao.areas`, com antes, depois, o que mudou e as evidências.
+- Cite registros pelo ID exato (`reg:xxxxxxxx`). Quando ajudar, diga quem observou e onde (casa ou escola): \
+"a professora registrou na escola que...".
+- Metas: em `evolucao.metas_anteriores`, faça o balanço de CADA meta anterior (situação e destino). Se a meta for \
+mantida ou ajustada, ela conserva o mesmo `id` em `metas`. Meta nova ganha um id novo (ex.: "meta_r2_1"). As \
+quantidades por horizonte continuam valendo. Meta alcançada abre espaço para o próximo passo.
+- `evolucao.resumo` fala direto com o responsável sobre o caminho percorrido. Comece pelas conquistas.
+- `o_que_funcionou` e `o_que_nao_funcionou` saem das estratégias testadas e dos registros. Dicas que não \
+funcionaram devem ser trocadas ou receber uma variação.
+- Perguntas ao responsável (`solicitar_informacoes_responsavel`, 1 rodada): faça quando faltar algo que muda a \
+conclusão. Exemplos: meta sem NENHUM check-in de progresso (pergunte como está); área com sinal de piora sem \
+contexto; registro de saúde que pede detalhe. Não pergunte o que já está nos registros.
+- `pedido_do_responsavel`, se houver, é a sugestão da família ao pedir a reavaliação (evidência `extra:pedido`). \
+Leve em conta no foco, nas metas e nas dicas.
+- A idade atual pode ser maior que na avaliação anterior; os marcos do formulário original são da idade daquela época.
+"""
+
+
+def mensagem_reavaliacao(dossie_json: str) -> str:
+    return ("Dossiê da REAVALIAÇÃO: perfil vigente, registros, progresso das metas e estratégias testadas. Analise, "
+            "use as ferramentas se precisar e entregue a nova versão chamando `entregar_relatorio` (com `evolucao`)."
+            f"\n\n```json\n{dossie_json}\n```")

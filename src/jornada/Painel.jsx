@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
-import { api, dataCurta, DOMINIOS, HORIZONTE, idade } from './api.js';
-import { Dica, Fontes, Meta, Semaforo } from './Relatorio.jsx';
+import { ArrowLeft, RefreshCw, School, Sparkles } from 'lucide-react';
+import { api, dataCurta, dataDia, DOMINIOS, HORIZONTE, idade, mesesDesde } from './api.js';
+import { Dica, Evolucao, EvolucaoVersoes, Fontes, Meta, Semaforo } from './Relatorio.jsx';
 import { Chat } from './Chat.jsx';
 
 const ABAS = [
@@ -36,7 +36,7 @@ export function resumoRegistro(x, metas = []) {
   return x.texto;
 }
 
-export function Painel({ criancaId, sessao, abaInicial = 'geral', onVoltar, onAviso, onVerVersao }) {
+export function Painel({ criancaId, sessao, abaInicial = 'geral', onVoltar, onAviso, onVerVersao, onReavaliacao }) {
   const [p, setP] = useState(null);
   const [aba, setAba] = useState(abaInicial);
   const [erro, setErro] = useState('');
@@ -58,13 +58,18 @@ export function Painel({ criancaId, sessao, abaInicial = 'geral', onVoltar, onAv
   const r = av.perfil.relatorio;
   const L = av.evidencias_legiveis || {};
   const semana = p.registros.filter((x) => Date.now() - new Date(x.ocorrido_em) < 7 * 864e5).length;
-  const meses = p.perfil_formulario?.idade_meses;
+  const meses = mesesDesde(c.data_nascimento) ?? p.perfil_formulario?.idade_meses;
+  const professor = sessao.papel === 'professor';
+  const versao = p.avaliacoes.filter((a) => ['vigente', 'substituida'].includes(a.status)).length;
+  const desdeVigente = p.registros.filter((x) => x.ocorrido_em >= av.aceita_em || x.criado_em >= av.aceita_em).length;
+  const reav = p.estado.reavaliacao;
+  const reavProps = { criancaId, sessao, av, reav, desdeVigente, professor, onReavaliacao, onAviso };
 
   return <div className="page-wrap pp pp-painel">
     <button className="back-link" onClick={onVoltar}><ArrowLeft size={16} /> Voltar à visão geral</button>
     <section className="pp-cabecalho">
       <span className="child-avatar large">{c.nome[0]}</span>
-      <div><span className="section-kicker">PLANO EM ACOMPANHAMENTO · DESDE {dataCurta(av.aceita_em).slice(0, 5)}</span>
+      <div><span className="section-kicker">PLANO EM ACOMPANHAMENTO · VERSÃO {versao} · DESDE {dataCurta(av.aceita_em).slice(0, 5)}</span>
         <h1>{c.nome}</h1><p>{meses != null ? idade(meses) : ''}{c.interesses?.length ? ` · gosta de ${c.interesses.join(', ')}` : ''}</p></div>
       <div className="pp-kpis">
         <div><b>{r.metas.length}</b><small>metas ativas</small></div>
@@ -72,19 +77,58 @@ export function Painel({ criancaId, sessao, abaInicial = 'geral', onVoltar, onAv
         <div><b>{p.estrategias.reduce((a, e) => a + e.funcionou, 0)}</b><small>estratégias que funcionaram</small></div>
       </div>
     </section>
+    {professor && <div className="teacher-banner pp-modo-prof"><div className="banner-symbol"><School size={20} /></div><div><b>Você está como professor(a)</b>
+      <p>Você lê o perfil, registra o que observa na escola (atividades, comportamentos, conquistas, observações e estratégias testadas) e conversa com o assistente. O perfil, as metas e o progresso das metas ficam com a família, e seus registros entram na próxima reavaliação.</p></div></div>}
+    <AvisoReavaliacao {...reavProps} />
     <nav className="journal-tabs pp-abas">{ABAS.map(([k, v]) => <button key={k} type="button" className={aba === k ? 'active' : ''} onClick={() => setAba(k)}>{v}</button>)}</nav>
-    {aba === 'geral' && <Geral r={r} L={L} p={p} irPara={setAba} />}
-    {aba === 'metas' && <Metas r={r} L={L} checkins={p.checkins_metas} registrar={registrar} />}
+    {aba === 'geral' && <><Geral r={r} L={L} p={p} av={av} irPara={setAba} professor={professor} /><PedirReavaliacao {...reavProps} /></>}
+    {aba === 'metas' && <Metas r={r} L={L} checkins={p.checkins_metas} registrar={registrar} professor={professor} />}
     {aba === 'dicas' && <Dicas r={r} L={L} estrategias={p.estrategias} registrar={registrar} />}
     {aba === 'registrar' && <Registrar r={r} registrar={registrar} professor={sessao.papel === 'professor'} />}
     {aba === 'linha' && <Linha registros={p.registros} metas={r.metas} />}
     {aba === 'chat' && <Chat criancaId={criancaId} nomeCrianca={c.nome} sessao={sessao} />}
-    {aba === 'historico' && <Historico p={p} av={av} onVerVersao={onVerVersao} />}
+    {aba === 'historico' && <Historico p={p} av={av} onVerVersao={onVerVersao} reavProps={reavProps} />}
   </div>;
 }
 
-function Geral({ r, L, p, irPara }) {
+/** Banner de reavaliação: em andamento, pronta para revisar ou (responsável) botão para pedir. */
+function AvisoReavaliacao({ reav, professor, onReavaliacao }) {
+  if (!reav) return null;
+  if (reav.etapa === 'analise') return <div className="pp-aviso-reav"><RefreshCw size={18} /><span><b>Reavaliação em andamento</b>
+    <small>{reav.status === 'aguardando_responsavel' ? (professor ? 'O agente fez uma pergunta à família.' : 'O agente tem uma pergunta para você.') : 'O agente está comparando o perfil com os registros.'}</small></span>
+    {!professor && <button className="btn-primary" onClick={() => onReavaliacao?.({ sessao_id: reav.sessao_id })}>{reav.status === 'aguardando_responsavel' ? 'Responder' : 'Acompanhar'}</button>}</div>;
+  return <div className="pp-aviso-reav pronta"><Sparkles size={18} /><span><b>Nova versão do perfil pronta</b>
+    <small>{professor ? 'Aguardando a família revisar.' : 'Veja como a criança evoluiu e aprove ou peça ajustes.'}</small></span>
+    <button className="btn-primary" onClick={() => onReavaliacao?.({ avaliacao_id: reav.avaliacao_id })}>{professor ? 'Ver (somente leitura)' : 'Revisar'}</button></div>;
+}
+
+function PedirReavaliacao({ criancaId, sessao, av, reav, desdeVigente, professor, onReavaliacao, onAviso }) {
+  const [aberto, setAberto] = useState(false);
+  const [texto, setTexto] = useState('');
+  const [ocupado, setOcupado] = useState(false);
+  if (professor || reav) return null;
+  const dias = Math.floor((Date.now() - new Date(av.aceita_em)) / 864e5);
+  async function pedir() {
+    setOcupado(true);
+    try { const s = await api.reavaliar(criancaId, sessao.id, texto); onReavaliacao?.({ sessao_id: s.sessao_id }); }
+    catch (e) { onAviso?.(e.message); setOcupado(false); }
+  }
+  return <section className="pp-bloco pp-pedir-reav">
+    <span className="section-kicker">REAVALIAÇÃO</span>
+    <h3>Hora de rever o perfil?</h3>
+    <p>Perfil aprovado há {dias} dia(s), com {desdeVigente} registro(s) desde então. O agente lê o perfil atual e todos os registros (quem fez, quando e o que aconteceu), faz o balanço de cada meta, pode perguntar o que faltar e propõe uma nova versão para você revisar.</p>
+    {!aberto ? <button className="btn-primary" onClick={() => setAberto(true)}><RefreshCw size={15} /> Solicitar reavaliação</button> : <>
+      <label className="pp-field">Quer contar algo ou sugerir um foco? <small>(opcional)</small>
+        <textarea value={texto} maxLength={2000} onChange={(e) => setTexto(e.target.value)} placeholder='Ex.: "A fala melhorou muito. Agora quero focar no sono e na hora de dormir."' /></label>
+      <div className="form-actions"><button className="btn-secondary" disabled={ocupado} onClick={() => setAberto(false)}>Cancelar</button>
+        <button className="btn-primary" disabled={ocupado} onClick={pedir}>{ocupado ? 'Iniciando…' : 'Gerar nova versão'}</button></div></>}
+  </section>;
+}
+
+function Geral({ r, L, p, av, irPara, professor }) {
   return <div className="pp-grade">
+    {av.perfil.reavaliacao && <section className="pp-bloco span3 pp-evolucao"><span className="section-kicker">EVOLUÇÃO DESDE A VERSÃO ANTERIOR · {dataDia(av.perfil.reavaliacao.periodo.de)} → {dataDia(av.perfil.reavaliacao.periodo.ate)}</span>
+      <Evolucao av={av} compacto /><button className="pp-link" onClick={() => irPara('historico')}>Ver a evolução completa →</button></section>}
     <section className="pp-bloco destaque span2"><span className="section-kicker">RESUMO DO PERFIL</span><p className="pp-resumo">{r.resumo}</p>
       <div className="pp-chips">{r.caracteristicas.map((x) => <span key={x} className="pp-chip">{x}</span>)}</div></section>
     <section className="pp-bloco"><span className="section-kicker">FOCO AGORA</span>
@@ -92,7 +136,7 @@ function Geral({ r, L, p, irPara }) {
     <section className="pp-bloco span3"><span className="section-kicker">AS 14 ÁREAS</span><Semaforo dominios={r.dominios} legiveis={L} compacto /></section>
     <section className="pp-bloco span2"><span className="section-kicker">METAS DE CURTO PRAZO</span>
       {r.metas.filter((m) => m.horizonte === 'curto').map((m) => <div key={m.id} className="pp-mini-meta"><p>{m.texto}</p><Progresso historico={p.checkins_metas[m.id] || []} /></div>)}
-      <button className="pp-link" onClick={() => irPara('metas')}>Registrar progresso →</button></section>
+      <button className="pp-link" onClick={() => irPara('metas')}>{professor ? 'Ver metas →' : 'Registrar progresso →'}</button></section>
     <section className="pp-bloco"><span className="section-kicker">ÚLTIMOS REGISTROS</span>
       {p.registros.slice(0, 5).map((x) => <p key={x.id} className="pp-mini-reg">{TIPOS[x.tipo].icone} {resumoRegistro(x, r.metas)}<br /><small>{dataCurta(x.ocorrido_em)} · {x.autor_nome}</small></p>)}
       {!p.registros.length && <p className="pp-sub">Nada ainda. Que tal registrar a primeira conquista?</p>}
@@ -110,13 +154,14 @@ function Progresso({ historico }) {
     <small>atual: {fmtNivel(historico.at(-1).nivel)}</small></div>;
 }
 
-function Metas({ r, L, checkins, registrar }) {
+function Metas({ r, L, checkins, registrar, professor }) {
   return ['curto', 'medio', 'longo'].map((h) => <section key={h} className="pp-bloco"><h3 className="pp-horizonte">{HORIZONTE[h]}</h3>
     <div className="pp-metas">{r.metas.filter((m) => m.horizonte === h).map((m) => {
       const hist = checkins[m.id] || [];
       return <Meta key={m.id} meta={m} legiveis={L} nivelAtual={hist.at(-1)?.nivel}>
         <Progresso historico={hist} />
-        <CheckinMeta meta={m} registrar={registrar} />
+        {professor ? <small className="pp-sub">O progresso das metas é registrado pela família. Conte o que viu na escola em “Novo registro”.</small>
+          : <CheckinMeta meta={m} registrar={registrar} />}
       </Meta>;
     })}</div></section>);
 }
@@ -251,12 +296,16 @@ function Linha({ registros, metas }) {
   </section>;
 }
 
-function Historico({ p, av, onVerVersao }) {
+function Historico({ p, av, onVerVersao, reavProps }) {
   const rotulo = { proposta: 'Proposta', vigente: 'Vigente', substituida: 'Substituída', descartada: 'Ajustada' };
+  const tipo = { inicial: 'avaliação inicial', reavaliacao: 'reavaliação' };
   return <>
+    <PedirReavaliacao {...reavProps} />
+    <section className="pp-bloco"><span className="section-kicker">EVOLUÇÃO ENTRE AS VERSÕES APROVADAS</span><EvolucaoVersoes avaliacoes={p.avaliacoes} /></section>
+    {av.perfil.reavaliacao && <><h2 className="pp-titulo-secao">O que mudou na última reavaliação</h2><Evolucao av={av} /></>}
     <section className="pp-bloco"><span className="section-kicker">VERSÕES DO PERFIL</span>
       <ol className="pp-timeline">{p.avaliacoes.map((a, i) => <li key={a.id}><span className="pp-t-icone">{a.status === 'vigente' ? '✅' : '📄'}</span>
-        <div><b>Versão {i + 1} · {rotulo[a.status]}</b> <small>· {dataCurta(a.criado_em)}</small>
+        <div><b>Versão {i + 1} · {rotulo[a.status]}</b> <small>· {tipo[a.tipo]} · {dataCurta(a.criado_em)}</small>
           {a.comentario_responsavel && <p>Pedido de ajuste: “{a.comentario_responsavel}”</p>}
           <button className="pp-link" onClick={() => onVerVersao?.(a.id)}>ver esta versão</button></div></li>)}</ol></section>
     <section className="pp-bloco"><span className="section-kicker">PRÓXIMOS PASSOS E LIMITES</span>

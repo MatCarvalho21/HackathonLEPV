@@ -6,7 +6,7 @@ import logging
 
 from src.agente_perfil import config
 from src.agente_perfil.dossie import TODOS
-from src.agente_perfil.relatorio import Relatorio
+from src.agente_perfil.relatorio import Relatorio, RelatorioReavaliacao
 
 logger = logging.getLogger(__name__)
 
@@ -94,13 +94,24 @@ ENTREGAR_RELATORIO = {
 }
 
 
-def ferramentas_disponiveis(buscas_feitas: int, rodadas_perguntas: int) -> list[dict]:
+ENTREGAR_REAVALIACAO = {
+    "type": "function",
+    "function": {
+        "name": "entregar_relatorio",
+        "description": ("Entrega a NOVA versão do perfil (reavaliação), com o balanço da evolução em `evolucao`. "
+                        "Ela será validada; se houver erros, corrija e chame de novo."),
+        "parameters": _sem_refs(RelatorioReavaliacao.model_json_schema()),
+    },
+}
+
+
+def ferramentas_disponiveis(buscas_feitas: int, rodadas_perguntas: int, reavaliacao: bool = False) -> list[dict]:
     tools = []
     if not config.RAG_DESATIVADO and buscas_feitas < config.MAX_BUSCAS_RAG:
         tools.append(BUSCAR_BASE)
     if rodadas_perguntas < config.MAX_RODADAS_PERGUNTAS:
         tools.append(SOLICITAR_INFORMACOES)
-    tools.append(ENTREGAR_RELATORIO)
+    tools.append(ENTREGAR_REAVALIACAO if reavaliacao else ENTREGAR_RELATORIO)
     return tools
 
 

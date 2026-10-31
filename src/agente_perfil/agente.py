@@ -19,8 +19,10 @@ from src.agente_perfil import config, repositorio as repo
 from src.agente_perfil.dossie import CONTEXTUAIS, POR_IDADE, dossie_para_prompt, montar_dossie
 from src.agente_perfil.ferramentas import buscar_base, ferramentas_disponiveis
 from src.agente_perfil.llm import ClienteFeatherless, ClienteLLM
-from src.agente_perfil.prompts import SISTEMA, mensagem_ajuste, mensagem_inicial
-from src.agente_perfil.relatorio import validar
+from src.agente_perfil.prompts import (SISTEMA, SISTEMA_REAVALIACAO, mensagem_ajuste, mensagem_inicial,
+                                      mensagem_reavaliacao)
+from src.agente_perfil.reavaliacao import comparar, montar_dossie_reavaliacao, validar_evolucao
+from src.agente_perfil.relatorio import Relatorio, RelatorioReavaliacao, validar
 
 logger = logging.getLogger(__name__)
 VERSAO_AGENTE = "perfil-v1"
@@ -79,6 +81,33 @@ def preparar_retomada(sessao_id: str, respostas: dict[str, str]) -> dict:
     return sessao
 
 
+def preparar_reavaliacao(crianca_id: str, comentario: str | None = None) -> dict:
+    """Nova versão do perfil a partir do vigente + todos os registros desde então (sem formulário novo)."""
+    base = repo.avaliacao_vigente(crianca_id)
+    if base is None:
+        raise ErroAgente("A reavaliação parte de um perfil aprovado.")
+    sessao = _sessao_reavaliacao(base, comentario, [])
+    n = sessao["dossie"]["periodo"]["registros_desde_a_ultima_avaliacao"]
+    _evento(sessao, f"Reuni o perfil vigente e {n} registro(s) feitos desde a última avaliação.")
+    repo.salvar_sessao(sessao)
+    return sessao
+
+
+def _sessao_reavaliacao(base: dict, comentario: str | None, mensagens_extras: list[dict]) -> dict:
+    dossie = montar_dossie_reavaliacao(base["crianca_id"], base, comentario)
+    formulario = repo.obter_formulario(base["formulario_id"])
+    sessao = _nova_sessao(formulario, dossie, [
+        {"role": "system", "content": SISTEMA_REAVALIACAO},
+        {"role": "user", "content": mensagem_reavaliacao(dossie_para_prompt(dossie))},
+        *mensagens_extras,
+    ])
+    sessao.update(tipo="reavaliacao", reavaliacao={"base_id": base["id"], "pedido": comentario})
+    if comentario:
+        sessao["respostas_extras"]["extra:pedido"] = {"dominio": None, "pergunta": "Pedido ao solicitar a reavaliação",
+                                                      "resposta": comentario}
+    return sessao
+
+
 def preparar_ajuste(avaliacao_id: str, comentario: str) -> dict:
     """O responsável pediu ajustes numa proposta: nova sessão que gera versão ligada à anterior."""
     anterior = repo.obter_avaliacao(avaliacao_id)
@@ -86,17 +115,24 @@ def preparar_ajuste(avaliacao_id: str, comentario: str) -> dict:
         raise KeyError(f"Avaliação {avaliacao_id} não encontrada.")
     if anterior["status"] != "proposta":
         raise ErroAgente("Só é possível ajustar uma proposta ainda não aprovada.")
-    formulario = repo.obter_formulario(anterior["formulario_id"])
-    dossie = montar_dossie(formulario)
     relatorio_anterior = anterior["perfil"]["relatorio"]
-    sessao = _nova_sessao(formulario, dossie, [
-        {"role": "system", "content": SISTEMA},
-        {"role": "user", "content": mensagem_inicial(dossie_para_prompt(dossie))},
-        {"role": "user", "content": mensagem_ajuste(json.dumps(relatorio_anterior, ensure_ascii=False), comentario)},
-    ])
+    pedido_ajuste = {"role": "user", "content": mensagem_ajuste(json.dumps(relatorio_anterior, ensure_ascii=False), comentario)}
+    if anterior["tipo"] == "reavaliacao":
+        base = repo.obter_avaliacao(anterior["perfil"]["reavaliacao"]["base_id"])
+        if not base or base["status"] != "vigente":
+            raise ErroAgente("O perfil usado como base desta reavaliação não está mais vigente.")
+        sessao = _sessao_reavaliacao(base, anterior["perfil"]["reavaliacao"].get("pedido"), [pedido_ajuste])
+    else:
+        formulario = repo.obter_formulario(anterior["formulario_id"])
+        dossie = montar_dossie(formulario)
+        sessao = _nova_sessao(formulario, dossie, [
+            {"role": "system", "content": SISTEMA},
+            {"role": "user", "content": mensagem_inicial(dossie_para_prompt(dossie))},
+            pedido_ajuste,
+        ])
     sessao.update(avaliacao_anterior_id=avaliacao_id, comentario_responsavel=comentario,
                   fontes_kb=anterior["perfil"].get("fontes", {}),
-                  respostas_extras={**anterior["perfil"].get("respostas_complementares", {}),
+                  respostas_extras={**sessao["respostas_extras"], **anterior["perfil"].get("respostas_complementares", {}),
                                     "extra:ajuste": {"dominio": None, "pergunta": "Pedido de ajuste", "resposta": comentario}},
                   rodadas_perguntas=config.MAX_RODADAS_PERGUNTAS)  # no ajuste não volta a perguntar
     _evento(sessao, "Recebi seu pedido de ajuste e reabri a proposta anterior.")
@@ -129,7 +165,8 @@ def resumo_sessao(sessao: dict) -> dict:
     out = {"sessao_id": sessao["id"], "formulario_id": sessao["formulario_id"], "crianca_id": sessao.get("crianca_id"),
            "status": sessao["status"],
            "passos": sessao["passos"], "buscas_feitas": sessao["buscas_feitas"], "uso_tokens": sessao["uso_tokens"],
-           "eventos": sessao.get("eventos", []), "avaliacao_anterior_id": sessao.get("avaliacao_anterior_id")}
+           "eventos": sessao.get("eventos", []), "avaliacao_anterior_id": sessao.get("avaliacao_anterior_id"),
+           "tipo": sessao.get("tipo", "inicial")}
     if sessao["status"] == "aguardando_responsavel":
         p = sessao["perguntas_pendentes"]
         out["motivo"] = p["motivo"]
@@ -151,7 +188,7 @@ def _nova_sessao(formulario: dict, dossie: dict, mensagens: list[dict]) -> dict:
         "dossie": dossie, "mensagens": mensagens,
         "passos": 0, "buscas_feitas": 0, "rodadas_perguntas": 0, "tentativas_validacao": 0,
         "fontes_kb": {}, "respostas_extras": {}, "ajustes_automaticos": [], "eventos": [],
-        "uso_tokens": {"prompt": 0, "completion": 0},
+        "uso_tokens": {"prompt": 0, "completion": 0}, "tipo": "inicial", "reavaliacao": None,
         "avaliacao_anterior_id": None, "comentario_responsavel": None, "avaliacao_id": None, "erro": None,
     }
 
@@ -167,7 +204,8 @@ def _executar(sessao: dict, llm: ClienteLLM | None) -> dict:
         while sessao["passos"] < config.MAX_PASSOS:
             _evento(sessao, "Analisando as informações…" if sessao["passos"] == 0 else "Pensando no próximo passo…")
             repo.salvar_sessao(sessao)
-            tools = ferramentas_disponiveis(sessao["buscas_feitas"], sessao["rodadas_perguntas"])
+            tools = ferramentas_disponiveis(sessao["buscas_feitas"], sessao["rodadas_perguntas"],
+                                            reavaliacao=sessao.get("tipo") == "reavaliacao")
             resposta = llm.completar(sessao["mensagens"], tools)
             sessao["passos"] += 1
             uso = resposta.pop("uso", {}) or {}
@@ -255,7 +293,11 @@ def _tratar_chamada(sessao: dict, tc: dict) -> tuple[str, dict | None, bool]:
         _evento(sessao, "Escrevi o relatório; conferindo regras, evidências e linguagem.")
         dados = args.get("relatorio", args) if isinstance(args.get("relatorio"), dict) else args
         _correcoes_automaticas(sessao, dados)
-        rel, erros = validar(dados, sessao["dossie"], set(sessao["respostas_extras"]), set(sessao["fontes_kb"]))
+        reav = sessao.get("tipo") == "reavaliacao"
+        rel, erros = validar(dados, sessao["dossie"], set(sessao["respostas_extras"]), set(sessao["fontes_kb"]),
+                             modelo=RelatorioReavaliacao if reav else Relatorio)
+        if rel is not None and reav:
+            erros = validar_evolucao(rel.model_dump(), sessao["dossie"])
         if erros:
             sessao["tentativas_validacao"] += 1
             _evento(sessao, f"Revisão automática encontrou {len(erros)} ponto(s) a corrigir; reescrevendo.")
@@ -275,7 +317,7 @@ def _correcoes_automaticas(sessao: dict, dados: dict) -> None:
         if not isinstance(d, dict):
             continue
         cod = d.get("codigo")
-        if (cod in POR_IDADE or cod in CONTEXTUAIS) and d.get("status") != calculado.get(cod):
+        if (cod in POR_IDADE or cod in CONTEXTUAIS) and calculado.get(cod) and d.get("status") != calculado.get(cod):
             sessao["ajustes_automaticos"].append(f"{cod}: status {d.get('status')} → {calculado[cod]}")
             d["status"] = calculado[cod]
         for campo in ("pontos_fortes", "pontos_de_atencao"):
@@ -288,6 +330,20 @@ def _correcoes_automaticas(sessao: dict, dados: dict) -> None:
     for dica in dados.get("dicas") or []:
         if isinstance(dica, dict) and isinstance(dica.get("fontes"), list):
             dica["fontes"] = [f for f in dica["fontes"] if f in sessao["fontes_kb"]]
+    ev = dados.get("evolucao")
+    if sessao.get("tipo") == "reavaliacao" and isinstance(ev, dict):
+        # "antes" é fato (perfil vigente) e "depois" é a cor desta proposta: o código preenche.
+        antes = {d["codigo"]: d["status_anterior"] for d in sessao["dossie"]["dominios"]}
+        depois = {d.get("codigo"): d.get("status") for d in dados.get("dominios") or [] if isinstance(d, dict)}
+        for a in ev.get("areas") or []:
+            if isinstance(a, dict) and a.get("codigo") in antes:
+                a["antes"], a["depois"] = antes[a["codigo"]], depois.get(a["codigo"], a.get("depois"))
+        for item in [*(ev.get("conquistas") or []), *(ev.get("areas") or []), *(ev.get("metas_anteriores") or [])]:
+            if isinstance(item, dict) and isinstance(item.get("evidencias"), list):
+                invalidas = [x for x in item["evidencias"] if x not in validas]
+                if invalidas:
+                    sessao["ajustes_automaticos"].append(f"evolução: evidências removidas {invalidas}")
+                    item["evidencias"] = [x for x in item["evidencias"] if x in validas]
 
 
 def _salvar_avaliacao(sessao: dict, relatorio: dict) -> str:
@@ -301,7 +357,7 @@ def _salvar_avaliacao(sessao: dict, relatorio: dict) -> str:
         "formulario_id": sessao["formulario_id"],
         "sessao_id": sessao["id"],
         "avaliacao_anterior_id": sessao["avaliacao_anterior_id"],
-        "tipo": "inicial",
+        "tipo": sessao.get("tipo", "inicial"),
         "status": "proposta",
         "respostas_formulario": {
             **{q["id"]: q["resposta"] for d in formulario["dominios"] for q in d["perguntas"]},
@@ -313,6 +369,9 @@ def _salvar_avaliacao(sessao: dict, relatorio: dict) -> str:
             "respostas_complementares": sessao["respostas_extras"],
             "gerado_por": {"agente": VERSAO_AGENTE, "modelo": sessao["modelo"], "sessao_id": sessao["id"],
                            "ajustes_automaticos": sessao["ajustes_automaticos"]},
+            **({"reavaliacao": {**comparar(repo.obter_avaliacao(sessao["reavaliacao"]["base_id"]), relatorio, formulario["crianca_id"]),
+                                "pedido": sessao["reavaliacao"].get("pedido")}}
+               if sessao.get("tipo") == "reavaliacao" else {}),
         },
         "niveis": {d["codigo"]: d["status"] for d in relatorio["dominios"]},
         "metas": relatorio["metas"],

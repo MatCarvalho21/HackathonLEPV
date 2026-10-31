@@ -7,6 +7,9 @@ Plataforma de acompanhamento do desenvolvimento infantil (0 a 10 anos). A jornad
 3. Um agente de IA (DeepSeek via Featherless) gera uma **proposta de perfil**: semáforo por domínio, foco, metas de curto, médio e longo prazo e dicas. Ele consulta a base vetorial (`chroma_db/`) e pode fazer perguntas extras ao responsável.
 4. O responsável pede ajustes ou aprova a proposta.
 5. Com o perfil aprovado, a família entra no **painel da criança**: metas com progresso, dicas e estratégias, registros (conquista, atividade, comportamento, saúde, observação), linha do tempo, diário e o **chat** com um assistente que conhece o perfil e os últimos registros.
+6. Depois de um tempo, o responsável pede uma **reavaliação**. O agente recebe o perfil vigente e todos os registros (quem fez, quando e o quê), o progresso das metas e as estratégias testadas. Ele pode fazer perguntas e propõe uma nova versão com o balanço da evolução (cores antes → agora, situação de cada meta, conquistas). O responsável pede ajustes ou aprova. A partir da segunda versão, o painel mostra a evolução entre as versões.
+
+**Papéis.** O **responsável** faz tudo. O **professor** vê as crianças da própria turma, lê o perfil, registra o dia a dia (atividade, comportamento, conquista, observação, estratégia testada) e usa o chat. Ele não preenche o formulário, não mexe no perfil nem nas metas e não registra progresso de meta nem saúde. O backend confere o papel e o vínculo e responde 403. Não há login real na demonstração.
 
 O app principal é o da **raiz** (`index.html`, `src/App.jsx`, `src/jornada/`). A pasta `frontend/` guarda o primeiro protótipo do formulário e não faz parte do app integrado.
 
@@ -25,7 +28,7 @@ Mais detalhes: agente e chat em [src/agente_perfil/README.md](src/agente_perfil/
 - Ana (mãe), responsável.
 - **Lia**, com perfil aprovado (relatório real gerado pelo agente) e duas semanas de registros. Serve para testar o painel e o chat na hora.
 - **Nina**, só com o cadastro. Serve para rodar a jornada completa: formulário → agente → aprovação.
-- Prof. Carla, com a Lia na turma dela.
+- Prof. Carla, com a Lia e a Nina na turma dela. Entre por "Entrar como professora (demo)" na tela inicial.
 
 ## Como acessar e subir a aplicação
 

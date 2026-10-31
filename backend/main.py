@@ -6,7 +6,9 @@ from pathlib import Path
 from uuid import uuid4
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, ConfigDict
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,6 +38,39 @@ from backend.avaliacoes import router as avaliacoes_router  # noqa: E402
 app.include_router(avaliacoes_router)
 from backend.plataforma import router as plataforma_router  # noqa: E402
 app.include_router(plataforma_router)
+
+ROTULOS = {'nome': 'Nome', 'email': 'E-mail', 'telefone': 'Telefone', 'escola': 'Escola', 'turma': 'Turma',
+           'data_nascimento': 'Data de nascimento', 'texto': 'Texto', 'comentario': 'Comentário',
+           'apelido': 'Nome da criança', 'vinculo': 'Vínculo', 'prioridades': 'Prioridades', 'parentesco': 'Parentesco'}
+
+
+def mensagem_validacao(err: dict) -> str:
+    """Traduz um erro do Pydantic para uma frase em português (o padrão é inglês e mostra a regex)."""
+    campo = next((str(x) for x in reversed(err.get('loc', [])) if isinstance(x, str) and x != 'body'), '')
+    rotulo = ROTULOS.get(campo, campo or 'Campo')
+    tipo, ctx = err.get('type', ''), err.get('ctx') or {}
+    if campo == 'email' and tipo == 'string_pattern_mismatch':
+        return 'E-mail inválido. Use o formato nome@dominio.com (com ponto depois do @).'
+    if tipo == 'missing':
+        return f'{rotulo}: campo obrigatório.'
+    if tipo == 'string_too_short':
+        return f'{rotulo}: não pode ficar vazio.' if ctx.get('min_length') == 1 else f'{rotulo}: escreva pelo menos {ctx.get("min_length")} caracteres.'
+    if tipo == 'string_too_long':
+        return f'{rotulo}: no máximo {ctx.get("max_length")} caracteres.'
+    if tipo in ('literal_error', 'enum'):
+        return f'{rotulo}: valor não permitido.'
+    if tipo.startswith('date') or tipo.startswith('datetime'):
+        return f'{rotulo}: data inválida.'
+    if tipo in ('greater_than_equal', 'less_than_equal', 'int_parsing'):
+        return f'{rotulo}: número fora do intervalo permitido.'
+    return f'{rotulo}: valor inválido.'
+
+
+@app.exception_handler(RequestValidationError)
+async def validacao_em_portugues(_request: Request, exc: RequestValidationError):
+    erros = list(dict.fromkeys(mensagem_validacao(e) for e in exc.errors()))
+    campos = [[str(x) for x in e.get('loc', [])] for e in exc.errors()[:10]]
+    return JSONResponse(status_code=422, content={'detail': ' '.join(erros[:4]), 'campos': campos})
 
 class Strict(BaseModel):
     model_config = ConfigDict(extra='forbid')
@@ -105,6 +140,11 @@ def get_questionnaire(idade_meses: int = Query(ge=0,le=131), ano_escolar: int | 
 
 @app.post('/api/formularios', status_code=201)
 def submit(data: Submission):
+    if data.informante == 'professor':
+        raise HTTPException(403, 'O formulário do perfil é preenchido pelo responsável. Como professor(a), use os registros e o chat.')
+    from src.agente_perfil import repositorio
+    if data.autor_id and repositorio.obter_professor(data.autor_id):
+        raise HTTPException(403, 'O formulário do perfil é preenchido pelo responsável. Como professor(a), use os registros e o chat.')
     if data.versao != REFERENCE['versao']:
         raise HTTPException(409, 'O questionário foi atualizado. Reabra as perguntas.')
     schema = questionnaire(data.perfil.idade_meses, data.perfil.ano_escolar)

@@ -83,6 +83,40 @@ class Relatorio(BaseModel):
     limitacoes: str = Field(min_length=20, description="O que este mapeamento não é e o que faltou saber")
 
 
+StatusCor = Literal["verde", "amarelo", "vermelho", "cinza", "contextual"]
+
+
+class MudancaArea(BaseModel):
+    codigo: str
+    antes: StatusCor
+    depois: StatusCor
+    o_que_mudou: str = Field(min_length=10, description="O que os registros mostram, em linguagem simples")
+    evidencias: list[str] = Field(default_factory=list, description="reg:xxxxxxxx, extra:ID, ctx:COD...")
+
+
+class BalancoMeta(BaseModel):
+    meta_id: str = Field(description="id da meta da avaliação anterior")
+    situacao: Literal["alcancada", "em_progresso", "sem_progresso", "sem_dados"]
+    comentario: str = Field(min_length=5, description="O que aconteceu com esta meta, com base nos check-ins e registros")
+    destino: Literal["concluida", "mantida", "ajustada", "substituida"] = Field(
+        description="concluida/substituida: sai da lista (meta nova ganha id novo); mantida/ajustada: mesmo id em `metas`")
+    evidencias: list[str] = Field(default_factory=list)
+
+
+class Evolucao(BaseModel):
+    resumo: str = Field(min_length=60, description="3 a 5 frases: como a criança evoluiu desde a última avaliação")
+    conquistas: list[Evidenciado] = Field(default_factory=list, description="Conquistas do período, citando registros")
+    areas: list[MudancaArea] = Field(default_factory=list,
+                                     description="TODAS as áreas cuja cor mudou e outras com mudança relevante")
+    metas_anteriores: list[BalancoMeta] = Field(description="Balanço de CADA meta da avaliação anterior")
+    o_que_funcionou: list[str] = Field(default_factory=list, description="Estratégias que deram certo no período")
+    o_que_nao_funcionou: list[str] = Field(default_factory=list, description="Estratégias a rever")
+
+
+class RelatorioReavaliacao(Relatorio):
+    evolucao: Evolucao
+
+
 # Afirmações que soam como diagnóstico. Condições relatadas pela família podem ser
 # mencionadas como relato ("a família contou que..."), por isso o filtro é por frase.
 PADROES_PROIBIDOS = [
@@ -110,12 +144,20 @@ def _textos(rel: Relatorio):
         yield from [d.titulo, d.por_que_ajuda, *d.como_fazer]
     for a in rel.alertas:
         yield from [a.texto, a.recomendacao]
+    ev = getattr(rel, "evolucao", None)
+    if ev:
+        yield ev.resumo
+        yield from (e.texto for e in ev.conquistas)
+        yield from (a.o_que_mudou for a in ev.areas)
+        yield from (b.comentario for b in ev.metas_anteriores)
 
 
-def validar(dados: dict, dossie: dict, evidencias_extras: set[str], kb_ids: set[str]) -> tuple[Relatorio | None, list[str]]:
-    """Valida o relatório. Devolve (relatório, erros). Com erros, o modelo tenta de novo."""
+def validar(dados: dict, dossie: dict, evidencias_extras: set[str], kb_ids: set[str],
+            modelo: type[Relatorio] = Relatorio) -> tuple[Relatorio | None, list[str]]:
+    """Valida o relatório. Devolve (relatório, erros). Com erros, o modelo tenta de novo.
+    Na reavaliação (`modelo=RelatorioReavaliacao`) as áreas por idade não têm cor calculada (None)."""
     try:
-        rel = Relatorio.model_validate(dados)
+        rel = modelo.model_validate(dados)
     except ValidationError as e:
         return None, [f"{'.'.join(map(str, err['loc']))}: {err['msg']}" for err in e.errors()[:15]]
 
@@ -132,7 +174,7 @@ def validar(dados: dict, dossie: dict, evidencias_extras: set[str], kb_ids: set[
         if d.codigo not in calculado:
             erros.append(f"Domínio desconhecido: {d.codigo}")
             continue
-        if d.codigo in POR_IDADE and d.status != calculado[d.codigo]:
+        if d.codigo in POR_IDADE and calculado[d.codigo] and d.status != calculado[d.codigo]:
             erros.append(f"{d.codigo}: status deve ser '{calculado[d.codigo]}' (calculado pelas regras), não '{d.status}'.")
         if d.codigo in FUNCIONAIS and d.status == "contextual":
             erros.append(f"{d.codigo}: domínio funcional precisa de verde/amarelo/vermelho/cinza.")
@@ -142,6 +184,12 @@ def validar(dados: dict, dossie: dict, evidencias_extras: set[str], kb_ids: set[
             for ev in e.evidencias:
                 if ev not in validas:
                     erros.append(f"{d.codigo}: evidência inexistente '{ev}'.")
+    ev_rel = getattr(rel, "evolucao", None)
+    if ev_rel:
+        for item in [*ev_rel.conquistas, *ev_rel.areas, *ev_rel.metas_anteriores]:
+            for ev in item.evidencias:
+                if ev not in validas:
+                    erros.append(f"evolucao: evidência inexistente '{ev}'.")
 
     for f in rel.foco_prioritario:
         if f.dominio not in calculado:
