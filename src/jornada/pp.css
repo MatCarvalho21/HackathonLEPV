@@ -488,3 +488,37 @@ body{font-size:17px;line-height:1.55}
 .brand-completa{gap:12px;flex-wrap:wrap}
 .brand-tagline{font:600 15px 'DM Sans',sans-serif;letter-spacing:0;color:var(--muted);padding-left:12px;border-left:1px solid var(--line)}
 @media(max-width:760px){.brand-tagline{display:none}}
+
+/* Blocos do painel empilhados com o mesmo respiro (Metas, Perfil e versões) */
+.pp-pilha{display:grid;gap:var(--esp-4)}
+.pp-pilha>.pp-titulo-secao{margin:var(--esp-3) 0 0}
+.pp-pilha .pp-relatorio{margin-top:0}
+.pp-limitacoes{margin-top:var(--esp-4)}
+.pp-bloco>ul{margin:var(--esp-3) 0 0;padding-left:22px;display:grid;gap:var(--esp-2);line-height:1.55}
+
+/* Versões do perfil em cartões */
+.pp-versoes{display:grid;gap:var(--esp-3);margin-top:var(--esp-3)}
+.pp-versao{display:flex;align-items:center;gap:var(--esp-4);border:1px solid var(--line);border-radius:12px;padding:var(--esp-4)}
+.pp-versao.vigente{border-color:#c8dcc9;background:#f6faf4}
+.pp-versao-corpo{flex:1;display:flex;flex-wrap:wrap;align-items:center;gap:var(--esp-2)}
+.pp-versao-corpo b{font-size:18px}
+.pp-versao-corpo small{flex-basis:100%;color:var(--muted);font-size:14.5px}
+.pp-versao-corpo p{flex-basis:100%;margin:0;font-size:15px;color:#5f7066}
+
+/* Linha do tempo no estilo do Diário: cartões espaçados, agrupados por dia */
+.pp-linha{display:grid;gap:var(--esp-5)}
+.pp-linha-filtros{margin:0}
+.pp-linha-dia{display:grid;gap:var(--esp-3)}
+.pp-linha-data{font:700 15px 'DM Sans',sans-serif;letter-spacing:1px;text-transform:uppercase;color:#86948c;margin:0;display:flex;align-items:center;gap:var(--esp-3)}
+.pp-linha-data:after{content:'';flex:1;height:1px;background:var(--line)}
+.journal-timeline{gap:var(--esp-3)}
+.journal-entry{padding:var(--esp-4) var(--esp-5)}
+.journal-kind{font-size:14px;padding:6px 11px}
+.journal-entry time{font-size:14px}
+.journal-entry h3{font-size:18px;margin:0 0 var(--esp-1)}
+.journal-entry p{font-size:16.5px;line-height:1.6}
+.journal-facts span{font-size:14px;padding:5px 10px}
+.journal-entry-foot{font-size:14px}
+.pp-reg{border-left:4px solid #cfe0d2}
+.pp-reg.conquista{border-left-color:#e2ad3e}.pp-reg.comportamento{border-left-color:#d0644f}
+.pp-reg.saude{border-left-color:#7f9db3}.pp-reg.checkin_meta,.pp-reg.feedback_estrategia{border-left-color:var(--pp-verde)}

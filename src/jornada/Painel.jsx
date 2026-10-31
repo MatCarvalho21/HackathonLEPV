@@ -167,7 +167,7 @@ function Progresso({ historico }) {
 }
 
 function Metas({ r, L, checkins, registrar, professor }) {
-  return ['curto', 'medio', 'longo'].map((h) => <section key={h} className="pp-bloco"><h3 className="pp-horizonte">{HORIZONTE[h]}</h3>
+  return <div className="pp-pilha">{['curto', 'medio', 'longo'].map((h) => <section key={h} className="pp-bloco"><h3 className="pp-horizonte">{HORIZONTE[h]}</h3>
     <div className="pp-metas">{r.metas.filter((m) => m.horizonte === h).map((m) => {
       const hist = checkins[m.id] || [];
       return <Meta key={m.id} meta={m} legiveis={L} nivelAtual={hist.at(-1)?.nivel}>
@@ -175,7 +175,7 @@ function Metas({ r, L, checkins, registrar, professor }) {
         {professor ? <small className="pp-sub">O progresso das metas é registrado pela família. Conte o que viu na escola em “Novo registro”.</small>
           : <CheckinMeta meta={m} registrar={registrar} />}
       </Meta>;
-    })}</div></section>);
+    })}</div></section>)}</div>;
 }
 
 function CheckinMeta({ meta, registrar }) {
@@ -292,39 +292,78 @@ function Registrar({ r, registrar, professor }) {
   </section>;
 }
 
+const ROTULO_LOCAL = { casa: 'Em casa', escola: 'Na escola', terapia: 'Na terapia', outro: 'Outro lugar' };
+const ROTULO_RESULTADO = Object.fromEntries(RESULTADOS);
+
+/** "Hoje", "Ontem" ou "29 de out." para agrupar os registros por dia. */
+function rotuloDia(iso) {
+  const d = new Date(iso), hoje = new Date();
+  const dias = Math.round((new Date(hoje.toDateString()) - new Date(d.toDateString())) / 864e5);
+  if (dias === 0) return 'Hoje';
+  if (dias === 1) return 'Ontem';
+  return d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', ...(d.getFullYear() !== hoje.getFullYear() ? { year: 'numeric' } : {}) });
+}
+
 function Linha({ registros, metas }) {
   const [filtro, setFiltro] = useState('');
   const lista = filtro ? registros.filter((x) => x.tipo === filtro) : registros;
-  return <section className="pp-bloco">
-    <div className="journal-tabs">{[['', 'Todos'], ...Object.entries(TIPOS).map(([k, v]) => [k, v.rotulo])].map(([k, v]) =>
+  const dias = [];
+  for (const x of lista) {
+    const rot = rotuloDia(x.ocorrido_em);
+    if (dias.at(-1)?.rotulo !== rot) dias.push({ rotulo: rot, itens: [] });
+    dias.at(-1).itens.push(x);
+  }
+  return <div className="pp-linha">
+    <div className="journal-tabs pp-linha-filtros">{[['', 'Todos'], ...Object.entries(TIPOS).map(([k, v]) => [k, v.rotulo])].map(([k, v]) =>
       <button type="button" key={k} className={filtro === k ? 'active' : ''} onClick={() => setFiltro(k)}>{k && <IconeTipo tipo={k} size={15} />} {v}</button>)}</div>
-    {!lista.length && <p className="pp-sub">Nenhum registro ainda.</p>}
-    <ol className="pp-timeline">{lista.map((x) => <li key={x.id}>
-      <span className="pp-t-icone"><IconeTipo tipo={x.tipo} size={19} /></span>
-      <div><b>{TIPOS[x.tipo].rotulo}</b> <small>· {dataCurta(x.ocorrido_em)} · {x.autor_nome} · {rotuloFuncao(x.autor_funcao)}{x.local ? ` · ${x.local}` : ''}</small>
-        <p>{resumoRegistro(x, metas)}</p>
-        {!!x.dominios.length && <div className="pp-chips">{x.dominios.map((d) => <span key={d} className="pp-chip mini">{DOMINIOS[d]}</span>)}</div>}
-      </div></li>)}</ol>
-  </section>;
+    {!lista.length && <div className="empty-card"><h3>Nenhum registro {filtro ? 'deste tipo ' : ''}ainda.</h3><p>Use “Novo registro” para contar uma conquista, uma atividade ou um momento difícil.</p></div>}
+    {dias.map((g) => <section key={g.rotulo} className="pp-linha-dia">
+      <h3 className="pp-linha-data">{g.rotulo}</h3>
+      <div className="journal-timeline">{g.itens.map((x) => {
+        const d = x.dados || {};
+        const fatos = [
+          x.local && ROTULO_LOCAL[x.local],
+          ...x.dominios.map((cod) => DOMINIOS[cod]),
+          x.estrategia && x.tipo !== 'feedback_estrategia' && `Estratégia: ${x.estrategia}${x.resultado ? ` (${ROTULO_RESULTADO[x.resultado].toLowerCase()})` : ''}`,
+          d.intensidade && `Intensidade ${d.intensidade}/5`,
+          d.duracao_min != null && d.duracao_min !== '' && `${d.duracao_min} min`,
+          d.nivel_ajuda && { sem_ajuda: 'Fez sozinha', pouca: 'Pouca ajuda', muita: 'Muita ajuda' }[d.nivel_ajuda],
+        ].filter(Boolean);
+        return <article key={x.id} className={`journal-entry panel pp-reg ${x.tipo}`}>
+          <div className="journal-entry-head">
+            <span className="journal-kind"><IconeTipo tipo={x.tipo} size={15} /> {TIPOS[x.tipo].rotulo}</span>
+            <time>{new Date(x.ocorrido_em).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</time>
+          </div>
+          {x.tipo === 'feedback_estrategia' && <h3 className="pp-com-icone"><IconeResultado resultado={x.resultado} size={17} /> {x.estrategia}</h3>}
+          <p className="journal-observation-text">{x.tipo === 'feedback_estrategia' ? `${ROTULO_RESULTADO[x.resultado]}${x.texto ? ` — ${x.texto}` : ''}` : resumoRegistro(x, metas)}</p>
+          {!!fatos.length && <div className="journal-facts">{fatos.map((f) => <span key={f}>{f}</span>)}</div>}
+          <div className="journal-entry-foot"><span>{x.autor_nome} · {rotuloFuncao(x.autor_funcao)}</span></div>
+        </article>;
+      })}</div>
+    </section>)}
+  </div>;
 }
 
 function Historico({ p, av, onVerVersao, reavProps }) {
   const rotulo = { proposta: 'Proposta', vigente: 'Vigente', substituida: 'Substituída', descartada: 'Ajustada' };
   const tipo = { inicial: 'avaliação inicial', reavaliacao: 'reavaliação' };
-  return <>
+  return <div className="pp-pilha">
     <PedirReavaliacao {...reavProps} />
     <section className="pp-bloco"><span className="section-kicker">EVOLUÇÃO ENTRE AS VERSÕES APROVADAS</span><EvolucaoVersoes avaliacoes={p.avaliacoes} /></section>
     {av.perfil.reavaliacao && <><h2 className="pp-titulo-secao">O que mudou na última reavaliação</h2><Evolucao av={av} /></>}
     <section className="pp-bloco"><span className="section-kicker">VERSÕES DO PERFIL</span>
-      <ol className="pp-timeline">{p.avaliacoes.map((a, i) => <li key={a.id}><span className="pp-t-icone">{a.status === 'vigente' ? <CircleCheck size={19} /> : <FileText size={19} />}</span>
-        <div><b>Versão {i + 1} · {rotulo[a.status]}</b> <small>· {tipo[a.tipo]} · {dataCurta(a.criado_em)}</small>
-          {a.comentario_responsavel && <p>Pedido de ajuste: “{a.comentario_responsavel}”</p>}
-          <button className="pp-link" onClick={() => onVerVersao?.(a.id)}>ver esta versão</button></div></li>)}</ol></section>
+      <div className="pp-versoes">{p.avaliacoes.map((a, i) => <article key={a.id} className={`pp-versao ${a.status}`}>
+        <span className="pp-t-icone">{a.status === 'vigente' ? <CircleCheck size={19} /> : <FileText size={19} />}</span>
+        <div className="pp-versao-corpo"><b>Versão {i + 1}</b><span className={`pp-pill ${a.status === 'vigente' ? '' : 'leve'}`}>{rotulo[a.status]}</span>
+          <small>{tipo[a.tipo]} · criada em {dataCurta(a.criado_em)}{a.aceita_em ? ` · aprovada em ${dataCurta(a.aceita_em)}` : ''}</small>
+          {a.comentario_responsavel && <p>Pedido de ajuste: “{a.comentario_responsavel}”</p>}</div>
+        <button className="btn-secondary" onClick={() => onVerVersao?.(a.id)}>Ver esta versão</button>
+      </article>)}</div></section>
     <section className="pp-bloco"><span className="section-kicker">PRÓXIMOS PASSOS E LIMITES</span>
       <ul>{av.perfil.relatorio.proximos_passos.map((x, i) => <li key={i}>{x}</li>)}</ul>
       <p className="pp-limitacoes">{av.perfil.relatorio.limitacoes}</p>
       <Fontes fontes={av.perfil.fontes} />
       <p className="pp-sub">Gerado por {av.perfil.gerado_por?.modelo} ({av.perfil.gerado_por?.agente}). Cores das áreas por idade calculadas por regras; texto, metas e dicas pela IA, revisados por validação automática.</p>
     </section>
-  </>;
+  </div>;
 }
