@@ -5,7 +5,7 @@ import {
   Sparkles, Users, X,
 } from 'lucide-react';
 import {
-  ANSWER_LABELS, CONDITIONS, DOMAIN_META, buildQuestionnaire,
+  ANSWER_LABELS, AREA_PROMPTS, CONDITIONS, DOMAIN_META, buildQuestionnaire,
 } from './questionnaire.js';
 
 const STORE = 'placeholder-demo-v1';
