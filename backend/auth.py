@@ -17,6 +17,8 @@ import hashlib
 import hmac
 import os
 import secrets
+import threading
+import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Literal
@@ -97,14 +99,35 @@ class Ator:
         return None
 
 
+# Cache curto de "quem é este token": evita 3 consultas ao banco em toda requisição.
+# Sair e criar perfil invalidam na hora; o resto expira em CACHE_SESSAO_S segundos.
+CACHE_SESSAO_S = 60
+_cache_sessao: dict[str, tuple[float, Ator]] = {}
+_trava_cache = threading.Lock()
+
+
+def esquecer_sessao(token_hash: str | None = None, conta_id: str | None = None) -> None:
+    with _trava_cache:
+        for k in [k for k, (_, a) in _cache_sessao.items() if k == token_hash or a.conta["id"] == conta_id]:
+            _cache_sessao.pop(k, None)
+
+
 def ator_atual(authorization: str | None = Header(default=None)) -> Ator:
     if not authorization or not authorization.lower().startswith("bearer "):
         raise HTTPException(401, "Entre na sua conta para continuar.")
-    conta = repo.conta_do_token(_hash_token(authorization.split(" ", 1)[1].strip()))
+    th = _hash_token(authorization.split(" ", 1)[1].strip())
+    with _trava_cache:
+        guardado = _cache_sessao.get(th)
+    if guardado and guardado[0] > time.monotonic():
+        return guardado[1]
+    conta = repo.conta_do_token(th)
     if not conta:
         raise HTTPException(401, "Sua sessão expirou. Entre de novo.")
     p = repo.perfis_da_conta(conta["id"])
-    return Ator(conta, p["responsavel"], p["professor"])
+    ator = Ator(conta, p["responsavel"], p["professor"])
+    with _trava_cache:
+        _cache_sessao[th] = (time.monotonic() + CACHE_SESSAO_S, ator)
+    return ator
 
 
 def acesso(ator: Ator, crianca_id: str) -> tuple[str, str]:
@@ -152,6 +175,7 @@ class NovoPerfil(BaseModel):
 
 
 def _criar_perfil(conta: dict, body: Cadastro | NovoPerfil) -> None:
+    esquecer_sessao(conta_id=conta["id"])  # o próximo acesso já enxerga o perfil novo
     perfis = repo.perfis_da_conta(conta["id"])
     if body.tipo == "responsavel":
         if perfis["responsavel"]:
@@ -204,5 +228,7 @@ def adicionar_perfil(body: NovoPerfil, ator: Ator = Depends(ator_atual)):
 @router.post("/api/auth/sair")
 def sair(authorization: str | None = Header(default=None)):
     if authorization and authorization.lower().startswith("bearer "):
-        repo.apagar_sessao_login(_hash_token(authorization.split(" ", 1)[1].strip()))
+        th = _hash_token(authorization.split(" ", 1)[1].strip())
+        repo.apagar_sessao_login(th)
+        esquecer_sessao(token_hash=th)
     return {"ok": True}

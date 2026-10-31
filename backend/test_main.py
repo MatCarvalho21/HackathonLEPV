@@ -1,14 +1,19 @@
 import os
 import tempfile
 os.environ.setdefault('SENHA_ITERACOES', '1000')
+from backend.banco_teste import BancoTeste  # SQLite por padrão; Supabase com TESTE_PG=1
 import unittest
 from fastapi.testclient import TestClient
 from backend.main import app, questionnaire, REFERENCE
 
 class FormTests(unittest.TestCase):
+    banco=BancoTeste()
+    @classmethod
+    def setUpClass(cls): cls.banco.preparar()
+    @classmethod
+    def tearDownClass(cls): cls.banco.encerrar()
     def setUp(self):
-        self.tmp=tempfile.TemporaryDirectory(dir='backend')
-        os.environ['FORM_DB']=self.tmp.name+'/test.sqlite3'
+        self.banco.limpar()
         self.client=TestClient(app)
         j=self.client.post('/api/auth/cadastro',json={'tipo':'responsavel','nome':'Rui','email':'rui@x.com','senha':'segredo1'}).json()
         self.h={'Authorization':f"Bearer {j['token']}"}
@@ -16,8 +21,7 @@ class FormTests(unittest.TestCase):
         schema=questionnaire(84,2)
         self.body={'versao':schema['versao'],'perfil':{'apelido':'Exemplo','idade_meses':84,'ano_escolar':2,'vinculo':'Responsável','prioridades':'Participar das brincadeiras','perda_habilidades':'nao'},'respostas':{q['id']:{'resposta':'nao_sei'} for d in schema['dominios'] for q in d['perguntas']},'dominios':{d['id']:{'nao_sei':True} for d in schema['dominios']},'consentimento':True,'crianca_id':cid}
     def tearDown(self):
-        self.tmp.cleanup()
-        os.environ.pop('FORM_DB',None)
+        self.banco.depois()
     def test_all_ages_have_14_domains_and_no_future_milestones(self):
         for age in range(132):
             s=questionnaire(age,None)

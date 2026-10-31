@@ -1,0 +1,1 @@
+Vamos agora migrar para o banco de dados no supabase. Me dê o passo a passo de como criar a base no supabse, deixar aberto a conexão via api, o que eu tenho que colocar de credencial aqui no .env, se dá para criar as tabelas usando o DDL e tal.
