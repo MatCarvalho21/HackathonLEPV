@@ -317,6 +317,57 @@ class AgenteTests(unittest.TestCase):
         novas = self.client.get(url, headers=self.ana["h"], params={"depois": m1["criado_em"]}).json()["mensagens"]
         self.assertEqual([m["autor_nome"] for m in novas], ["Carla"])
 
+    def test_notificacoes_da_equipe(self):
+        carla = self.conta("acompanhante", "Carla", "c@x.com")
+        rafa = self.conta("acompanhante", "Rafael", "r@x.com", funcao="medico")
+        fora = self.conta("acompanhante", "Beto", "b@x.com")
+        # convite para quem já tem conta gera notificação; aceite avisa o responsável
+        cp = self.client.post(f"/api/criancas/{self.cid}/compartilhamentos", headers=self.ana["h"], json={"email": "c@x.com"}).json()
+        self.assertEqual([n["tipo"] for n in self.client.get("/api/eu/notificacoes", headers=carla["h"]).json()["notificacoes"]], ["convite"])
+        self.client.post(f"/api/compartilhamentos/{cp['id']}/aceitar", headers=carla["h"])
+        self.compartilhar(rafa, "medico")
+        nana = self.client.get("/api/eu/notificacoes", headers=self.ana["h"]).json()
+        self.assertEqual(sorted(n["tipo"] for n in nana["notificacoes"]), ["acesso", "acesso"])
+        self.client.post("/api/eu/notificacoes/ler-todas", headers=self.ana["h"], json={})
+        self.client.post("/api/eu/notificacoes/ler-todas", headers=carla["h"], json={})
+        self.client.post("/api/eu/notificacoes/ler-todas", headers=rafa["h"], json={})
+
+        # registro de um acompanhante: avisa o responsável e o outro acompanhante, não quem registrou
+        reg = self.client.post(f"/api/criancas/{self.cid}/registros", headers=carla["h"],
+                               json={"tipo": "conquista", "texto": "Pediu água falando na escola"}).json()
+        n_ana = self.client.get("/api/eu/notificacoes", headers=self.ana["h"]).json()
+        self.assertEqual(n_ana["nao_lidas"], 1)
+        n = n_ana["notificacoes"][0]
+        self.assertEqual((n["tipo"], n["ref_id"], n["crianca_nome"]), ("registro", reg["id"], "Lia"))
+        self.assertIn("Carla, professor(a), registrou uma conquista sobre Lia", n["titulo"])
+        self.assertEqual(self.client.get("/api/eu/notificacoes", headers=rafa["h"]).json()["nao_lidas"], 1)
+        self.assertEqual(self.client.get("/api/eu/notificacoes", headers=carla["h"]).json()["nao_lidas"], 0)
+        self.assertEqual(self.client.get("/api/eu/notificacoes", headers=fora["h"]).json()["nao_lidas"], 0)
+        # ler e apagar: só as próprias
+        self.assertEqual(self.client.post(f"/api/notificacoes/{n['id']}/lida", headers=rafa["h"]).status_code, 404)
+        self.assertEqual(self.client.post(f"/api/notificacoes/{n['id']}/lida", headers=self.ana["h"]).json()["nao_lidas"], 0)
+        self.assertEqual(self.client.get("/api/eu/notificacoes", headers=self.ana["h"]).json()["notificacoes"][0]["lida_em"] is not None, True)
+        self.assertEqual(self.client.delete(f"/api/notificacoes/{n['id']}", headers=self.ana["h"]).status_code, 200)
+        self.assertNotIn(n["id"], [x["id"] for x in self.client.get("/api/eu/notificacoes", headers=self.ana["h"]).json()["notificacoes"]])
+
+        # canal: avisa a equipe; abrir o canal marca como lidas as mensagens daquela criança
+        self.client.post(f"/api/criancas/{self.cid}/canal", headers=self.ana["h"], json={"texto": "Oi, equipe!"})
+        self.assertEqual(self.client.get("/api/eu/notificacoes", headers=carla["h"]).json()["nao_lidas"], 1)
+        self.client.get(f"/api/criancas/{self.cid}/canal", headers=carla["h"])
+        self.assertEqual(self.client.get("/api/eu/notificacoes", headers=carla["h"]).json()["nao_lidas"], 0)
+
+        # perfil aprovado: avisa só os acompanhantes
+        antes = self.client.get("/api/eu/notificacoes", headers=self.ana["h"]).json()["nao_lidas"]
+        self.perfil_aprovado()
+        self.assertEqual([x["tipo"] for x in self.client.get("/api/eu/notificacoes", headers=rafa["h"]).json()["notificacoes"]
+                          if x["lida_em"] is None], ["perfil", "canal", "registro"])
+        self.assertEqual(self.client.get("/api/eu/notificacoes", headers=self.ana["h"]).json()["nao_lidas"], antes)
+        # quem perde o acesso deixa de ser avisado
+        self.client.post("/api/eu/notificacoes/ler-todas", headers=carla["h"], json={})
+        self.client.delete(f"/api/compartilhamentos/{cp['id']}", headers=self.ana["h"])
+        self.client.post(f"/api/criancas/{self.cid}/registros", headers=self.ana["h"], json={"tipo": "observacao", "texto": "x"})
+        self.assertEqual(self.client.get("/api/eu/notificacoes", headers=carla["h"]).json()["nao_lidas"], 0)
+
     def test_resumo_pdf(self):
         r = self.client.get(f"/api/criancas/{self.cid}/resumo.pdf", headers=self.ana["h"])  # ainda sem perfil: ficha básica
         self.assertEqual(r.status_code, 200)

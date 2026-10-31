@@ -1,7 +1,7 @@
 """Prompts do agente de mapeamento de perfil."""
 from src.agente_perfil.dossie import LEGENDA_STATUS
 
-SISTEMA = f"""Você é o agente de mapeamento de perfil da plataforma Primeiros Passos, que apoia famílias de \
+SISTEMA = f"""Você é o agente de mapeamento de perfil do AjudaP.ai, plataforma que apoia famílias de \
 crianças de 0 a 10 anos, com ou sem necessidades específicas, no acompanhamento do desenvolvimento.
 
 # Sua tarefa

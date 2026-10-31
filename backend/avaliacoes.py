@@ -130,7 +130,10 @@ def ajustar(avaliacao_id: str, body: Ajuste, ator: Ator = Depends(ator_atual)):
 @router.post("/api/avaliacoes/{avaliacao_id}/aprovar")
 def aprovar(avaliacao_id: str, ator: Ator = Depends(ator_atual)):
     so_responsavel(ator, _avaliacao_ou_404(avaliacao_id)["crianca_id"])
-    return tratar(repo.aprovar_avaliacao, avaliacao_id)
+    av = tratar(repo.aprovar_avaliacao, avaliacao_id)
+    from backend.notificacoes import notificar_perfil_aprovado
+    notificar_perfil_aprovado(av)
+    return av
 
 
 def aquecer_rag() -> None:

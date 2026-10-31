@@ -485,3 +485,63 @@ def listar_canal(crianca_id: str, depois: str | None = None, ids: list[str] | No
     if ids:
         sql, args = sql + f" AND m.id IN ({','.join('?' * len(ids))})", args + ids
     return _todos(f"SELECT * FROM ({sql} ORDER BY m.criado_em DESC LIMIT ?) ORDER BY criado_em", args + [limite])
+
+
+# ------------------------------------------------------------------ notificações
+def contas_da_equipe(crianca_id: str) -> list[dict]:
+    """Contas com acesso à criança: responsáveis + acompanhantes ativos ({conta_id, papel, perfil_id})."""
+    return _todos("""
+        SELECT r.conta_id, 'responsavel' AS papel, r.id AS perfil_id FROM responsavel r
+          JOIN responsavel_crianca rc ON rc.responsavel_id = r.id WHERE rc.crianca_id = ? AND r.conta_id IS NOT NULL
+        UNION
+        SELECT p.conta_id, 'professor' AS papel, p.id AS perfil_id FROM compartilhamento cp
+          JOIN professor p ON p.id = cp.professor_id
+         WHERE cp.crianca_id = ? AND cp.status = 'ativo' AND p.conta_id IS NOT NULL""", (crianca_id, crianca_id))
+
+
+def conta_do_perfil(papel: str, perfil_id: str) -> str | None:
+    tabela = "responsavel" if papel == "responsavel" else "professor"
+    row = _um(f"SELECT conta_id FROM {tabela} WHERE id = ?", (perfil_id,))
+    return row["conta_id"] if row else None
+
+
+def inserir_notificacoes(contas: list[str], crianca_id: str | None, tipo: str, titulo: str, texto: str | None = None,
+                         ref_id: str | None = None, dados: dict | None = None, criado_em: str | None = None) -> int:
+    contas = sorted({c for c in contas if c})
+    with conexao() as db:
+        for conta_id in contas:
+            _inserir(db, "notificacao", {"id": novo_id(), "conta_id": conta_id, "crianca_id": crianca_id, "tipo": tipo,
+                                         "titulo": titulo, "texto": texto, "ref_id": ref_id, "dados": dados or {},
+                                         "criado_em": criado_em or agora(), "lida_em": None})
+    return len(contas)
+
+
+def listar_notificacoes(conta_id: str, limite: int = 60) -> list[dict]:
+    return _todos("SELECT n.*, c.nome AS crianca_nome FROM notificacao n LEFT JOIN crianca c ON c.id = n.crianca_id "
+                  "WHERE n.conta_id = ? ORDER BY (n.lida_em IS NOT NULL), n.criado_em DESC LIMIT ?", (conta_id, limite))
+
+
+def contar_nao_lidas(conta_id: str) -> int:
+    return _um("SELECT count(*) AS n FROM notificacao WHERE conta_id = ? AND lida_em IS NULL", (conta_id,))["n"]
+
+
+def obter_notificacao(nid: str) -> dict | None:
+    return _um("SELECT * FROM notificacao WHERE id = ?", (nid,))
+
+
+def marcar_notificacoes_lidas(conta_id: str, ids: list[str] | None = None, crianca_id: str | None = None,
+                              tipo: str | None = None) -> int:
+    sql, args = "UPDATE notificacao SET lida_em = ? WHERE conta_id = ? AND lida_em IS NULL", [agora(), conta_id]
+    if ids:
+        sql, args = sql + f" AND id IN ({','.join('?' * len(ids))})", args + ids
+    if crianca_id:
+        sql, args = sql + " AND crianca_id = ?", args + [crianca_id]
+    if tipo:
+        sql, args = sql + " AND tipo = ?", args + [tipo]
+    with conexao() as db:
+        return db.execute(sql, args).rowcount
+
+
+def apagar_notificacao(conta_id: str, nid: str) -> int:
+    with conexao() as db:
+        return db.execute("DELETE FROM notificacao WHERE id = ? AND conta_id = ?", (nid, conta_id)).rowcount

@@ -94,6 +94,24 @@ def _garantir_login_e_equipe(ana: dict) -> None:
             with repo.conexao() as db:
                 hora = (datetime.now(timezone.utc) - timedelta(days=dias)).replace(microsecond=0).isoformat()
                 db.execute("UPDATE canal_mensagem SET criado_em = ? WHERE id = ?", (hora, m["id"]))
+    if lia:
+        _notificacoes_demo(lia["id"])
+
+
+def _notificacoes_demo(lia_id: str) -> None:
+    """Idempotente: notificações de exemplo a partir dos últimos registros e mensagens da Lia."""
+    if repo._um("SELECT 1 AS ok FROM notificacao WHERE crianca_id = ? LIMIT 1", (lia_id,)):
+        return
+    from backend import notificacoes as notif
+    regs = repo.listar_registros(lia_id, limite=40)
+    escolhidos = [r for r in regs if r["autor"] == "professor"][:3] + [r for r in regs if r["autor"] != "professor"][:2]
+    for r in sorted(escolhidos, key=lambda x: x["ocorrido_em"]):  # 3 da equipe (para a Ana) + 2 da família (para a equipe)
+        papel = "professor" if r["autor"] == "professor" else "responsavel"
+        notif.notificar_registro(r, papel, r["professor_id"] or r["responsavel_id"])
+    ultima = next((m for m in reversed(repo.listar_canal(lia_id)) if m["professor_id"]), None)
+    if ultima:
+        papel = "professor" if ultima["professor_id"] else "responsavel"
+        notif.notificar_canal(ultima, papel, ultima["professor_id"] or ultima["responsavel_id"])
 
 
 def _semear_familia() -> dict:

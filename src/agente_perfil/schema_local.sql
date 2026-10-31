@@ -173,6 +173,22 @@ CREATE TABLE IF NOT EXISTS canal_mensagem (
   CHECK ((responsavel_id IS NOT NULL) + (professor_id IS NOT NULL) = 1)
 );
 
+-- Notificações por conta: novo registro, mensagem no canal, perfil aprovado, convites.
+-- Ficam até a pessoa abrir (lida_em) ou apagar.
+CREATE TABLE IF NOT EXISTS notificacao (
+  id         TEXT PRIMARY KEY,
+  conta_id   TEXT NOT NULL REFERENCES conta(id),
+  crianca_id TEXT REFERENCES crianca(id),
+  tipo       TEXT NOT NULL CHECK (tipo IN ('registro','canal','perfil','convite','acesso')),
+  titulo     TEXT NOT NULL,
+  texto      TEXT,
+  ref_id     TEXT,
+  dados      TEXT NOT NULL DEFAULT '{}',
+  criado_em  TEXT NOT NULL,
+  lida_em    TEXT
+);
+CREATE INDEX IF NOT EXISTS notificacao_conta ON notificacao (conta_id, lida_em, criado_em DESC);
+
 CREATE INDEX IF NOT EXISTS compartilhamento_crianca ON compartilhamento (crianca_id, status);
 CREATE INDEX IF NOT EXISTS canal_crianca_data ON canal_mensagem (crianca_id, criado_em);
 CREATE INDEX IF NOT EXISTS registro_crianca_data ON registro (crianca_id, ocorrido_em DESC);

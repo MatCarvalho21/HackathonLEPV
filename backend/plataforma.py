@@ -32,6 +32,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from backend.auth import EMAIL, FUNCOES, Ator, Funcao, abrir_sessao, acesso, ator_atual, rotulo_funcao, so_responsavel
+from backend import notificacoes as notif
 from backend.avaliacoes import _em_segundo_plano, enriquecer, tratar
 from src.agente_perfil import agente, chat, config, repositorio as repo
 
@@ -221,7 +222,7 @@ def criar_registro(cid: str, body: NovoRegistro, ator: Ator = Depends(ator_atual
     if body.tipo not in ("checkin_meta", "feedback_estrategia") and not body.texto.strip() and not body.dados:
         raise HTTPException(422, "Descreva o registro.")
     vigente = repo.avaliacao_vigente(cid)
-    return repo.inserir_registro({
+    reg = repo.inserir_registro({
         "crianca_id": cid, "tipo": body.tipo,
         "responsavel_id": autor_id if papel == "responsavel" else None,
         "professor_id": autor_id if papel == "professor" else None,
@@ -230,6 +231,8 @@ def criar_registro(cid: str, body: NovoRegistro, ator: Ator = Depends(ator_atual
         "avaliacao_id": vigente["id"] if vigente else None,
         **({"ocorrido_em": body.ocorrido_em.isoformat()} if body.ocorrido_em else {}),
     })
+    notif.notificar_registro(reg, papel, autor_id)  # avisa o resto da equipe
+    return reg
 
 
 # ------------------------------------------------------------------ chat com o assistente (IA)
@@ -275,6 +278,8 @@ def contexto_chat(cid: str, ator: Ator = Depends(ator_atual)):
 @router.get("/api/criancas/{cid}/canal")
 def ver_canal(cid: str, depois: str | None = Query(default=None), ator: Ator = Depends(ator_atual)):
     papel, autor_id = acesso(ator, cid)
+    if not depois:  # abriu o canal: as mensagens dele contam como lidas
+        repo.marcar_notificacoes_lidas(ator.conta["id"], crianca_id=cid, tipo="canal")
     msgs = repo.listar_canal(cid, depois=depois)
     for m in msgs:
         m["funcao_rotulo"] = rotulo_funcao(m["autor_funcao"])
@@ -289,6 +294,7 @@ def escrever_canal(cid: str, body: MensagemCanal, ator: Ator = Depends(ator_atua
     if not body.texto.strip():
         raise HTTPException(422, "Escreva uma mensagem.")
     m = repo.inserir_mensagem_canal(cid, papel, autor_id, body.texto.strip())
+    notif.notificar_canal(m, papel, autor_id)
     return {**m, "funcao_rotulo": rotulo_funcao(m["autor_funcao"]), "minha": True}
 
 
@@ -304,7 +310,9 @@ def compartilhar(cid: str, body: Convite, ator: Ator = Depends(ator_atual)):
     rid = so_responsavel(ator, cid)
     if body.email.strip().lower() == ator.conta["email"]:
         raise HTTPException(422, "Use o e-mail da pessoa que vai acompanhar a criança, não o seu.")
-    return tratar(repo.criar_compartilhamento, cid, body.email, body.funcao, rid)
+    cp = tratar(repo.criar_compartilhamento, cid, body.email, body.funcao, rid)
+    notif.notificar_convite(cp)
+    return cp
 
 
 @router.delete("/api/compartilhamentos/{comp_id}")
@@ -338,8 +346,9 @@ def _meu_convite(comp_id: str, ator: Ator) -> dict:
 
 @router.post("/api/compartilhamentos/{comp_id}/aceitar")
 def aceitar_convite(comp_id: str, ator: Ator = Depends(ator_atual)):
-    _meu_convite(comp_id, ator)
+    cp = _meu_convite(comp_id, ator)
     repo.responder_compartilhamento(comp_id, ator.professor["id"], "ativo")
+    notif.notificar_convite_aceito(cp, ator.professor["id"])
     return {"ok": True}
 
 

@@ -29,7 +29,7 @@ MAX_BUSCAS_CHAT = 2
 HISTORICO_MENSAGENS = 16
 REGISTROS_NO_CONTEXTO = 15
 
-SISTEMA_CHAT = """Você é o assistente da plataforma Primeiros Passos. Conversa com quem cuida de uma criança \
+SISTEMA_CHAT = """Você é o assistente do AjudaP.ai, plataforma de acompanhamento e suporte. Conversa com quem cuida de uma criança \
 (o responsável pelo perfil ou um acompanhante: professor, pedagogo, médico, terapeuta, familiar) sobre o desenvolvimento e o dia a dia DESSA criança.
 
 Você recebe abaixo o RESUMO ATIVO da criança (perfil aprovado pela família, metas, estratégias já testadas) e os \

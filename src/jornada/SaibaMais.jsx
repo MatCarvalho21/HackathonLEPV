@@ -13,16 +13,16 @@ export function SaibaMais({ onFechar }) {
   return <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onFechar()}>
     <div className="modal-card pp-saiba" role="dialog" aria-modal="true" aria-labelledby="saiba-titulo">
       <div className="modal-header"><span className="section-kicker">SOBRE A PLATAFORMA</span>
-        <button type="button" className="icon-button" onClick={onFechar} aria-label="Fechar"><X size={18} /></button></div>
-      <h2 id="saiba-titulo">Como funciona o acompanhamento</h2>
+        <span className="pp-saiba-acoes"><button type="button" className="btn-primary" onClick={onFechar}>Entendi</button>
+          <button type="button" className="icon-button" onClick={onFechar} aria-label="Fechar"><X size={18} /></button></span></div>
+      <h2 id="saiba-titulo">AjudaP.ai: Acompanhamento e Suporte</h2>
       <p>Um espaço para família, escola e profissionais acompanharem juntos o desenvolvimento de crianças de 0 a 10 anos, com ou sem necessidades específicas.</p>
       <ol className="pp-passos">{PASSOS.map(([Icone, titulo, texto], i) => <li key={titulo}>
         <span className="pp-passo-num"><Icone size={18} /></span>
-        <div><b>{i + 1}. {titulo}</b><p>{texto}</p></div></li>)}</ol>
-      <div className="pp-saiba-limites"><ShieldCheck size={18} /><div>
-        <b>O que a plataforma não faz</b>
-        <p>Não faz diagnóstico, não calcula idade mental nem escore e não substitui pediatras, terapeutas ou educadores. As cores das áreas indicam onde vale atenção e quando conversar com um profissional. Nesta demonstração, use apenas dados fictícios.</p></div></div>
-      <button className="btn-primary full-button" onClick={onFechar}>Entendi</button>
+        <div><b>{i + 1}. {titulo}</b><p>{texto}</p></div></li>)}
+        <li className="pp-saiba-limites"><ShieldCheck size={18} /><div>
+          <b>O que a plataforma não faz</b>
+          <p>Não faz diagnóstico, não calcula idade mental nem escore e não substitui pediatras, terapeutas ou educadores. As cores indicam onde vale atenção e quando conversar com um profissional. Nesta demonstração, use dados fictícios.</p></div></li></ol>
     </div>
   </div>;
 }

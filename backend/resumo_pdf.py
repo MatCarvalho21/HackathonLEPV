@@ -115,7 +115,7 @@ def _rodape(canvas, doc):
     canvas.saveState()
     canvas.setFont(FONTE, 7.5)
     canvas.setFillColor(SUAVE)
-    canvas.drawString(18 * mm, 10 * mm, "Primeiros Passos · resumo gerado em " + datetime.now().strftime("%d/%m/%Y %H:%M")
+    canvas.drawString(18 * mm, 10 * mm, "AjudaP.ai: Acompanhamento e Suporte · resumo gerado em " + datetime.now().strftime("%d/%m/%Y %H:%M")
                       + " · não é diagnóstico e não substitui avaliação profissional")
     canvas.drawRightString(A4[0] - 18 * mm, 10 * mm, f"página {doc.page}")
     canvas.restoreState()
@@ -210,7 +210,7 @@ def gerar_resumo(crianca_id: str) -> tuple[bytes, str]:
 
     buf = BytesIO()
     doc = SimpleDocTemplate(buf, pagesize=A4, leftMargin=18 * mm, rightMargin=18 * mm, topMargin=16 * mm,
-                            bottomMargin=16 * mm, title=f"Resumo de {crianca['nome']}", author="Primeiros Passos")
+                            bottomMargin=16 * mm, title=f"Resumo de {crianca['nome']}", author="AjudaP.ai")
     doc.build(h, onFirstPage=_rodape, onLaterPages=_rodape)
     nome = re.sub(r"[^A-Za-z0-9]+", "-", unicodedata.normalize("NFKD", crianca["nome"]).encode("ascii", "ignore").decode()).strip("-")
     return buf.getvalue(), f"resumo-{nome.lower() or 'crianca'}-{date.today().isoformat()}.pdf"

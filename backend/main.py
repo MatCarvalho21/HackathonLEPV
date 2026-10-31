@@ -32,7 +32,7 @@ async def lifespan(_app):
     aquecer_rag()  # carrega a base vetorial em segundo plano
     yield
 
-app = FastAPI(title='Primeiros Passos — formulário inicial', version='0.1.0', lifespan=lifespan)
+app = FastAPI(title='AjudaP.ai: Acompanhamento e Suporte', version='0.1.0', lifespan=lifespan)
 
 from backend.avaliacoes import router as avaliacoes_router  # noqa: E402
 app.include_router(avaliacoes_router)
@@ -40,6 +40,8 @@ from backend.plataforma import router as plataforma_router  # noqa: E402
 app.include_router(plataforma_router)
 from backend.auth import Ator, ator_atual, router as auth_router, so_responsavel  # noqa: E402
 app.include_router(auth_router)
+from backend.notificacoes import router as notificacoes_router  # noqa: E402
+app.include_router(notificacoes_router)
 
 ROTULOS = {'nome': 'Nome', 'email': 'E-mail', 'telefone': 'Telefone', 'escola': 'Escola', 'turma': 'Turma',
            'data_nascimento': 'Data de nascimento', 'texto': 'Texto', 'comentario': 'Comentário',

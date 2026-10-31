@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CircleCheck, Clock, RefreshCw, Star, Target, ThumbsUp } from 'lucide-react';
 import { DESTINO_META, DIRECAO, DOMINIOS, HORIZONTE, SITUACAO_META, STATUS, dataDia } from './api.js';
 
 export function Evidencias({ ids = [], legiveis = {} }) {
@@ -62,7 +63,7 @@ export function Dica({ dica, legiveis, children }) {
     <h4>{dica.titulo}</h4>
     <p>{dica.por_que_ajuda}</p>
     <ol>{dica.como_fazer.map((p, i) => <li key={i}>{p}</li>)}</ol>
-    <small>⏰ {dica.momento_do_dia}</small>
+    <small className="pp-com-icone"><Clock size={14} /> {dica.momento_do_dia}</small>
     {!!dica.fontes.length && <div><Evidencias ids={dica.fontes} legiveis={legiveis} /></div>}
     {children}
   </article>;
@@ -88,7 +89,7 @@ export function Relatorio({ av }) {
 
     <section className="pp-bloco">
       <span className="section-kicker">O QUE JÁ VAI BEM</span>
-      <ul className="pp-fortes">{r.pontos_fortes_gerais.map((p, i) => <li key={i}>✦ {p.texto} <Evidencias ids={p.evidencias} legiveis={L} /></li>)}</ul>
+      <ul className="pp-fortes">{r.pontos_fortes_gerais.map((p, i) => <li key={i}><CircleCheck size={16} className="pp-ic" /> {p.texto} <Evidencias ids={p.evidencias} legiveis={L} /></li>)}</ul>
     </section>
 
     {!!r.alertas.length && <section className="pp-bloco alerta">
@@ -154,7 +155,7 @@ export function Evolucao({ av, compacto = false }) {
       <span className="sobe">↑ {conta('melhorou')} área(s) avançaram</span>
       <span className="igual">= {conta('igual')} estáveis</span>
       {conta('piorou') > 0 && <span className="desce">↓ {conta('piorou')} pedem mais atenção</span>}
-      <span>🎯 {cmp.metas.filter((m) => balanco[m.id]?.situacao === 'alcancada').length} de {cmp.metas.length} metas alcançadas</span>
+      <span><Target size={14} className="pp-ic" /> {cmp.metas.filter((m) => balanco[m.id]?.situacao === 'alcancada').length} de {cmp.metas.length} metas alcançadas</span>
     </div>
   </div>;
 
@@ -172,7 +173,7 @@ export function Evolucao({ av, compacto = false }) {
 
     {!!ev.conquistas?.length && <section className="pp-bloco">
       <span className="section-kicker">CONQUISTAS DO PERÍODO</span>
-      <ul className="pp-fortes">{ev.conquistas.map((c, i) => <li key={i}>🌟 {c.texto} <Evidencias ids={c.evidencias} legiveis={L} /></li>)}</ul>
+      <ul className="pp-fortes">{ev.conquistas.map((c, i) => <li key={i}><Star size={16} className="pp-ic" /> {c.texto} <Evidencias ids={c.evidencias} legiveis={L} /></li>)}</ul>
     </section>}
 
     <section className="pp-bloco">
@@ -204,8 +205,8 @@ export function Evolucao({ av, compacto = false }) {
     </section>
 
     {(!!ev.o_que_funcionou?.length || !!ev.o_que_nao_funcionou?.length) && <section className="pp-bloco pp-duas-col">
-      <div><span className="section-kicker">O QUE FUNCIONOU 👍</span><ul>{(ev.o_que_funcionou || []).map((x, i) => <li key={i}>{x}</li>)}</ul></div>
-      <div><span className="section-kicker">O QUE VALE REVER 🔄</span><ul>{(ev.o_que_nao_funcionou || []).map((x, i) => <li key={i}>{x}</li>)}</ul></div>
+      <div><span className="section-kicker pp-com-icone"><ThumbsUp size={14} /> O QUE FUNCIONOU</span><ul>{(ev.o_que_funcionou || []).map((x, i) => <li key={i}>{x}</li>)}</ul></div>
+      <div><span className="section-kicker pp-com-icone"><RefreshCw size={14} /> O QUE VALE REVER</span><ul>{(ev.o_que_nao_funcionou || []).map((x, i) => <li key={i}>{x}</li>)}</ul></div>
     </section>}
     {cmp.pedido && <p className="pp-sub">Seu pedido ao solicitar a reavaliação: “{cmp.pedido}”</p>}
   </div>;

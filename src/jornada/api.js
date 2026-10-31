@@ -72,6 +72,11 @@ export const api = {
   convites: () => req('GET', '/api/eu/convites'),
   aceitarConvite: (id) => req('POST', `/api/compartilhamentos/${id}/aceitar`),
   recusarConvite: (id) => req('POST', `/api/compartilhamentos/${id}/recusar`),
+  // notificações
+  notificacoes: () => req('GET', '/api/eu/notificacoes'),
+  lerNotificacao: (id) => req('POST', `/api/notificacoes/${id}/lida`),
+  apagarNotificacao: (id) => req('DELETE', `/api/notificacoes/${id}`),
+  lerTodas: (filtro = {}) => req('POST', '/api/eu/notificacoes/ler-todas', filtro),
   /** Baixa o PDF resumido da criança (salvar no computador). */
   async baixarResumo(cid) {
     const r = await bruto('GET', `/api/criancas/${cid}/resumo.pdf`);
@@ -124,7 +129,7 @@ export const DIRECAO = {
   igual: { rotulo: 'estável', seta: '=', classe: 'igual' },
 };
 export const SITUACAO_META = {
-  alcancada: 'Alcançada 🎉', em_progresso: 'Em progresso', sem_progresso: 'Sem progresso ainda', sem_dados: 'Sem registros',
+  alcancada: 'Alcançada', em_progresso: 'Em progresso', sem_progresso: 'Sem progresso ainda', sem_dados: 'Sem registros',
 };
 export const DESTINO_META = { concluida: 'concluída', mantida: 'continua', ajustada: 'ajustada', substituida: 'substituída' };
 
@@ -135,5 +140,16 @@ export function mesesDesde(dataNascimento) {
 }
 
 export const dataDia = (iso) => new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+
+/** "agora", "há 5 min", "há 3 h", "ontem", "há 4 dias" ou a data. */
+export function tempoAtras(iso) {
+  const s = (Date.now() - new Date(iso)) / 1000;
+  if (s < 60) return 'agora';
+  if (s < 3600) return `há ${Math.floor(s / 60)} min`;
+  if (s < 86400) return `há ${Math.floor(s / 3600)} h`;
+  if (s < 172800) return 'ontem';
+  if (s < 7 * 86400) return `há ${Math.floor(s / 86400)} dias`;
+  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+}
 
 export const dataCurta = (iso) => new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });

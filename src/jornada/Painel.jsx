@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, ClipboardList, Download, RefreshCw, School, Sparkles, UserPlus } from 'lucide-react';
+import { ArrowLeft, CircleCheck, ClipboardList, Download, FileText, RefreshCw, School, Sparkles, UserPlus } from 'lucide-react';
 import { api, dataCurta, dataDia, DOMINIOS, HORIZONTE, idade, mesesDesde, rotuloFuncao } from './api.js';
 import { Canal } from './Canal.jsx';
 import { Dica, Evolucao, EvolucaoVersoes, Fontes, Meta, Semaforo } from './Relatorio.jsx';
 import { Chat } from './Chat.jsx';
+import { IconeResultado, IconeTipo } from './icones.jsx';
 
 const ABAS = [
   ['geral', 'Visão geral'], ['metas', 'Metas'], ['dicas', 'Dicas e estratégias'], ['registrar', 'Novo registro'],
@@ -11,17 +12,17 @@ const ABAS = [
 ];
 
 export const TIPOS = {
-  saude: { rotulo: 'Saúde', icone: '🩺' },
-  atividade: { rotulo: 'Atividade', icone: '🧩' },
-  comportamento: { rotulo: 'Comportamento', icone: '🌧️' },
-  conquista: { rotulo: 'Conquista', icone: '🌟' },
-  observacao: { rotulo: 'Observação', icone: '📝' },
-  checkin_meta: { rotulo: 'Progresso de meta', icone: '🎯' },
-  feedback_estrategia: { rotulo: 'Estratégia testada', icone: '💡' },
-  feedback_perfil: { rotulo: 'Comentário sobre o perfil', icone: '💬' },
+  saude: { rotulo: 'Saúde' },
+  atividade: { rotulo: 'Atividade' },
+  comportamento: { rotulo: 'Comportamento' },
+  conquista: { rotulo: 'Conquista' },
+  observacao: { rotulo: 'Observação' },
+  checkin_meta: { rotulo: 'Progresso de meta' },
+  feedback_estrategia: { rotulo: 'Estratégia testada' },
+  feedback_perfil: { rotulo: 'Comentário sobre o perfil' },
 };
 const LOCAIS = [['casa', 'Casa'], ['escola', 'Escola'], ['terapia', 'Terapia'], ['outro', 'Outro']];
-const RESULTADOS = [['funcionou', 'Funcionou 👍'], ['parcial', 'Em parte 🤏'], ['nao_funcionou', 'Não funcionou 👎']];
+const RESULTADOS = [['funcionou', 'Funcionou'], ['parcial', 'Em parte'], ['nao_funcionou', 'Não funcionou']];
 const fmtNivel = (n) => (n > 0 ? `+${n}` : `${n}`);
 
 export function resumoRegistro(x, metas = []) {
@@ -47,7 +48,7 @@ export function Painel({ criancaId, sessao, abaInicial = 'geral', onVoltar, onAv
 
   async function registrar(body) {
     await api.registrar(criancaId, body); // o autor vem do login
-    onAviso?.(`${TIPOS[body.tipo].icone} ${TIPOS[body.tipo].rotulo} registrado.`);
+    onAviso?.(`${TIPOS[body.tipo].rotulo} registrado.`);
     await carregar();
   }
 
@@ -142,14 +143,14 @@ function Geral({ r, L, p, av, irPara, professor }) {
       <Evolucao av={av} compacto /><button className="pp-link" onClick={() => irPara('historico')}>Ver a evolução completa →</button></section>}
     <section className="pp-bloco destaque span2"><span className="section-kicker">RESUMO DO PERFIL</span><p className="pp-resumo">{r.resumo}</p>
       <div className="pp-chips">{r.caracteristicas.map((x) => <span key={x} className="pp-chip">{x}</span>)}</div></section>
-    <section className="pp-bloco"><span className="section-kicker">FOCO AGORA</span>
-      {r.foco_prioritario.map((f, i) => <div key={i} className="pp-foco"><b>{i + 1}. {DOMINIOS[f.dominio]}</b><p>{f.por_que}</p></div>)}</section>
+    <section className="pp-bloco span3"><span className="section-kicker">FOCO AGORA</span>
+      <div className="pp-focos">{r.foco_prioritario.map((f, i) => <div key={i} className="pp-foco"><b>{i + 1}. {DOMINIOS[f.dominio]}</b><p>{f.por_que}</p></div>)}</div></section>
     <section className="pp-bloco span3"><span className="section-kicker">AS 14 ÁREAS</span><Semaforo dominios={r.dominios} legiveis={L} compacto /></section>
-    <section className="pp-bloco span2"><span className="section-kicker">METAS DE CURTO PRAZO</span>
+    <section className="pp-bloco"><span className="section-kicker">METAS DE CURTO PRAZO</span>
       {r.metas.filter((m) => m.horizonte === 'curto').map((m) => <div key={m.id} className="pp-mini-meta"><p>{m.texto}</p><Progresso historico={p.checkins_metas[m.id] || []} /></div>)}
       <button className="pp-link" onClick={() => irPara('metas')}>{professor ? 'Ver metas →' : 'Registrar progresso →'}</button></section>
     <section className="pp-bloco"><span className="section-kicker">ÚLTIMOS REGISTROS</span>
-      {p.registros.slice(0, 5).map((x) => <p key={x.id} className="pp-mini-reg">{TIPOS[x.tipo].icone} {resumoRegistro(x, r.metas)}<br /><small>{dataCurta(x.ocorrido_em)} · {x.autor_nome}</small></p>)}
+      {p.registros.slice(0, 5).map((x) => <p key={x.id} className="pp-mini-reg"><IconeTipo tipo={x.tipo} size={15} className="pp-ic" /> {resumoRegistro(x, r.metas)}<br /><small>{dataCurta(x.ocorrido_em)} · {x.autor_nome}</small></p>)}
       {!p.registros.length && <p className="pp-sub">Nada ainda. Que tal registrar a primeira conquista?</p>}
       <button className="pp-link" onClick={() => irPara('registrar')}>Novo registro →</button>
       <button className="pp-link" onClick={() => irPara('chat')}>Conversar com o assistente →</button></section>
@@ -204,14 +205,14 @@ function FeedbackDica({ dica, stats, registrar }) {
   const [texto, setTexto] = useState('');
   const tot = stats.reduce((a, s) => ({ f: a.f + s.funcionou, p: a.p + s.parcial, n: a.n + s.nao_funcionou }), { f: 0, p: 0, n: 0 });
   return <div className="pp-feedback">
-    {(tot.f + tot.p + tot.n) > 0 && <small>Já testado: 👍 {tot.f} · 🤏 {tot.p} · 👎 {tot.n}</small>}
+    {(tot.f + tot.p + tot.n) > 0 && <small className="pp-placar-estrategia">Já testado: <span><IconeResultado resultado="funcionou" size={14} /> {tot.f}</span><span><IconeResultado resultado="parcial" size={14} /> {tot.p}</span><span><IconeResultado resultado="nao_funcionou" size={14} /> {tot.n}</span></small>}
     <div className="pp-linha-form">
       <select value={local} onChange={(e) => setLocal(e.target.value)}>{LOCAIS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
       <input placeholder="Como foi? (opcional)" value={texto} onChange={(e) => setTexto(e.target.value)} />
     </div>
     <div className="pp-niveis">{RESULTADOS.map(([v, l]) => <button type="button" key={v} onClick={async () => {
       await registrar({ tipo: 'feedback_estrategia', estrategia: dica.titulo, resultado: v, local, texto, dominios: [dica.dominio] }); setTexto('');
-    }}>{l}</button>)}</div>
+    }}><IconeResultado resultado={v} /> {l}</button>)}</div>
   </div>;
 }
 
@@ -237,9 +238,9 @@ function Registrar({ r, registrar, professor }) {
     try { await registrar(body); setF(VAZIO); } catch (x) { setErro(x.message); }
   }
   return <section className="pp-bloco pp-registrar">
-    <div className="journal-tabs">{tipos.map((t) => <button type="button" key={t} className={tipo === t ? 'active' : ''} onClick={() => { setTipo(t); setF(VAZIO); }}>{TIPOS[t].icone} {TIPOS[t].rotulo}</button>)}</div>
+    <div className="journal-tabs">{tipos.map((t) => <button type="button" key={t} className={tipo === t ? 'active' : ''} onClick={() => { setTipo(t); setF(VAZIO); }}><IconeTipo tipo={t} size={16} /> {TIPOS[t].rotulo}</button>)}</div>
     <form onSubmit={enviar}>
-      {tipo === 'conquista' && <><h3>Uma conquista para celebrar 🌟</h3>
+      {tipo === 'conquista' && <><h3>Uma conquista para celebrar</h3>
         <label className="pp-field">O que a criança conseguiu?<textarea required value={f.texto} onChange={(e) => set('texto', e.target.value)} placeholder='Ex.: "Pediu água falando ÁGUA sem eu mostrar"' /></label></>}
 
       {tipo === 'atividade' && <><h3>Uma atividade que fizeram juntos</h3>
@@ -267,7 +268,7 @@ function Registrar({ r, registrar, professor }) {
         </div>
         <label className="pp-field">Algo mais?<textarea value={f.texto} onChange={(e) => set('texto', e.target.value)} /></label></>}
 
-      {tipo === 'saude' && <><h3>Registro de saúde 🩺</h3>
+      {tipo === 'saude' && <><h3>Registro de saúde</h3>
         <div className="pp-grid">
           <label className="pp-field">Tipo<select required value={f.dados.categoria || ''} onChange={(e) => setD('categoria', e.target.value)}>
             <option value="">Selecione</option>{['Consulta', 'Exame', 'Medicação', 'Vacina', 'Sono', 'Alimentação', 'Terapia', 'Outro'].map((x) => <option key={x}>{x}</option>)}</select></label>
@@ -295,12 +296,12 @@ function Linha({ registros, metas }) {
   const [filtro, setFiltro] = useState('');
   const lista = filtro ? registros.filter((x) => x.tipo === filtro) : registros;
   return <section className="pp-bloco">
-    <div className="journal-tabs">{[['', 'Todos'], ...Object.entries(TIPOS).map(([k, v]) => [k, `${v.icone} ${v.rotulo}`])].map(([k, v]) =>
-      <button type="button" key={k} className={filtro === k ? 'active' : ''} onClick={() => setFiltro(k)}>{v}</button>)}</div>
+    <div className="journal-tabs">{[['', 'Todos'], ...Object.entries(TIPOS).map(([k, v]) => [k, v.rotulo])].map(([k, v]) =>
+      <button type="button" key={k} className={filtro === k ? 'active' : ''} onClick={() => setFiltro(k)}>{k && <IconeTipo tipo={k} size={15} />} {v}</button>)}</div>
     {!lista.length && <p className="pp-sub">Nenhum registro ainda.</p>}
     <ol className="pp-timeline">{lista.map((x) => <li key={x.id}>
-      <span className="pp-t-icone">{TIPOS[x.tipo].icone}</span>
-      <div><b>{TIPOS[x.tipo].rotulo}</b> <small>· {dataCurta(x.ocorrido_em)} · {x.autor_nome} ({rotuloFuncao(x.autor_funcao).toLowerCase()}){x.local ? ` · ${x.local}` : ''}</small>
+      <span className="pp-t-icone"><IconeTipo tipo={x.tipo} size={19} /></span>
+      <div><b>{TIPOS[x.tipo].rotulo}</b> <small>· {dataCurta(x.ocorrido_em)} · {x.autor_nome} · {rotuloFuncao(x.autor_funcao)}{x.local ? ` · ${x.local}` : ''}</small>
         <p>{resumoRegistro(x, metas)}</p>
         {!!x.dominios.length && <div className="pp-chips">{x.dominios.map((d) => <span key={d} className="pp-chip mini">{DOMINIOS[d]}</span>)}</div>}
       </div></li>)}</ol>
@@ -315,7 +316,7 @@ function Historico({ p, av, onVerVersao, reavProps }) {
     <section className="pp-bloco"><span className="section-kicker">EVOLUÇÃO ENTRE AS VERSÕES APROVADAS</span><EvolucaoVersoes avaliacoes={p.avaliacoes} /></section>
     {av.perfil.reavaliacao && <><h2 className="pp-titulo-secao">O que mudou na última reavaliação</h2><Evolucao av={av} /></>}
     <section className="pp-bloco"><span className="section-kicker">VERSÕES DO PERFIL</span>
-      <ol className="pp-timeline">{p.avaliacoes.map((a, i) => <li key={a.id}><span className="pp-t-icone">{a.status === 'vigente' ? '✅' : '📄'}</span>
+      <ol className="pp-timeline">{p.avaliacoes.map((a, i) => <li key={a.id}><span className="pp-t-icone">{a.status === 'vigente' ? <CircleCheck size={19} /> : <FileText size={19} />}</span>
         <div><b>Versão {i + 1} · {rotulo[a.status]}</b> <small>· {tipo[a.tipo]} · {dataCurta(a.criado_em)}</small>
           {a.comentario_responsavel && <p>Pedido de ajuste: “{a.comentario_responsavel}”</p>}
           <button className="pp-link" onClick={() => onVerVersao?.(a.id)}>ver esta versão</button></div></li>)}</ol></section>

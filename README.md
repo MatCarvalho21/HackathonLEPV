@@ -1,4 +1,6 @@
-# HackathonLEPV — Primeiros Passos
+# AjudaP.ai: Acompanhamento e Suporte
+
+Projeto do HackathonLEPV.
 
 Plataforma de acompanhamento do desenvolvimento infantil (0 a 10 anos). A jornada:
 
@@ -8,6 +10,8 @@ Plataforma de acompanhamento do desenvolvimento infantil (0 a 10 anos). A jornad
 4. O responsável pede ajustes ou aprova a proposta.
 5. Com o perfil aprovado, a família entra no **painel da criança**: metas com progresso, dicas e estratégias, registros (conquista, atividade, comportamento, saúde, observação), linha do tempo, diário e o **chat** com um assistente que conhece o perfil e os últimos registros.
 6. O responsável **compartilha** o perfil com quem acompanha a criança (professor, pedagogo, médico, terapeuta, familiar): convida pelo e-mail, a pessoa cria a conta de acompanhante e aceita. Cada criança tem um **canal da equipe** para responsável e acompanhantes conversarem, e um **resumo em PDF** para baixar.
+
+**Notificações.** Quando alguém da equipe registra algo ou escreve no canal, os outros (responsável e acompanhantes) recebem uma notificação no sino da barra lateral. Também há avisos de perfil aprovado e de convites. Cada notificação fica até a pessoa abrir (vira lida e leva ao lugar certo) ou apagar.
 7. Depois de um tempo, o responsável pede uma **reavaliação**: só com os registros ou atualizando o formulário, que vem pré-preenchido com as últimas respostas e tem as cores recalculadas. O agente recebe o perfil vigente e todos os registros (quem fez, função, quando e o quê), o progresso das metas e as estratégias testadas. Ele pode fazer perguntas e propõe uma nova versão com o balanço da evolução (cores antes → agora, situação de cada meta, conquistas). O responsável pede ajustes ou aprova. A partir da segunda versão, o painel mostra a evolução entre as versões.
 
 **Login e papéis.** Contas com e-mail e senha (hash PBKDF2) e sessão por token (`Authorization: Bearer`). O backend descobre pelo token quem age e o papel dele em cada criança; o corpo da requisição não decide isso. Uma conta pode ter os dois perfis (por exemplo, a avó que é responsável por uma criança e acompanhante de outra) e alterna no menu do perfil.

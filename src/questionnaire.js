@@ -3,20 +3,20 @@ import reference from '../prompts/matheus/07/ouput.json';
 export const REFERENCE = reference;
 
 export const DOMAIN_META = {
-  COM_R: { label: 'Compreensão', icon: '💬', focus: 'compreensão e comunicação receptiva' },
-  COM_E: { label: 'Comunicação expressiva', icon: '🗣️', focus: 'formas de expressar escolhas, necessidades e ideias' },
-  FAL: { label: 'Fala e verbalização', icon: '🔤', focus: 'sons, palavras e formas de fala, quando aplicável' },
-  SOC: { label: 'Interação social', icon: '🤝', focus: 'participação e conexão com outras pessoas' },
-  BRI: { label: 'Brincadeira', icon: '🧸', focus: 'brincadeiras, interesses e exploração' },
-  COG: { label: 'Cognição e aprendizagem', icon: '🧩', focus: 'curiosidade, aprendizagem e resolução de problemas' },
-  MOT_A: { label: 'Movimento amplo', icon: '🏃', focus: 'movimento, equilíbrio e participação corporal' },
-  MOT_F: { label: 'Movimento fino', icon: '✍️', focus: 'uso das mãos e coordenação em atividades do cotidiano' },
-  AUT: { label: 'Autonomia e autocuidado', icon: '🌱', focus: 'participação em rotinas e autocuidado' },
-  REG: { label: 'Regulação e comportamento', icon: '🌤️', focus: 'bem-estar, comunicação de desconforto e transições' },
-  ATE: { label: 'Atenção e funções executivas', icon: '🧭', focus: 'iniciar, organizar e continuar atividades' },
-  SEN: { label: 'Processamento sensorial', icon: '🎧', focus: 'conforto sensorial e participação nos ambientes' },
-  SAU: { label: 'Saúde e corpo', icon: '💚', focus: 'rotinas de saúde e informações que a família queira compartilhar' },
-  CTX: { label: 'Contexto e participação', icon: '🏡', focus: 'ambientes, apoios, barreiras e participação' },
+  COM_R: { label: 'Compreensão', focus: 'compreensão e comunicação receptiva' },
+  COM_E: { label: 'Comunicação expressiva', focus: 'formas de expressar escolhas, necessidades e ideias' },
+  FAL: { label: 'Fala e verbalização', focus: 'sons, palavras e formas de fala, quando aplicável' },
+  SOC: { label: 'Interação social', focus: 'participação e conexão com outras pessoas' },
+  BRI: { label: 'Brincadeira', focus: 'brincadeiras, interesses e exploração' },
+  COG: { label: 'Cognição e aprendizagem', focus: 'curiosidade, aprendizagem e resolução de problemas' },
+  MOT_A: { label: 'Movimento amplo', focus: 'movimento, equilíbrio e participação corporal' },
+  MOT_F: { label: 'Movimento fino', focus: 'uso das mãos e coordenação em atividades do cotidiano' },
+  AUT: { label: 'Autonomia e autocuidado', focus: 'participação em rotinas e autocuidado' },
+  REG: { label: 'Regulação e comportamento', focus: 'bem-estar, comunicação de desconforto e transições' },
+  ATE: { label: 'Atenção e funções executivas', focus: 'iniciar, organizar e continuar atividades' },
+  SEN: { label: 'Processamento sensorial', focus: 'conforto sensorial e participação nos ambientes' },
+  SAU: { label: 'Saúde e corpo', focus: 'rotinas de saúde e informações que a família queira compartilhar' },
+  CTX: { label: 'Contexto e participação', focus: 'ambientes, apoios, barreiras e participação' },
 };
 
 export const DOMAIN_CONTEXT = {
