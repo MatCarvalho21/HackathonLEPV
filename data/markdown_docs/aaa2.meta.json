@@ -1,0 +1,10 @@
+{
+  "source": "aaa2.pdf",
+  "slug": "aaa2",
+  "pdf_path": "/mnt/diskSSD2TB/matheus_2/HackathonLEPV/pdfs/aaa2.pdf",
+  "md_path": "/mnt/diskSSD2TB/matheus_2/HackathonLEPV/data/markdown_docs/aaa2.md",
+  "total_pages": 6,
+  "converter": "docling",
+  "char_count": 21236,
+  "created_at": "2026-10-31T03:01:54.570795+00:00"
+}

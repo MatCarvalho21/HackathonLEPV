@@ -1,0 +1,10 @@
+{
+  "source": "cc1.pdf",
+  "slug": "cc1",
+  "pdf_path": "/mnt/diskSSD2TB/matheus_2/HackathonLEPV/pdfs/cc1.pdf",
+  "md_path": "/mnt/diskSSD2TB/matheus_2/HackathonLEPV/data/markdown_docs/cc1.md",
+  "total_pages": 5,
+  "converter": "docling",
+  "char_count": 7892,
+  "created_at": "2026-10-31T03:08:56.973915+00:00"
+}

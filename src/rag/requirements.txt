@@ -1,4 +1,19 @@
+# =============================================================================
+# Dependências do Pipeline RAG de Alta Fidelidade (com GPU / CUDA)
+# =============================================================================
+
+# Banco Vetorial
 chromadb>=0.4.24
-sentence-transformers>=2.6.0
+
+# Embeddings e Reranking (Hugging Face)
+sentence-transformers>=3.0.0
+transformers>=4.40.0
+accelerate>=0.28.0
+
+# Conversão Estruturada de Documentos (PDF -> Markdown com Tabelas e Layout)
+docling>=2.0.0
+
+# Utilitários e Fallbacks
 pypdf>=4.0.0
+rank-bm25>=0.2.2
 tqdm>=4.66.0

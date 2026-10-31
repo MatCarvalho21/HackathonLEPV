@@ -1,0 +1,10 @@
+{
+  "source": "unicef.pdf",
+  "slug": "unicef",
+  "pdf_path": "/mnt/diskSSD2TB/matheus_2/HackathonLEPV/pdfs/unicef.pdf",
+  "md_path": "/mnt/diskSSD2TB/matheus_2/HackathonLEPV/data/markdown_docs/unicef.md",
+  "total_pages": 63,
+  "converter": "docling",
+  "char_count": 172032,
+  "created_at": "2026-10-31T03:40:14.528639+00:00"
+}

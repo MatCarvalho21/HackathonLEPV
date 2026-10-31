@@ -1,0 +1,10 @@
+{
+  "source": "livro.pdf",
+  "slug": "livro",
+  "pdf_path": "/mnt/diskSSD2TB/matheus_2/HackathonLEPV/pdfs/livro.pdf",
+  "md_path": "/mnt/diskSSD2TB/matheus_2/HackathonLEPV/data/markdown_docs/livro.md",
+  "total_pages": 164,
+  "converter": "docling",
+  "char_count": 2704025,
+  "created_at": "2026-10-31T03:30:21.927124+00:00"
+}
