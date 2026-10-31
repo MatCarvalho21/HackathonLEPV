@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './style.css';
 import './form-extra.css';
+import Jornada from './jornada/Jornada.jsx';
+import { api, ir } from './jornada/api.js';
 
 const CONDITIONS = [
   ['tea', 'TEA (inclui diagnóstico anteriormente chamado síndrome de Asperger)'],
@@ -92,9 +94,9 @@ function App() {
   }
 
   const conditionsLabel = profile.condicoes_relatadas.map((id) => CONDITIONS.find(([condition]) => condition === id)?.[1]).filter(Boolean).join('; ') || 'Não informado';
-  return <><header><a href="/" className="brand"><span className="logo">✳</span> PLACEHOLDER</a><span className="tag">Conhecer • Acolher • Acompanhar</span></header><main><aside><span className="eyebrow">UM OLHAR PARA CADA CRIANÇA</span><h1>Todo caminho começa com escuta.</h1><p>Conte como a criança aprende, se comunica e participa. Suas observações ajudam a construir próximos passos possíveis.</p><div className="aside-note">Não há respostas certas ou erradas.<br />Você pode dizer que ainda não sabe.</div><ol className="steps"><li className={step === -1 ? 'active' : ''}>01 &nbsp; Conhecendo a criança</li><li className={step >= 0 && step < 14 ? 'active' : ''}>02 &nbsp; Um olhar sobre 14 áreas</li><li className={step === 14 ? 'active' : ''}>03 &nbsp; Revisar e compartilhar</li></ol><small>Protótipo local: use dados fictícios nesta demonstração.</small></aside><section className="card">
+  return <><header><a href="#/" className="brand"><span className="logo">✳</span> PLACEHOLDER</a><span className="tag">Conhecer • Acolher • Acompanhar</span></header><main><aside><span className="eyebrow">UM OLHAR PARA CADA CRIANÇA</span><h1>Todo caminho começa com escuta.</h1><p>Conte como a criança aprende, se comunica e participa. Suas observações ajudam a construir próximos passos possíveis.</p><div className="aside-note">Não há respostas certas ou erradas.<br />Você pode dizer que ainda não sabe.</div><ol className="steps"><li className={step === -1 ? 'active' : ''}>01 &nbsp; Conhecendo a criança</li><li className={step >= 0 && step < 14 ? 'active' : ''}>02 &nbsp; Um olhar sobre 14 áreas</li><li className={step === 14 ? 'active' : ''}>03 &nbsp; Revisar e compartilhar</li></ol><small>Protótipo local: use dados fictícios nesta demonstração.</small></aside><section className="card">
     {error && <div className="error" role="alert">{error}</div>}
-    {result ? <><span className="eyebrow">PRIMEIRO PASSO CONCLUÍDO</span><h2>Obrigado por compartilhar.</h2><p>As respostas foram registradas no backend local e estão organizadas para o agente. Avaliação, metas e plano ainda não foram gerados.</p><div className="notice">14 áreas registradas · {Object.keys(answers).length} itens respondidos · Status: {result.status}</div><button onClick={download}>Baixar respostas estruturadas</button><p><small>Guarde o arquivo apenas com pessoas autorizadas a acompanhar a criança.</small></p><button className="secondary" onClick={() => { setResult(null); setSchema(null); setAnswers({}); setContexts({}); go(-1); }}>Iniciar outro formulário</button></>
+    {result ? <><span className="eyebrow">PRIMEIRO PASSO CONCLUÍDO</span><h2>Obrigado por compartilhar.</h2><p>As respostas foram registradas no backend local e estão organizadas para o agente. Avaliação, metas e plano ainda não foram gerados.</p><div className="notice">14 áreas registradas · {Object.keys(answers).length} itens respondidos · Status: {result.status}</div><button onClick={async () => { const s = await api.iniciarAgente(result.id); ir(`/agente/${s.sessao_id}`); }}>Gerar mapeamento de perfil com IA →</button> <button className="secondary" onClick={download}>Baixar respostas estruturadas</button><p><small>Guarde o arquivo apenas com pessoas autorizadas a acompanhar a criança.</small></p><button className="secondary" onClick={() => { setResult(null); setSchema(null); setAnswers({}); setContexts({}); go(-1); }}>Iniciar outro formulário</button></>
       : step === -1 ? <form onSubmit={start}><span className="eyebrow">01 / CONHECENDO A CRIANÇA</span><h2>Vamos começar pelo cotidiano.</h2><p>Este formulário organiza relatos para apoiar o acompanhamento. Ele não produz diagnóstico clínico.</p><div className="grid">
         <label className="field">Como podemos chamar a criança? *<input required maxLength="60" value={profile.apelido} onChange={(event) => change('apelido', event.target.value)} /></label>
         <label className="field">Seu vínculo com a criança *<input required maxLength="60" value={profile.vinculo} placeholder="Mãe, pai, avó, responsável…" onChange={(event) => change('vinculo', event.target.value)} /></label>
@@ -109,4 +111,4 @@ function App() {
     </section></main><footer>PLACEHOLDER · Cada criança tem uma história.</footer></>;
 }
 
-createRoot(document.getElementById('root')).render(<App />);
+createRoot(document.getElementById('root')).render(<Jornada Formulario={App} />);

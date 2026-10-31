@@ -1,0 +1,3 @@
+Agora eu quero testar de fato. Quero que você suba a aplicação aqui no localhost e eu entro pelo meu browser, mas eu não quero preencher o formulário, então meio que faça ele preenchido e eu quero ver o que acontece depois, o agente me fazendo uma pergunta extra, gerando o report, eu dando o feedback do report, ele ajustando, eu aceitando e indo para a página da aplicação de fato com tipo um dash ali do report vigente. Abas de adicionar registro médico, de atividade, de comportamento e tal. Tudo aquilo que já mapeamos. 
+
+Estou participando de um hackathon e toda interação com IA é monitorada como você pode ver na pasta prompts. Então para toda mensagem que eu enviar, quero que você salve lá a pergunta e a resposta em uma pasta numerada.

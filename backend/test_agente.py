@@ -125,6 +125,32 @@ class AgenteTests(unittest.TestCase):
         self.assertEqual(r.json()["status"], "vigente")
         self.assertEqual(self.client.post(f"/api/avaliacoes/{res2['avaliacao_id']}/aprovar").status_code, 409)
 
+    def test_demo_registros_e_painel(self):
+        fid = self.client.post("/api/demo/formulario").json()["id"]
+        res = agente.iniciar(fid, LLMRoteiro([("entregar_relatorio", relatorio_valido(self.dossie))]))
+        self.assertEqual(self.client.get(f"/api/criancas/{fid}/painel").json()["avaliacao_vigente"], None)
+        self.client.post(f"/api/avaliacoes/{res['avaliacao_id']}/aprovar")
+        base = f"/api/criancas/{fid}/registros"
+        ok = [
+            {"tipo": "conquista", "texto": "Falou água", "dominios": ["FAL"]},
+            {"tipo": "comportamento", "dados": {"antecedente": "tablet", "comportamento": "chorou"},
+             "estrategia": "A", "resultado": "funcionou", "local": "casa"},
+            {"tipo": "saude", "texto": "Consulta", "dados": {"categoria": "Consulta"}},
+            {"tipo": "checkin_meta", "meta_id": "m1", "dados": {"nivel_gas": -1}},
+            {"tipo": "feedback_estrategia", "estrategia": "A", "resultado": "parcial"},
+        ]
+        for body in ok:
+            self.assertEqual(self.client.post(base, json=body).status_code, 201, body)
+        for body in [{"tipo": "checkin_meta", "meta_id": "m1", "dados": {"nivel_gas": 5}},
+                     {"tipo": "feedback_estrategia", "estrategia": "A"}, {"tipo": "conquista"}]:
+            self.assertEqual(self.client.post(base, json=body).status_code, 422, body)
+        p = self.client.get(f"/api/criancas/{fid}/painel").json()
+        self.assertEqual(p["avaliacao_vigente"]["status"], "vigente")
+        self.assertIn("M36_FAL_1", p["avaliacao_vigente"]["evidencias_legiveis"])
+        self.assertEqual(len(p["registros"]), 5)
+        self.assertEqual(p["checkins_metas"]["m1"][0]["nivel"], -1)
+        self.assertEqual({(e["estrategia"], e["funcionou"], e["parcial"]) for e in p["estrategias"]}, {("A", 1, 0), ("A", 0, 1)})
+
     def test_rotas_404(self):
         self.assertEqual(self.client.get("/api/avaliacoes/nao-existe").status_code, 404)
         self.assertEqual(self.client.post("/api/avaliacoes/sessoes/x/respostas", json={}).status_code, 404)

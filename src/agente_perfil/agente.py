@@ -31,20 +31,32 @@ class ErroAgente(Exception):
 
 
 # ------------------------------------------------------------------ API pública
-def iniciar(formulario_id: str, llm: ClienteLLM | None = None) -> dict:
+# preparar_* são rápidas: montam e salvam a sessão ('executando'). executar() roda o loop
+# (1-2 min) e pode ir para uma thread; o frontend acompanha por GET /sessoes/{id}.
+
+INSTRUCAO_DEMO = ("MODO DEMONSTRAÇÃO: antes de entregar o relatório, faça obrigatoriamente UMA rodada de "
+                  "`solicitar_informacoes_responsavel` com 1 a 3 perguntas sobre as lacunas mais relevantes do dossiê.")
+
+
+def preparar_inicio(formulario_id: str, demo: bool = False) -> dict:
     formulario = repo.obter_formulario(formulario_id)
     if formulario is None:
         raise KeyError(f"Formulário {formulario_id} não encontrado.")
     dossie = montar_dossie(formulario)
+    conteudo = mensagem_inicial(dossie_para_prompt(dossie))
+    if demo:
+        conteudo += "\n\n" + INSTRUCAO_DEMO
     sessao = _nova_sessao(formulario, dossie, [
         {"role": "system", "content": SISTEMA},
-        {"role": "user", "content": mensagem_inicial(dossie_para_prompt(dossie))},
+        {"role": "user", "content": conteudo},
     ])
-    return _executar(sessao, llm)
+    _evento(sessao, "Li o formulário e calculei o semáforo dos domínios por idade.")
+    repo.salvar_sessao(sessao)
+    return sessao
 
 
-def retomar(sessao_id: str, respostas: dict[str, str], llm: ClienteLLM | None = None) -> dict:
-    """Recebe as respostas do responsável ({id_pergunta: texto}; vazio = não respondeu) e continua o loop."""
+def preparar_retomada(sessao_id: str, respostas: dict[str, str]) -> dict:
+    """Recebe as respostas do responsável ({id_pergunta: texto}; vazio = não respondeu)."""
     sessao = repo.obter_sessao(sessao_id)
     if sessao is None:
         raise KeyError(f"Sessão {sessao_id} não encontrada.")
@@ -61,11 +73,14 @@ def retomar(sessao_id: str, respostas: dict[str, str], llm: ClienteLLM | None = 
             sessao["respostas_extras"][evid] = {"dominio": p["dominio"], "pergunta": p["pergunta"], "resposta": texto}
     sessao["mensagens"].append({"role": "tool", "tool_call_id": pendente["tool_call_id"],
                                 "content": json.dumps({"respostas": itens}, ensure_ascii=False)})
-    return _executar(sessao, llm)
+    sessao["status"] = "executando"
+    _evento(sessao, f"Recebi suas respostas ({sum(1 for i in itens if 'não respondeu' not in i['resposta'])} de {len(itens)}).")
+    repo.salvar_sessao(sessao)
+    return sessao
 
 
-def ajustar(avaliacao_id: str, comentario: str, llm: ClienteLLM | None = None) -> dict:
-    """O responsável pediu ajustes numa proposta: gera nova versão ligada à anterior."""
+def preparar_ajuste(avaliacao_id: str, comentario: str) -> dict:
+    """O responsável pediu ajustes numa proposta: nova sessão que gera versão ligada à anterior."""
     anterior = repo.obter_avaliacao(avaliacao_id)
     if anterior is None:
         raise KeyError(f"Avaliação {avaliacao_id} não encontrada.")
@@ -84,16 +99,36 @@ def ajustar(avaliacao_id: str, comentario: str, llm: ClienteLLM | None = None) -
                   respostas_extras={**anterior["perfil"].get("respostas_complementares", {}),
                                     "extra:ajuste": {"dominio": None, "pergunta": "Pedido de ajuste", "resposta": comentario}},
                   rodadas_perguntas=config.MAX_RODADAS_PERGUNTAS)  # no ajuste não volta a perguntar
+    _evento(sessao, "Recebi seu pedido de ajuste e reabri a proposta anterior.")
+    repo.salvar_sessao(sessao)
+    return sessao
+
+
+def executar(sessao: dict, llm: ClienteLLM | None = None) -> dict:
     resultado = _executar(sessao, llm)
-    if resultado["status"] == "concluida":
-        repo.atualizar_status_avaliacao(avaliacao_id, "descartada")
+    if resultado["status"] == "concluida" and sessao.get("avaliacao_anterior_id"):
+        repo.atualizar_status_avaliacao(sessao["avaliacao_anterior_id"], "descartada")
     return resultado
+
+
+# Atalhos síncronos (CLI e testes)
+def iniciar(formulario_id: str, llm: ClienteLLM | None = None, demo: bool = False) -> dict:
+    return executar(preparar_inicio(formulario_id, demo), llm)
+
+
+def retomar(sessao_id: str, respostas: dict[str, str], llm: ClienteLLM | None = None) -> dict:
+    return executar(preparar_retomada(sessao_id, respostas), llm)
+
+
+def ajustar(avaliacao_id: str, comentario: str, llm: ClienteLLM | None = None) -> dict:
+    return executar(preparar_ajuste(avaliacao_id, comentario), llm)
 
 
 def resumo_sessao(sessao: dict) -> dict:
     """O que a API devolve ao frontend (sem o histórico completo)."""
     out = {"sessao_id": sessao["id"], "formulario_id": sessao["formulario_id"], "status": sessao["status"],
-           "passos": sessao["passos"], "buscas_feitas": sessao["buscas_feitas"], "uso_tokens": sessao["uso_tokens"]}
+           "passos": sessao["passos"], "buscas_feitas": sessao["buscas_feitas"], "uso_tokens": sessao["uso_tokens"],
+           "eventos": sessao.get("eventos", []), "avaliacao_anterior_id": sessao.get("avaliacao_anterior_id")}
     if sessao["status"] == "aguardando_responsavel":
         p = sessao["perguntas_pendentes"]
         out["motivo"] = p["motivo"]
@@ -113,17 +148,23 @@ def _nova_sessao(formulario: dict, dossie: dict, mensagens: list[dict]) -> dict:
         "criado_em": repo.agora(), "versao_agente": VERSAO_AGENTE, "modelo": config.MODELO,
         "dossie": dossie, "mensagens": mensagens,
         "passos": 0, "buscas_feitas": 0, "rodadas_perguntas": 0, "tentativas_validacao": 0,
-        "fontes_kb": {}, "respostas_extras": {}, "ajustes_automaticos": [],
+        "fontes_kb": {}, "respostas_extras": {}, "ajustes_automaticos": [], "eventos": [],
         "uso_tokens": {"prompt": 0, "completion": 0},
         "avaliacao_anterior_id": None, "comentario_responsavel": None, "avaliacao_id": None, "erro": None,
     }
 
 
+def _evento(sessao: dict, texto: str) -> None:
+    sessao.setdefault("eventos", []).append({"em": repo.agora(), "texto": texto})
+
+
 def _executar(sessao: dict, llm: ClienteLLM | None) -> dict:
-    llm = llm or ClienteFeatherless()
     sessao["status"] = "executando"
     try:
+        llm = llm or ClienteFeatherless()
         while sessao["passos"] < config.MAX_PASSOS:
+            _evento(sessao, "Analisando as informações…" if sessao["passos"] == 0 else "Pensando no próximo passo…")
+            repo.salvar_sessao(sessao)
             tools = ferramentas_disponiveis(sessao["buscas_feitas"], sessao["rodadas_perguntas"])
             resposta = llm.completar(sessao["mensagens"], tools)
             sessao["passos"] += 1
@@ -151,7 +192,9 @@ def _executar(sessao: dict, llm: ClienteLLM | None) -> dict:
                     pausa = pausa_tc
                     continue  # a resposta desta chamada só existe quando o responsável responder
                 sessao["mensagens"].append({"role": "tool", "tool_call_id": tc["id"], "content": retorno})
+                repo.salvar_sessao(sessao)
                 if concluiu:
+                    _evento(sessao, "Relatório validado e salvo como proposta.")
                     sessao["status"] = "concluida"
                     repo.salvar_sessao(sessao)
                     return resumo_sessao(sessao)
@@ -159,6 +202,7 @@ def _executar(sessao: dict, llm: ClienteLLM | None) -> dict:
                 sessao["status"] = "aguardando_responsavel"
                 sessao["perguntas_pendentes"] = pausa
                 sessao["rodadas_perguntas"] += 1
+                _evento(sessao, f"Preciso de mais informações: {len(pausa['perguntas'])} pergunta(s) para você.")
                 repo.salvar_sessao(sessao)
                 return resumo_sessao(sessao)
             if sessao["tentativas_validacao"] >= config.MAX_TENTATIVAS_VALIDACAO:
@@ -186,9 +230,13 @@ def _tratar_chamada(sessao: dict, tc: dict) -> tuple[str, dict | None, bool]:
         if sessao["buscas_feitas"] >= config.MAX_BUSCAS_RAG or config.RAG_DESATIVADO:
             return "Limite de buscas atingido. Siga com o que já tem.", None, False
         sessao["buscas_feitas"] += 1
+        _evento(sessao, f"Consultando a base de conhecimento: “{args.get('consulta', '')}”")
         proximo = len(sessao["fontes_kb"]) + 1
         texto, fontes = buscar_base(args.get("consulta", ""), proximo)
         sessao["fontes_kb"].update(fontes)
+        docs = sorted({f["documento"] for f in fontes.values()})
+        _evento(sessao, f"Encontrei {len(fontes)} trecho(s) relevantes em {', '.join(docs)}." if docs
+                else "Nada relevante na base para essa busca; sigo sem citar fonte.")
         return texto, None, False
 
     if nome == "solicitar_informacoes_responsavel":
@@ -202,11 +250,13 @@ def _tratar_chamada(sessao: dict, tc: dict) -> tuple[str, dict | None, bool]:
         return "", {"tool_call_id": tc["id"], "motivo": args.get("motivo", ""), "perguntas": perguntas}, False
 
     if nome == "entregar_relatorio":
+        _evento(sessao, "Escrevi o relatório; conferindo regras, evidências e linguagem.")
         dados = args.get("relatorio", args) if isinstance(args.get("relatorio"), dict) else args
         _correcoes_automaticas(sessao, dados)
         rel, erros = validar(dados, sessao["dossie"], set(sessao["respostas_extras"]), set(sessao["fontes_kb"]))
         if erros:
             sessao["tentativas_validacao"] += 1
+            _evento(sessao, f"Revisão automática encontrou {len(erros)} ponto(s) a corrigir; reescrevendo.")
             return ("O relatório NÃO foi aceito. Corrija estes pontos e chame `entregar_relatorio` de novo com o "
                     "relatório completo:\n- " + "\n- ".join(erros)), None, False
         sessao["avaliacao_id"] = _salvar_avaliacao(sessao, rel.model_dump())

@@ -21,7 +21,16 @@ CONTEXT = {
     'SAU': 'Como estão sono e alimentação? Há informações de saúde, visão, audição ou acompanhamentos que deseja compartilhar?',
     'CTX': 'Como é a rotina em casa e na escola? Quem oferece apoio e quais barreiras dificultam a participação?'
 }
-app = FastAPI(title='Primeiros Passos — formulário inicial', version='0.1.0')
+from contextlib import asynccontextmanager
+
+
+@asynccontextmanager
+async def lifespan(_app):
+    from backend.avaliacoes import aquecer_rag
+    aquecer_rag()  # carrega a base vetorial em segundo plano
+    yield
+
+app = FastAPI(title='Primeiros Passos — formulário inicial', version='0.1.0', lifespan=lifespan)
 
 from backend.avaliacoes import router as avaliacoes_router  # noqa: E402
 app.include_router(avaliacoes_router)
