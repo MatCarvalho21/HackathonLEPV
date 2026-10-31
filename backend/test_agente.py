@@ -7,6 +7,7 @@ from unittest import mock
 
 os.environ["RAG_DESATIVADO"] = "1"
 os.environ["SENHA_ITERACOES"] = "1000"  # hash de senha rápido nos testes
+from backend.banco_teste import BancoTeste  # noqa: E402  (SQLite por padrão; Supabase com TESTE_PG=1)
 
 from fastapi.testclient import TestClient  # noqa: E402
 
@@ -73,13 +74,22 @@ class LLMChat:
 
 
 class AgenteTests(unittest.TestCase):
+    banco = BancoTeste()
+
+    @classmethod
+    def setUpClass(cls):
+        cls.banco.preparar()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.banco.encerrar()
+
     def setUp(self):
         # As rotas 202 disparam o agente numa thread com o LLM real; nos testes o loop roda à mão com LLM falso.
         trava = mock.patch("backend.avaliacoes.threading")
         trava.start()
         self.addCleanup(trava.stop)
-        self.tmp = tempfile.TemporaryDirectory(dir="backend")
-        os.environ["FORM_DB"] = self.tmp.name + "/t.sqlite3"
+        self.banco.limpar()
         self.client = TestClient(app)
         self.ana = self.conta("responsavel", "Ana", "ana@x.com", vinculo="Avó")
         self.cid = self.client.post("/api/criancas", headers=self.ana["h"], json={
@@ -90,8 +100,7 @@ class AgenteTests(unittest.TestCase):
         self.dossie = montar_dossie(repo.obter_formulario(self.form_id))
 
     def tearDown(self):
-        self.tmp.cleanup()
-        os.environ.pop("FORM_DB", None)
+        self.banco.depois()
 
     # ---------------------------------------------------------------- ajudantes
     def conta(self, tipo, nome, email, **extra):

@@ -1,23 +1,30 @@
-"""Acesso ao banco local da plataforma (SQLite com o esquema de schema_local.sql).
+"""Acesso ao banco da plataforma: Postgres no Supabase ou SQLite local.
 
-Espelha o modelo Postgres/Supabase de prompts/matheus/04/output.sql para que a troca
-por um banco na nuvem seja só trocar esta camada. O arquivo é criado ao primeiro uso
-(padrão: backend/data/plataforma.sqlite3; configurável por FORM_DB).
+- Com `DATABASE_URL` no ambiente (.env): Postgres (Supabase), esquema em supabase/schema.sql,
+  com pool de conexões. `PG_SCHEMA` escolhe outro schema (os testes usam um schema temporário).
+- Sem `DATABASE_URL`: SQLite local em backend/data/plataforma.sqlite3 (ou FORM_DB), criado no
+  primeiro uso a partir de schema_local.sql.
+
+O resto do backend não sabe qual banco está em uso. O SQL desta camada é escrito para rodar nos dois
+(placeholders `?` viram `%s` no Postgres) e as linhas voltam sempre no mesmo formato: dicts com ids
+em texto, datas em ISO-8601 e colunas JSON já convertidas.
 """
 from __future__ import annotations
 
 import json
 import os
 import sqlite3
+import threading
 from contextlib import contextmanager
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from src.agente_perfil import config
 
 SCHEMA = (Path(__file__).parent / "schema_local.sql").read_text(encoding="utf-8")
 JSON_COLS = {"respostas_formulario", "perfil", "niveis", "metas", "dados", "dominios", "interesses", "sugestoes"}
+JSON_TEXTO = {"estado", "payload"}  # guardados como JSON (jsonb no Postgres); quem lê faz json.loads se vier texto
 
 
 def agora() -> str:
@@ -48,8 +55,98 @@ def _migrar(db) -> None:
                 db.execute(f"ALTER TABLE {tabela} ADD COLUMN {col} {tipo}")
 
 
+def usando_postgres() -> bool:
+    return bool(os.getenv("DATABASE_URL"))
+
+
+# ------------------------------------------------------------------ Postgres (Supabase)
+_pools: dict[tuple[str, str], object] = {}
+_trava_pool = threading.Lock()
+
+
+def _pool():
+    """Um pool por (URL, schema).
+
+    Atenção ao limite do Supabase: no Session pooler (porta 5432) o plano gratuito aceita 15 conexões
+    no total, somando todos os processos (backend, testes, scripts). Por isso o padrão é 2 a 5 por
+    processo (PG_POOL_MIN / PG_POOL_MAX). Para muitos processos no deploy, use o Transaction pooler
+    (porta 6543): já é compatível (prepare_threshold=None; horários são convertidos para UTC aqui).
+    """
+    from psycopg.rows import dict_row
+    from psycopg_pool import ConnectionPool
+
+    chave = (os.environ["DATABASE_URL"], os.getenv("PG_SCHEMA", "public"))
+    with _trava_pool:
+        if chave not in _pools:
+            schema = chave[1]
+
+            def configurar(conn):
+                conn.autocommit = True
+                conn.execute("SET TIME ZONE 'UTC'")
+                conn.execute(f'SET search_path TO "{schema}", public')
+
+            # autocommit: uma leitura = uma ida e volta ao servidor (sem BEGIN/COMMIT).
+            # Escritas usam conexao(), que abre transação explícita.
+            _pools[chave] = ConnectionPool(
+                chave[0], min_size=int(os.getenv("PG_POOL_MIN", "2")), max_size=int(os.getenv("PG_POOL_MAX", "5")), open=True, configure=configurar,
+                kwargs={"row_factory": dict_row, "prepare_threshold": None, "connect_timeout": 15, "autocommit": True},
+                max_idle=120, timeout=30)
+        return _pools[chave]
+
+
+def fechar_pools() -> None:
+    with _trava_pool:
+        for pool in _pools.values():
+            pool.close()
+        _pools.clear()
+
+
+class _CursorPG:
+    """Embrulha a conexão psycopg com a mesma interface usada aqui para o sqlite3 (execute → cursor)."""
+
+    def __init__(self, conn):
+        self.conn = conn
+
+    def execute(self, sql: str, args=()):
+        return self.conn.execute(sql.replace("%", "%%").replace("?", "%s"), tuple(args))
+
+
+@contextmanager
+def _conexao_pg(transacao: bool = True):
+    with _pool().connection() as conn:
+        if transacao:
+            with conn.transaction():  # várias escritas: tudo ou nada
+                yield _CursorPG(conn)
+        else:
+            yield _CursorPG(conn)
+
+
+@contextmanager
+def _leitura():
+    """Consultas só de leitura: no Postgres, sem transação (uma ida e volta só)."""
+    if usando_postgres():
+        with _conexao_pg(transacao=False) as db:
+            yield db
+    else:
+        with conexao() as db:
+            yield db
+
+
+def _erros_de_dado() -> tuple:
+    """Id malformado (ex.: /api/avaliacoes/nao-existe) é 'não encontrado', não erro 500."""
+    if not usando_postgres():
+        return ()
+    import psycopg
+    return (psycopg.errors.InvalidTextRepresentation, psycopg.errors.InvalidDatetimeFormat)
+
+
+# ------------------------------------------------------------------ SQLite local
 @contextmanager
 def conexao():
+    if usando_postgres():
+        with _conexao_pg() as db:
+            yield db
+        return
     caminho = caminho_banco()
     caminho.parent.mkdir(parents=True, exist_ok=True)
     db = sqlite3.connect(caminho, timeout=30)
@@ -63,10 +160,21 @@ def conexao():
         db.close()
 
 
+def _valor(v):
+    """Tipos do Postgres → mesmo formato do SQLite (ids e datas em texto)."""
+    if isinstance(v, UUID):
+        return str(v)
+    if isinstance(v, datetime):
+        return v.astimezone(timezone.utc).isoformat() if v.tzinfo else v.isoformat()
+    if isinstance(v, date):
+        return v.isoformat()
+    return v
+
+
 def _linha(row) -> dict | None:
     if row is None:
         return None
-    d = dict(row)
+    d = {k: _valor(v) for k, v in dict(row).items()}
     for k in JSON_COLS & d.keys():
         if isinstance(d[k], str):
             d[k] = json.loads(d[k])
@@ -80,13 +188,31 @@ def _inserir(db, tabela: str, valores: dict) -> None:
 
 
 def _um(sql: str, args=()) -> dict | None:
-    with conexao() as db:
-        return _linha(db.execute(sql, args).fetchone())
+    try:
+        with _leitura() as db:
+            return _linha(db.execute(sql, args).fetchone())
+    except _erros_de_dado():
+        return None
 
 
 def _todos(sql: str, args=()) -> list[dict]:
-    with conexao() as db:
-        return [_linha(r) for r in db.execute(sql, args).fetchall()]
+    try:
+        with _leitura() as db:
+            return [_linha(r) for r in db.execute(sql, args).fetchall()]
+    except _erros_de_dado():
+        return []
+
+
+def _comando(sql: str, args=()) -> int:
+    """Uma escrita de um comando só (UPDATE/DELETE): no Postgres vai em autocommit, sem BEGIN/COMMIT.
+    Um comando isolado já é atômico. Devolve o número de linhas afetadas."""
+    with _leitura() as db:
+        return db.execute(sql, args).rowcount
+
+
+def _json(v):
+    """Coluna JSON que pode vir como texto (SQLite) ou já convertida (jsonb no Postgres)."""
+    return json.loads(v) if isinstance(v, str) else v
 
 
 # ------------------------------------------------------------------ pessoas e crianças
@@ -133,7 +259,7 @@ def criar_crianca(nome: str, data_nascimento: str, interesses: list[str] | None 
         _inserir(db, "crianca", c)
         if responsavel_id:
             _inserir(db, "responsavel_crianca", {"responsavel_id": responsavel_id, "crianca_id": c["id"],
-                                                 "parentesco": parentesco, "principal": 1})
+                                                 "parentesco": parentesco, "principal": True})
     return c
 
 
@@ -195,9 +321,21 @@ def obter_formulario(formulario_id: str) -> dict | None:
     row = _um("SELECT payload, crianca_id FROM formulario WHERE id = ?", (formulario_id,))
     if not row:
         return None
-    payload = json.loads(row["payload"])
+    payload = _json(row["payload"])
     payload["crianca_id"] = row["crianca_id"]
     return payload
+
+
+def ultimo_formulario_id(crianca_id: str) -> str | None:
+    """Só o id (o payload do formulário é grande; o estado da criança não precisa dele)."""
+    row = _um("SELECT id FROM formulario WHERE crianca_id = ? ORDER BY criado_em DESC LIMIT 1", (crianca_id,))
+    return row["id"] if row else None
+
+
+def avaliacoes_resumo(crianca_id: str) -> list[dict]:
+    """Uma consulta para o estado da criança: status, tipo, datas e metas de todas as avaliações."""
+    return _todos("SELECT id, status, tipo, criado_em, aceita_em, metas FROM avaliacao WHERE crianca_id = ? "
+                  "ORDER BY criado_em", (crianca_id,))
 
 
 def ultimo_formulario(crianca_id: str) -> dict | None:
@@ -219,11 +357,11 @@ def salvar_sessao(sessao: dict) -> None:
 
 def obter_sessao(sessao_id: str) -> dict | None:
     row = _um("SELECT estado FROM sessao_agente WHERE id = ?", (sessao_id,))
-    return json.loads(row["estado"]) if row else None
+    return _json(row["estado"]) if row else None
 
 
 def sessoes_ativas(crianca_id: str) -> list[dict]:
-    return [json.loads(r["estado"]) for r in _todos(
+    return [_json(r["estado"]) for r in _todos(
         "SELECT estado FROM sessao_agente WHERE crianca_id = ? AND status IN ('executando','aguardando_responsavel') "
         "ORDER BY atualizado_em DESC", (crianca_id,))]
 
@@ -297,9 +435,10 @@ def listar_registros(crianca_id: str, tipo: str | None = None, dominio: str | No
     if tipo:
         sql, args = sql + " AND r.tipo = ?", args + [tipo]
     if dominio:
-        sql, args = sql + " AND r.dominios LIKE ?", args + [f'%"{dominio}"%']
+        sql, args = sql + " AND CAST(r.dominios AS TEXT) LIKE ?", args + [f'%"{dominio}"%']
     if texto:
-        sql, args = sql + " AND (r.texto LIKE ? OR r.dados LIKE ? OR r.estrategia LIKE ?)", args + [f"%{texto}%"] * 3
+        sql, args = (sql + " AND (lower(r.texto) LIKE lower(?) OR lower(CAST(r.dados AS TEXT)) LIKE lower(?) "
+                     "OR lower(r.estrategia) LIKE lower(?))", args + [f"%{texto}%"] * 3)
     if desde:
         sql, args = sql + " AND r.ocorrido_em >= ?", args + [desde]
     return _todos(sql + " ORDER BY r.ocorrido_em DESC, r.criado_em DESC LIMIT ?", args + [limite])
@@ -309,8 +448,10 @@ def historico_estrategias(crianca_id: str) -> list[dict]:
     """Equivalente à view historico_estrategias do .sql (inclui comportamentos em que uma dica foi usada)."""
     return _todos("""
         SELECT estrategia, local, count(*) AS tentativas,
-               sum(resultado = 'funcionou') AS funcionou, sum(resultado = 'parcial') AS parcial,
-               sum(resultado = 'nao_funcionou') AS nao_funcionou, max(ocorrido_em) AS ultima_vez
+               sum(CASE WHEN resultado = 'funcionou' THEN 1 ELSE 0 END) AS funcionou,
+               sum(CASE WHEN resultado = 'parcial' THEN 1 ELSE 0 END) AS parcial,
+               sum(CASE WHEN resultado = 'nao_funcionou' THEN 1 ELSE 0 END) AS nao_funcionou,
+               max(ocorrido_em) AS ultima_vez
         FROM registro WHERE crianca_id = ? AND estrategia IS NOT NULL AND resultado IS NOT NULL
         GROUP BY estrategia, local ORDER BY ultima_vez DESC""", (crianca_id,))
 
@@ -330,9 +471,10 @@ def obter_conversa(conversa_id: str) -> dict | None:
 
 
 def listar_conversas(crianca_id: str) -> list[dict]:
-    return _todos("SELECT c.*, (SELECT count(*) FROM mensagem m WHERE m.conversa_id = c.id) AS mensagens, "
+    return _todos("SELECT * FROM (SELECT c.*, (SELECT count(*) FROM mensagem m WHERE m.conversa_id = c.id) AS mensagens, "
                   "(SELECT max(criado_em) FROM mensagem m WHERE m.conversa_id = c.id) AS ultima "
-                  "FROM conversa c WHERE c.crianca_id = ? ORDER BY coalesce(ultima, c.criado_em) DESC", (crianca_id,))
+                  "FROM conversa c WHERE c.crianca_id = ?) conv ORDER BY coalesce(conv.ultima, conv.criado_em) DESC",
+                  (crianca_id,))
 
 
 def inserir_mensagem(conversa_id: str, papel: str, conteudo: str, sugestoes: dict | None = None) -> dict:
@@ -344,7 +486,7 @@ def inserir_mensagem(conversa_id: str, papel: str, conteudo: str, sugestoes: dic
 
 
 def listar_mensagens(conversa_id: str, limite: int = 200) -> list[dict]:
-    return _todos("SELECT * FROM (SELECT * FROM mensagem WHERE conversa_id = ? ORDER BY criado_em DESC LIMIT ?) "
+    return _todos("SELECT * FROM (SELECT * FROM mensagem WHERE conversa_id = ? ORDER BY criado_em DESC LIMIT ?) ult "
                   "ORDER BY criado_em", (conversa_id, limite))
 
 
@@ -401,8 +543,7 @@ def conta_do_token(token_hash: str) -> dict | None:
 
 
 def apagar_sessao_login(token_hash: str) -> None:
-    with conexao() as db:
-        db.execute("DELETE FROM sessao_login WHERE token_hash = ?", (token_hash,))
+    _comando("DELETE FROM sessao_login WHERE token_hash = ?", (token_hash,))
 
 
 # ------------------------------------------------------------------ compartilhamento
@@ -484,7 +625,7 @@ def listar_canal(crianca_id: str, depois: str | None = None, ids: list[str] | No
         sql, args = sql + " AND m.criado_em > ?", args + [depois]
     if ids:
         sql, args = sql + f" AND m.id IN ({','.join('?' * len(ids))})", args + ids
-    return _todos(f"SELECT * FROM ({sql} ORDER BY m.criado_em DESC LIMIT ?) ORDER BY criado_em", args + [limite])
+    return _todos(f"SELECT * FROM ({sql} ORDER BY m.criado_em DESC LIMIT ?) ult ORDER BY criado_em", args + [limite])
 
 
 # ------------------------------------------------------------------ notificações
@@ -538,10 +679,8 @@ def marcar_notificacoes_lidas(conta_id: str, ids: list[str] | None = None, crian
         sql, args = sql + " AND crianca_id = ?", args + [crianca_id]
     if tipo:
         sql, args = sql + " AND tipo = ?", args + [tipo]
-    with conexao() as db:
-        return db.execute(sql, args).rowcount
+    return _comando(sql, args)
 
 
 def apagar_notificacao(conta_id: str, nid: str) -> int:
-    with conexao() as db:
-        return db.execute("DELETE FROM notificacao WHERE id = ? AND conta_id = ?", (nid, conta_id)).rowcount
+    return _comando("DELETE FROM notificacao WHERE id = ? AND conta_id = ?", (nid, conta_id))

@@ -24,6 +24,7 @@ Papéis:
   (Internamente o acompanhante é o papel "professor", nome herdado do modelo original.)
 """
 import json
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime
 from typing import Literal
 
@@ -80,46 +81,64 @@ class Convite(BaseModel):
     funcao: Funcao = "professor"
 
 
-def _reavaliacao_em_andamento(cid: str, vigente: dict | None) -> dict | None:
+def em_paralelo(**tarefas):
+    """Roda consultas independentes ao mesmo tempo (o banco remoto custa ~160 ms por ida e volta)."""
+    with ThreadPoolExecutor(max_workers=len(tarefas)) as ex:
+        futuros = {k: ex.submit(f) for k, f in tarefas.items()}
+        return {k: f.result() for k, f in futuros.items()}
+
+
+def _reavaliacao_em_andamento(vigente: dict | None, proposta: dict | None, sessoes: list[dict]) -> dict | None:
     """Com perfil vigente, uma reavaliação pode estar rodando (sessão) ou aguardando aprovação (proposta)."""
     if not vigente:
         return None
-    sessao = next((x for x in repo.sessoes_ativas(cid) if x.get("tipo") == "reavaliacao"), None)
+    sessao = next((x for x in sessoes if x.get("tipo") == "reavaliacao"), None)
     if sessao:
         return {"etapa": "analise", "sessao_id": sessao["id"], "status": sessao["status"]}
-    proposta = repo.avaliacao_proposta(cid)
     if proposta and proposta["tipo"] == "reavaliacao":
         return {"etapa": "proposta", "avaliacao_id": proposta["id"]}
     return None
 
 
-def estado_crianca(cid: str) -> dict:
-    """Em que etapa da jornada a criança está: formulario → analise → proposta → vigente."""
-    crianca = repo.obter_crianca(cid)
-    if not crianca:
+def estado_crianca(cid: str, crianca: dict | None = None) -> dict:
+    """Em que etapa da jornada a criança está: formulario → analise → proposta → vigente.
+    Quatro consultas, em paralelo (antes eram nove, em sequência)."""
+    d = em_paralelo(crianca=lambda: crianca or repo.obter_crianca(cid), avaliacoes=lambda: repo.avaliacoes_resumo(cid),
+                    sessoes=lambda: repo.sessoes_ativas(cid), formulario_id=lambda: repo.ultimo_formulario_id(cid))
+    if not d["crianca"]:
         raise HTTPException(404, "Criança não encontrada.")
-    vigente = repo.avaliacao_vigente(cid)
-    proposta = repo.avaliacao_proposta(cid)
-    sessao = repo.sessao_ativa(cid)
-    form = repo.ultimo_formulario(cid)
+    avs, sessoes = d["avaliacoes"], d["sessoes"]
+    vigente = next((a for a in avs if a["status"] == "vigente"), None)
+    proposta = next((a for a in reversed(avs) if a["status"] == "proposta"), None)
+    sessao = sessoes[0] if sessoes else None
     if vigente:
         etapa = "vigente"
     elif sessao:
         etapa = "analise"
     elif proposta:
         etapa = "proposta"
-    elif form:
+    elif d["formulario_id"]:
         etapa = "formulario_enviado"  # formulário salvo, mas o agente não concluiu (erro ou não iniciado)
     else:
         etapa = "formulario"
-    return {"crianca": crianca, "etapa": etapa, "sessao_id": sessao["id"] if sessao else None,
+    return {"crianca": d["crianca"], "etapa": etapa, "sessao_id": sessao["id"] if sessao else None,
             "avaliacao_proposta_id": proposta["id"] if proposta else None,
             "avaliacao_vigente_id": vigente["id"] if vigente else None,
             "vigente_desde": vigente["aceita_em"] if vigente else None,
-            "versoes_aprovadas": sum(1 for a in repo.listar_avaliacoes(cid) if a["status"] in ("vigente", "substituida")),
-            "reavaliacao": _reavaliacao_em_andamento(cid, vigente),
-            "formulario_id": form["id"] if form else None,
+            "versoes_aprovadas": sum(1 for a in avs if a["status"] in ("vigente", "substituida")),
+            "reavaliacao": _reavaliacao_em_andamento(vigente, proposta, sessoes),
+            "formulario_id": d["formulario_id"],
             "metas": len(vigente["metas"]) if vigente else 0}
+
+
+def _estados(criancas: list[dict], extra) -> list[dict]:
+    """Estado de várias crianças ao mesmo tempo, na ordem da lista."""
+    if not criancas:
+        return []
+    campos = ("id", "turma_id", "nome", "data_nascimento", "prematuro_semanas", "interesses", "criado_em")
+    with ThreadPoolExecutor(max_workers=min(len(criancas), 6)) as ex:
+        estados = list(ex.map(lambda c: estado_crianca(c["id"], {k: c.get(k) for k in campos}), criancas))
+    return [{**e, **extra(c)} for e, c in zip(estados, criancas)]
 
 
 # ------------------------------------------------------------------ crianças
@@ -129,12 +148,12 @@ def minhas_criancas(papel: Literal["responsavel", "professor"] = "responsavel", 
     if papel == "responsavel":
         if not ator.responsavel:
             return []
-        return [{**estado_crianca(c["id"]), "papel": "responsavel", "parentesco": c.get("parentesco")}
-                for c in repo.criancas_do_responsavel(ator.responsavel["id"])]
+        return _estados(repo.criancas_do_responsavel(ator.responsavel["id"]),
+                        lambda c: {"papel": "responsavel", "parentesco": c.get("parentesco")})
     if not ator.professor:
         return []
-    return [{**estado_crianca(c["id"]), "papel": "professor", "funcao": c.get("funcao"),
-             "funcao_rotulo": rotulo_funcao(c.get("funcao"))} for c in repo.criancas_do_professor(ator.professor["id"])]
+    return _estados(repo.criancas_do_professor(ator.professor["id"]),
+                    lambda c: {"papel": "professor", "funcao": c.get("funcao"), "funcao_rotulo": rotulo_funcao(c.get("funcao"))})
 
 
 @router.post("/api/criancas", status_code=201)
@@ -155,24 +174,27 @@ def ver_estado(cid: str, ator: Ator = Depends(ator_atual)):
 @router.get("/api/criancas/{cid}/painel")
 def painel(cid: str, ator: Ator = Depends(ator_atual)):
     papel, _ = acesso(ator, cid)
-    crianca = repo.obter_crianca(cid)
-    registros = repo.listar_registros(cid)
+    d = em_paralelo(crianca=lambda: repo.obter_crianca(cid), registros=lambda: repo.listar_registros(cid),
+                    formulario=lambda: repo.ultimo_formulario(cid), estado=lambda: estado_crianca(cid),
+                    vigente=lambda: enriquecer(repo.avaliacao_vigente(cid)), avaliacoes=lambda: repo.listar_avaliacoes(cid),
+                    estrategias=lambda: repo.historico_estrategias(cid), equipe=lambda: repo.equipe_da_crianca(cid))
+    crianca, registros = d["crianca"], d["registros"]
     checkins: dict[str, list] = {}
     for r in reversed(registros):  # ordem cronológica
         if r["tipo"] == "checkin_meta" and r["meta_id"]:
             checkins.setdefault(r["meta_id"], []).append({"em": r["ocorrido_em"], "nivel": r["dados"].get("nivel_gas"),
                                                           "texto": r["texto"]})
-    form = repo.ultimo_formulario(cid)
+    form = d["formulario"]
     return {
         "crianca_id": cid, "crianca": crianca, "perfil_formulario": form["perfil"] if form else None,
         "meu_papel": papel,
-        "estado": estado_crianca(cid),
-        "avaliacao_vigente": enriquecer(repo.avaliacao_vigente(cid)),
-        "avaliacoes": repo.listar_avaliacoes(cid),
+        "estado": d["estado"],
+        "avaliacao_vigente": d["vigente"],
+        "avaliacoes": d["avaliacoes"],
         "registros": registros,
         "checkins_metas": checkins,
-        "estrategias": repo.historico_estrategias(cid),
-        "equipe": repo.equipe_da_crianca(cid),
+        "estrategias": d["estrategias"],
+        "equipe": d["equipe"],
     }
 
 
@@ -278,14 +300,16 @@ def contexto_chat(cid: str, ator: Ator = Depends(ator_atual)):
 @router.get("/api/criancas/{cid}/canal")
 def ver_canal(cid: str, depois: str | None = Query(default=None), ator: Ator = Depends(ator_atual)):
     papel, autor_id = acesso(ator, cid)
+    tarefas = {"msgs": lambda: repo.listar_canal(cid, depois=depois), "equipe": lambda: repo.equipe_da_crianca(cid)}
     if not depois:  # abriu o canal: as mensagens dele contam como lidas
-        repo.marcar_notificacoes_lidas(ator.conta["id"], crianca_id=cid, tipo="canal")
-    msgs = repo.listar_canal(cid, depois=depois)
+        tarefas["lidas"] = lambda: repo.marcar_notificacoes_lidas(ator.conta["id"], crianca_id=cid, tipo="canal")
+    d = em_paralelo(**tarefas)
+    msgs = d["msgs"]
     for m in msgs:
         m["funcao_rotulo"] = rotulo_funcao(m["autor_funcao"])
         m["minha"] = (m["responsavel_id"] if papel == "responsavel" else m["professor_id"]) == autor_id
     return {"mensagens": msgs, "equipe": [{**e, "funcao_rotulo": e["funcao"] if e["papel"] == "responsavel"
-                                           else rotulo_funcao(e["funcao"])} for e in repo.equipe_da_crianca(cid)]}
+                                           else rotulo_funcao(e["funcao"])} for e in d["equipe"]]}
 
 
 @router.post("/api/criancas/{cid}/canal", status_code=201)
@@ -368,7 +392,7 @@ def pedir_reavaliacao(cid: str, body: PedidoReavaliacao, ator: Ator = Depends(at
     vigente = repo.avaliacao_vigente(cid)
     if not vigente:
         raise HTTPException(409, "A reavaliação parte de um perfil aprovado. Conclua a primeira avaliação antes.")
-    if _reavaliacao_em_andamento(cid, vigente):
+    if _reavaliacao_em_andamento(vigente, repo.avaliacao_proposta(cid), repo.sessoes_ativas(cid)):
         raise HTTPException(409, "Já existe uma reavaliação em andamento para esta criança.")
     if body.formulario_id:
         form = repo.obter_formulario(body.formulario_id)

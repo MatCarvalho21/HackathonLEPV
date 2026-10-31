@@ -31,7 +31,18 @@ Mais detalhes: agente e chat em [src/agente_perfil/README.md](src/agente_perfil/
 | Backend FastAPI (`uvicorn backend.main:app`) | 8000 | API, agentes (perfil e chat), banco local, base vetorial |
 | Frontend Vite (React, raiz do repositório) | 5173 | Interface. Encaminha `/api` para `127.0.0.1:8000` |
 
-**Banco de dados local.** É um SQLite em `backend/data/plataforma.sqlite3` com o mesmo modelo do Postgres/Supabase (`prompts/matheus/04/output.sql` + `src/agente_perfil/migracao_postgres.sql`). As tabelas são escola, professor, turma, responsável, criança, responsável_criança, formulário, avaliação, registro, conversa, mensagem e sessão do agente. O esquema fica em [src/agente_perfil/schema_local.sql](src/agente_perfil/schema_local.sql) e é criado sozinho quando o backend sobe. Toda a leitura e escrita passa por [src/agente_perfil/repositorio.py](src/agente_perfil/repositorio.py). Para ir para o Supabase, basta trocar essa camada.
+**Banco de dados.** Toda a leitura e escrita passa por [src/agente_perfil/repositorio.py](src/agente_perfil/repositorio.py), que funciona com dois bancos:
+- **Supabase (Postgres):** é o padrão quando a `DATABASE_URL` está no `.env`. O esquema fica em [supabase/schema.sql](supabase/schema.sql): 17 tabelas, RLS ligado e sem políticas, ou seja, a API pública do Supabase não acessa nada e só o backend lê e escreve.
+- **SQLite local:** sem `DATABASE_URL`, usa `backend/data/plataforma.sqlite3`, criado sozinho a partir de [src/agente_perfil/schema_local.sql](src/agente_perfil/schema_local.sql).
+
+Configurar o Supabase:
+1. *SQL Editor* → cole e rode `supabase/schema.sql` (pode rodar de novo sem erro).
+2. *Connect* → *Session pooler* → copie a URI para o `.env`: `DATABASE_URL=postgresql://postgres.<ref>:<senha>@aws-0-<região>.pooler.supabase.com:5432/postgres`.
+3. Para trazer os dados do SQLite: `.venv/bin/python -m backend.migrar_para_supabase`. O script é idempotente e confere as contagens no fim.
+
+Limite de conexões: o Session pooler gratuito aceita 15 conexões no total, somando todos os processos. Cada processo do backend usa de 2 a 5 (`PG_POOL_MIN` / `PG_POOL_MAX`). Com vários processos no deploy, use o *Transaction pooler* (porta 6543), que já é compatível. Para latência baixa, rode o backend na mesma região AWS do projeto Supabase.
+
+Testes: `.venv/bin/python -m unittest backend.test_agente backend.test_main` usa um SQLite temporário. Com `TESTE_PG=1`, os mesmos testes rodam no Supabase, num schema temporário que é apagado no fim, sem tocar nos dados reais.
 
 **Dados de demonstração.** Gere com `python -m backend.seed`, ou clique em "Família da Lia (responsável)" na tela inicial. A família criada:
 - Ana (mãe), responsável.
