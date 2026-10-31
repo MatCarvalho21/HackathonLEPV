@@ -1,0 +1,10 @@
+{
+  "source": "10.pdf",
+  "slug": "10",
+  "pdf_path": "/mnt/diskSSD2TB/matheus_2/HackathonLEPV/pdfs/10.pdf",
+  "md_path": "/mnt/diskSSD2TB/matheus_2/HackathonLEPV/data/markdown_docs/10.md",
+  "total_pages": 2,
+  "converter": "docling",
+  "char_count": 1224,
+  "created_at": "2026-10-31T03:00:03.800313+00:00"
+}

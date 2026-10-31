@@ -1,0 +1,3 @@
+O caminho é usar RAG mesmo? O que você sugere? Tipo, no chat bot, seria legal ele ter como default um resumo ali da criança injetado sempre (prompt de sistema) ou ele saber onde buscar determinada info da criança para responder alguma pergunta. Ao mesmo tempo, temos as fontes oficiais de informação que deveriam embasar o agente. 
+
+Fico pensando também no responsável por gerar a avaliação, como ele vai consumir todo o formulário e as regras de "negócio" para gerar o relatório a primeira vez. E nas vezes seguintes ainda olhar para um mar de anotações/comentários que vão ser inseridos na ferramenta ao longo do acompanhamento da criança.

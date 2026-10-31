@@ -1,123 +1,130 @@
-# Pipeline RAG - Base de Conhecimento em Desenvolvimento Infantil
+# Pipeline RAG de Alta Fidelidade (Docling + GPU + Reranker)
 
-Esta pipeline foi construída para o hackathon para processar os PDFs de referência em `/pdfs` (Caderneta da Criança, Guias da OMS, Relatórios EEF, Portarias do MEC, Pyramid Model e materiais de marcos de desenvolvimento) e disponibilizá-los para consultas semânticas no loop de atuação do agente de IA.
-
----
-
-## 🛠️ Tecnologias Utilizadas
-
-1. **ChromaDB**: Banco de dados vetorial leve, local e persistente (não necessita de Docker ou serviços externos). Os dados ficam salvos na pasta `/chroma_db`.
-2. **Modelo de Embeddings Multilíngue**:
-   - **Padrão**: `BAAI/bge-m3` — modelo open-source estado da arte com suporte a mais de 100 idiomas (excelente para queries em português buscando trechos em inglês como os relatórios da OMS e da EEF).
-   - **Alternativa Ultra-Leve para CPU**: `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` (~470MB).
-3. **PyPDF**: Extração segura de texto página a página.
-4. **Recursive Chunking**: Divisão de parágrafos preservando números de página e metadados de citação.
+Esta pipeline converte os 74 PDFs de referência em `/pdfs` (Caderneta da Criança, Guias da OMS, Relatórios EEF, Portarias do MEC, Pyramid Model e SWYC) em **Markdowns estruturados com preservação de layout e tabelas**, fatiando-os em **chunks hierárquicos** com embeddings multilíngues (`BAAI/bge-m3`) e **re-ranqueamento com Cross-Encoder** (`BAAI/bge-reranker-v2-m3`) acelerado por GPU CUDA.
 
 ---
 
-## 🚀 Como Configurar e Rodar
+## 🏗️ Arquitetura do Pipeline
 
-### 1. Criar e Ativar o Ambiente Virtual
+```mermaid
+flowchart TD
+    PDF["74 PDFs em pdfs/"] -->|Docling + GPU| MD["data/markdown_docs/*.md"]
+    MD -->|Chunker Hierárquico| CHUNKS["Chunks com Metadados de Seção e Tabela"]
+    CHUNKS -->|BAAI/bge-m3 em CUDA fp16| CHROMA[("ChromaDB (/chroma_db)")]
+    
+    QUERY["Consulta do Agente"] --> RETRIEVAL["Busca Densa (Top 20)"]
+    CHROMA --> RETRIEVAL
+    RETRIEVAL --> RERANKER["Cross-Encoder BAAI/bge-reranker-v2-m3"]
+    RERANKER -->|Top 4 Reordenados| AGENT["Contexto Formatado para LLM"]
+```
 
-No terminal, na raiz do repositório (`/home/matheus-carvalho/Documentos/HackathonLEPV`):
+### Principais Vantagens em Relação ao Pipeline Simples:
+1. **Preservação de Tabelas e Questionários**: O `docling` converte tabelas para Markdown nativo (`| col | col |`), e o `chunker.py` nunca as corta no meio de uma linha.
+2. **Metadados Hierárquicos**: Cada chunk sabe a qual cabeçalho/seção pertence (ex: `Marcos Motores > 18 a 24 meses`).
+3. **Reranker de Duas Etapas (Two-Stage Retrieval)**: Elimina falsos positivos ao reanalisar os 20 melhores trechos com atenção cruzada antes de entregar ao LLM.
+4. **Aceleração por GPU (CUDA)**: Utiliza as GPUs Quadro RTX 6000 para vetorização e reranking ultra-rápidos.
+
+---
+
+## 🚀 Guia Passo a Passo de Execução
+
+### Passo 1: Entrar na pasta do projeto e criar o ambiente virtual
 
 ```bash
-# Cria o ambiente virtual Python
-python3 -m venv venv
+cd /home/matheus/matheus/HackathonLEPV
+
+# Cria o ambiente virtual dedicado
+python3 -m venv .venv
 
 # Ativa o ambiente virtual
-source venv/bin/activate
+source .venv/bin/activate
+```
 
-# Instala as dependências
+---
+
+### Passo 2: Instalar o PyTorch com suporte a CUDA 12
+
+Como a máquina possui GPUs NVIDIA e CUDA 12.9, instale o PyTorch compilado com CUDA:
+
+```bash
+pip install --upgrade pip
+
+# Instala PyTorch com CUDA 12.4 / 12.x
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+```
+
+Para validar se o PyTorch reconheceu a GPU:
+```bash
+python3 -c "import torch; print('CUDA disponível:', torch.cuda.is_available(), '| Dispositivos:', torch.cuda.device_count(), '| Modelo:', torch.cuda.get_device_name(0))"
+```
+
+---
+
+### Passo 3: Instalar as demais dependências do RAG
+
+```bash
 pip install -r src/rag/requirements.txt
 ```
 
 ---
 
-### 2. Executar a Indexação dos PDFs
+### Passo 4: Converter os PDFs para Markdown Estruturado (Docling)
 
-Para ler os PDFs na pasta `pdfs/`, extrair o texto, gerar os vetores e salvar no ChromaDB:
+Executa a leitura dos PDFs na pasta `pdfs/` e salva os `.md` em `data/markdown_docs/`:
 
 ```bash
-# Indexação incremental (indexa apenas novos PDFs)
-python3 -m src.rag.indexer
+# Converte todos os PDFs com detecção de layout e tabelas via GPU:
+python3 -m src.rag.convert_to_markdown
 
-# Para forçar reindexação completa do zero:
+# (Opcional) Para testar a conversão em apenas 3 PDFs primeiro:
+python3 -m src.rag.convert_to_markdown --limit 3
+
+# (Opcional) Para filtrar apenas um PDF específico (ex: caderneta):
+python3 -m src.rag.convert_to_markdown --filter caderneta
+```
+
+---
+
+### Passo 5: Indexar no ChromaDB com Embeddings em GPU
+
+Lê os Markdowns estruturados, aplica o chunking hierárquico e gera os vetores densos:
+
+```bash
+# Indexação com recriação completa da coleção:
 python3 -m src.rag.indexer --reindex
 
-# Para indexar apenas um PDF específico (ex: marcos):
-python3 -m src.rag.indexer --filter milestones
-```
-
-> **Nota:** Na primeira execução, o `SentenceTransformers` fará o download do modelo open-source automaticamente do Hugging Face.
-
----
-
-### 3. Testar a Busca no Terminal
-
-Você pode fazer perguntas diretamente no terminal para verificar a precisão dos trechos recuperados:
-
-```bash
-python3 -m src.rag.test_query "Como agir diante de crises e comportamentos de mordida em sala de aula?"
-```
-
-Ou testar marcos do desenvolvimento:
-
-```bash
-python3 -m src.rag.test_query "Quais os marcos motores e de linguagem esperados para uma criança de 3 anos?"
+# Ou indexação rápida de um arquivo específico:
+python3 -m src.rag.indexer --filter caderneta
 ```
 
 ---
 
-## 🤖 Como Integrar no Loop do Agente de IA
+### Passo 6: Testar as Consultas e o Reranker
 
-Existem duas formas simples de plugar a ferramenta no seu agente:
+Você pode testar diretamente com uma pergunta:
 
-### Opção A: Chamada Direta em Python
+```bash
+python3 -m src.rag.test_query "Quais os marcos motores esperados para uma criança de 2 a 3 anos?"
+```
+
+Ou abrir o **Modo Interativo contínuo**:
+```bash
+python3 -m src.rag.test_query
+```
+*(Digite sua pergunta e veja os trechos recuperados, a pontuação do Cross-Encoder e a tabela/seção correspondente).*
+
+---
+
+## �� Uso no Backend e nos Agentes de IA
+
+No código do seu agente ou endpoints FastAPI:
 
 ```python
-from src.rag.retriever import consultar_base_conhecimento
+from src.rag.retriever import consultar_base_conhecimento, AGENT_TOOL_SCHEMA
 
-# Durante a tomada de decisão do agente:
-pergunta_usuario = "Meu filho tem 4 anos e está tendo muitas crises de raiva na escola. O que fazer?"
+# Chamada direta:
+contexto = consultar_base_conhecimento("Estratégias de intervenção para comportamentos de bater e morder", top_k=4)
 
-# Busca trechos fundamentados com citações (documento + página)
-contexto_pedagogico = consultar_base_conhecimento(pergunta_usuario, top_k=3)
-
-# Injete o contexto no prompt do LLM:
-prompt_sistema = f"""
-Você é um assistente pedagógico especializado em crianças com necessidades especiais.
-Utilize as seguintes diretrizes e evidências científicas para responder:
-
-{contexto_pedagogico}
-
-Responda com empatia e sempre indique as práticas recomendadas.
-"""
-```
-
-### Opção B: Tool / Function Calling (OpenAI / Claude / Gemini / LangChain)
-
-Em `src/rag/retriever.py`, exportamos o schema padronizado `AGENT_TOOL_SCHEMA`:
-
-```python
-from src.rag.retriever import AGENT_TOOL_SCHEMA, consultar_base_conhecimento
-
-# Passe AGENT_TOOL_SCHEMA na lista de 'tools' da chamada da API do modelo.
-# Quando o agente decidir chamar a tool "consultar_base_conhecimento":
-def executar_tool(nome_tool, argumentos):
-    if nome_tool == "consultar_base_conhecimento":
-        termo = argumentos.get("termo_busca")
-        top_k = argumentos.get("top_k", 4)
-        return consultar_base_conhecimento(termo, top_k=top_k)
-```
-
----
-
-## ⚡ Dica de Otimização para Máquinas sem GPU
-
-Caso você esteja rodando em um notebook sem placa de vídeo dedicada e ache o `BAAI/bge-m3` pesado, você pode alternar facilmente para o modelo ultra-leve definindo a variável de ambiente:
-
-```bash
-export EMBEDDING_MODEL_NAME="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-python3 -m src.rag.indexer --reindex
+# Schema de Tool (Function Calling para Gemini/OpenAI/Claude):
+# Basta incluir AGENT_TOOL_SCHEMA na lista de tools do LLM.
 ```

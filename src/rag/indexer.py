@@ -1,80 +1,128 @@
 import argparse
-import sys
+import json
+import logging
+import os
 import time
 from pathlib import Path
-from typing import List, Set
+from typing import List, Optional, Set
 
 import chromadb
 from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 
+from src.rag.chunker import parse_and_chunk_markdown, DocumentChunk
 from src.rag.config import (
+    MARKDOWN_DIR,
     PDFS_DIR,
     CHROMA_PERSIST_DIR,
     COLLECTION_NAME,
     EMBEDDING_MODEL_NAME,
-    CHUNK_SIZE,
-    CHUNK_OVERLAP,
+    DEVICE,
     BATCH_SIZE,
 )
-from src.rag.pdf_loader import extract_pages_from_pdf
-from src.rag.chunker import chunk_pages, DocumentChunk
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+logger = logging.getLogger(__name__)
 
 
-def get_indexed_sources(collection) -> Set[str]:
-    """Obtém os nomes de arquivos PDF que já possuem registros na coleção."""
+def load_markdown_documents(markdown_dir: Path = MARKDOWN_DIR, doc_filter: Optional[str] = None):
+    """Carrega todos os arquivos Markdown gerados pelo conversor."""
+    if not markdown_dir.exists():
+        return []
+
+    md_files = sorted(list(markdown_dir.glob("*.md")))
+    if doc_filter:
+        md_files = [f for f in md_files if doc_filter.lower() in f.name.lower()]
+
+    documents = []
+    for md_file in md_files:
+        meta_file = md_file.with_suffix(".meta.json")
+        source_name = md_file.stem + ".pdf"
+        total_pages = 1
+
+        if meta_file.exists():
+            try:
+                meta_data = json.loads(meta_file.read_text(encoding="utf-8"))
+                source_name = meta_data.get("source", source_name)
+                total_pages = meta_data.get("total_pages", 1)
+            except Exception:
+                pass
+
+        content = md_file.read_text(encoding="utf-8")
+        documents.append({
+            "source": source_name,
+            "md_path": md_file,
+            "content": content,
+            "total_pages": total_pages
+        })
+
+    return documents
+
+
+def get_existing_chunk_ids(collection) -> Set[str]:
+    """Retorna o conjunto de IDs de chunks já indexados no ChromaDB."""
     try:
-        existing = collection.get(include=["metadatas"])
-        if existing and existing.get("metadatas"):
-            return {m.get("source") for m in existing["metadatas"] if m and "source" in m}
+        existing_data = collection.get(include=[])
+        if existing_data and "ids" in existing_data:
+            return set(existing_data["ids"])
     except Exception as e:
-        print(f"[Aviso] Não foi possível verificar documentos existentes: {e}")
+        logger.warning(f"Aviso ao consultar IDs existentes no ChromaDB: {e}")
     return set()
 
 
-def run_indexing(force_reindex: bool = False, pdf_filter: str = None):
-    """
-    Executa a pipeline completa de indexação:
-    1. Varredura dos PDFs
-    2. Extração de páginas e limpeza
-    3. Divisão em chunks estruturados
-    4. Geração de embeddings com SentenceTransformers
-    5. Armazenamento persistente no ChromaDB
-    """
+def run_indexing(
+    force_reindex: bool = False,
+    doc_filter: Optional[str] = None,
+    batch_size: int = BATCH_SIZE,
+    device: str = DEVICE
+):
+    """Executa a indexação vetorial de forma incremental com aceleração por GPU."""
     start_time = time.time()
-    print("=" * 70)
-    print(" PIPELINE DE INDEXAÇÃO VETORIAL (RAG) - DESENVOLVIMENTO INFANTIL")
-    print("=" * 70)
-    print(f"Diretório de PDFs:      {PDFS_DIR}")
-    print(f"Banco ChromaDB:         {CHROMA_PERSIST_DIR}")
-    print(f"Coleção:                {COLLECTION_NAME}")
-    print(f"Modelo de Embeddings:   {EMBEDDING_MODEL_NAME}")
-    print(f"Chunk Size / Overlap:   {CHUNK_SIZE} / {CHUNK_OVERLAP} caracteres")
-    print("-" * 70)
 
-    if not PDFS_DIR.exists():
-        print(f"[Erro] O diretório '{PDFS_DIR}' não foi encontrado.")
-        sys.exit(1)
+    logger.info("=" * 70)
+    logger.info("INDEXAÇÃO VETORIAL (INCREMENTAL & GPU)")
+    logger.info(f"Dispositivo selecionado: {device.upper()}")
+    logger.info(f"Modelo de Embeddings: {EMBEDDING_MODEL_NAME}")
+    logger.info(f"Tamanho do lote (Batch Size): {batch_size}")
+    logger.info(f"Diretório do ChromaDB: {CHROMA_PERSIST_DIR}")
+    logger.info("=" * 70)
 
-    pdf_files = sorted(list(PDFS_DIR.glob("*.pdf")))
-    if not pdf_files:
-        print(f"[Aviso] Nenhum arquivo .pdf encontrado em '{PDFS_DIR}'.")
+    # 1. Carrega os Markdowns estruturados
+    documents = load_markdown_documents(MARKDOWN_DIR, doc_filter=doc_filter)
+
+    if not documents:
+        logger.warning(
+            f"Nenhum arquivo .md encontrado em '{MARKDOWN_DIR}'!\n"
+            "Dica: Execute primeiro o conversor de PDFs:\n"
+            "  python3 -m src.rag.convert_to_markdown\n"
+        )
         return
 
-    if pdf_filter:
-        pdf_files = [p for p in pdf_files if pdf_filter.lower() in p.name.lower()]
-        print(f"Filtro aplicado: {len(pdf_files)} arquivos correspondentes.")
+    logger.info(f"Total de documentos Markdown encontrados: {len(documents)}")
 
-    print(f"Total de arquivos PDF localizados: {len(pdf_files)}")
+    # 2. Divide os documentos em chunks hierárquicos
+    all_chunks: List[DocumentChunk] = []
+    for doc in tqdm(documents, desc="Fatiando documentos em blocos semânticos", unit="doc"):
+        doc_chunks = parse_and_chunk_markdown(
+            markdown_content=doc["content"],
+            source_filename=doc["source"],
+            default_page=1
+        )
+        all_chunks.extend(doc_chunks)
 
-    # 1. Inicializa o cliente persistente do ChromaDB
-    CHROMA_PERSIST_DIR.mkdir(parents=True, exist_ok=True)
+    total_chunks_detected = len(all_chunks)
+    logger.info(f"Total de chunks estruturados identificados: {total_chunks_detected}")
+    if not all_chunks:
+        logger.warning("Nenhum chunk foi gerado.")
+        return
+
+    # 3. Inicializa o cliente do ChromaDB
     chroma_client = chromadb.PersistentClient(path=str(CHROMA_PERSIST_DIR))
 
     if force_reindex:
         try:
+            logger.info(f"Recriando coleção '{COLLECTION_NAME}' (--reindex ativado)...")
             chroma_client.delete_collection(name=COLLECTION_NAME)
-            print(f"[Reset] Coleção '{COLLECTION_NAME}' apagada para reindexação total.")
         except Exception:
             pass
 
@@ -83,92 +131,85 @@ def run_indexing(force_reindex: bool = False, pdf_filter: str = None):
         metadata={"hnsw:space": "cosine"}
     )
 
-    already_indexed = set() if force_reindex else get_indexed_sources(collection)
-    if already_indexed:
-        print(f"Documentos já indexados anteriormente no banco: {len(already_indexed)}")
+    # 4. Modo Incremental: Identifica chunks que já foram gravados anteriormente
+    existing_ids = set() if force_reindex else get_existing_chunk_ids(collection)
+    chunks_to_process = [c for c in all_chunks if c.chunk_id not in existing_ids]
 
-    # 2. Carrega o modelo de embeddings multilíngue
-    print(f"\nCarregando modelo de embeddings '{EMBEDDING_MODEL_NAME}'...")
-    embedder = SentenceTransformer(EMBEDDING_MODEL_NAME)
-    print("Modelo carregado com sucesso.")
+    logger.info(f"Chunks já existentes no ChromaDB: {len(existing_ids)}")
+    logger.info(f"Novos chunks a serem processados: {len(chunks_to_process)}")
 
-    # 3. Processa cada PDF
-    all_chunks: List[DocumentChunk] = []
-    processed_files_count = 0
-    skipped_count = 0
-
-    print("\n[Etapa 1/2] Extraindo e fatiando documentos...")
-    for pdf_path in tqdm(pdf_files, desc="Processando PDFs"):
-        if not force_reindex and pdf_path.name in already_indexed:
-            skipped_count += 1
-            continue
-
-        pages = extract_pages_from_pdf(pdf_path)
-        if not pages:
-            print(f"[Aviso] Documento sem texto extraído: '{pdf_path.name}'")
-            continue
-
-        chunks = chunk_pages(pages, chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP)
-        all_chunks.extend(chunks)
-        processed_files_count += 1
-
-    print(f"\nDocumentos processados: {processed_files_count}")
-    if skipped_count > 0:
-        print(f"Documentos pulados (já indexados): {skipped_count}")
-    print(f"Total de novos chunks gerados: {len(all_chunks)}")
-
-    if not all_chunks:
-        print("\nNenhum novo chunk para indexar. O banco vetorial já está atualizado!")
-        print(f"Total atual de itens na coleção: {collection.count()}")
+    if not chunks_to_process:
+        logger.info("🎉 Todos os chunks já estão perfeitamente indexados! Nada a fazer.")
         return
 
-    # 4. Geração de Embeddings e Upsert em lotes (Batch)
-    print(f"\n[Etapa 2/2] Vetorizando e salvando no ChromaDB (Lotes de {BATCH_SIZE})...")
+    # 5. Carrega o modelo de embeddings na GPU
+    logger.info(f"Carregando modelo '{EMBEDDING_MODEL_NAME}' no dispositivo '{device}'...")
+    embedder = SentenceTransformer(EMBEDDING_MODEL_NAME, device=device)
 
-    total_chunks = len(all_chunks)
-    for i in tqdm(range(0, total_chunks, BATCH_SIZE), desc="Indexando no ChromaDB"):
-        batch = all_chunks[i : i + BATCH_SIZE]
+    # Limita o comprimento máximo de sequência por precaução contra textos extremos
+    if hasattr(embedder, "max_seq_length") and embedder.max_seq_length > 4096:
+        embedder.max_seq_length = 4096
 
-        batch_ids = [c.chunk_id for c in batch]
-        batch_texts = [c.text for c in batch]
-        batch_metadatas = [c.metadata for c in batch]
+    # 6. Processa apenas os chunks pendentes em lotes seguros
+    total_to_process = len(chunks_to_process)
+    logger.info(f"Gravando {total_to_process} chunks restantes no ChromaDB em lotes de {batch_size}...")
 
-        # Gera os vetores densos normalizados (para distância cosseno)
-        batch_embeddings = embedder.encode(
-            batch_texts,
-            normalize_embeddings=True,
-            show_progress_bar=False
-        ).tolist()
+    is_cuda = device.startswith("cuda")
+    if is_cuda:
+        try:
+            import torch
+            torch.cuda.empty_cache()
+        except ImportError:
+            pass
 
-        # Upsert garante que se o id já existir ele atualiza, senão insere
-        collection.upsert(
-            ids=batch_ids,
-            documents=batch_texts,
-            metadatas=batch_metadatas,
-            embeddings=batch_embeddings
-        )
+    with tqdm(range(0, total_to_process, batch_size), desc="Gravando no ChromaDB", unit="lote") as pbar:
+        for i in pbar:
+            batch = chunks_to_process[i : i + batch_size]
+            batch_ids = [c.chunk_id for c in batch]
+            batch_texts = [c.text for c in batch]
+            batch_metadatas = [c.metadata for c in batch]
 
-    duration = time.time() - start_time
-    print("\n" + "=" * 70)
-    print(f" INDEXAÇÃO CONCLUÍDA COM SUCESSO EM {duration:.2f}s")
-    print("=" * 70)
-    print(f"Total de registros na coleção '{COLLECTION_NAME}': {collection.count()}")
-    print("O banco vetorial está pronto para ser consultado pelos agentes!")
+            # Vetorização densa normalizada
+            embeddings = embedder.encode(
+                batch_texts,
+                batch_size=len(batch),
+                normalize_embeddings=True,
+                show_progress_bar=False
+            ).tolist()
+
+            collection.upsert(
+                ids=batch_ids,
+                documents=batch_texts,
+                metadatas=batch_metadatas,
+                embeddings=embeddings
+            )
+
+            # Limpa cache da GPU periodicamente para evitar fragmentação de memória
+            if is_cuda and (i // batch_size) % 5 == 0:
+                try:
+                    import torch
+                    torch.cuda.empty_cache()
+                except ImportError:
+                    pass
+
+    elapsed = time.time() - start_time
+    logger.info("=" * 70)
+    logger.info(f"INDEXAÇÃO CONCLUÍDA EM {elapsed:.2f}s")
+    logger.info(f"Total acumulado na coleção '{COLLECTION_NAME}': {collection.count()} chunks")
+    logger.info("=" * 70)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Indexador de PDFs para RAG no ChromaDB")
-    parser.add_argument(
-        "--reindex",
-        action="store_true",
-        help="Força a recriação completa da coleção apagando os índices antigos"
-    )
-    parser.add_argument(
-        "--filter",
-        type=str,
-        default=None,
-        help="Filtra PDFs específicos pelo nome para indexar"
-    )
+    parser = argparse.ArgumentParser(description="Indexador Incremental para ChromaDB (com suporte a GPU)")
+    parser.add_argument("--reindex", action="store_true", help="Força a recriação do índice do zero (apaga dados existentes)")
+    parser.add_argument("--filter", type=str, default=None, help="Filtra documentos por termo no nome")
+    parser.add_argument("--batch-size", type=int, default=BATCH_SIZE, help=f"Tamanho do lote de embeddings (padrão: {BATCH_SIZE})")
+    parser.add_argument("--device", type=str, default=DEVICE, help=f"Dispositivo de execução (padrão: {DEVICE})")
     args = parser.parse_args()
 
-    run_indexing(force_reindex=args.reindex, pdf_filter=args.filter)
+    run_indexing(
+        force_reindex=args.reindex,
+        doc_filter=args.filter,
+        batch_size=args.batch_size,
+        device=args.device
+    )

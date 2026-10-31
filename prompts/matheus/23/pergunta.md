@@ -1,0 +1,1 @@
+Eu estou num wokspace remoto conectado via ssh. Tem alguma forma de acessar esse localhost? Ou melhor clonar na minha máquina local e rodar os comandos para subir? Se sim, quais comandos eu tenho que rodar e tal na ordem. Documente isso no README principal, como subir a aplicação.

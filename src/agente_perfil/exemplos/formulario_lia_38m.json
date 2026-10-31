@@ -1,0 +1,145 @@
+{
+ "versao": "2026-10-30b",
+ "informante": "responsavel",
+ "perfil": {
+  "apelido": "Lia",
+  "idade_meses": 38,
+  "vinculo": "Mãe",
+  "interesses": "Dinossauros, água, música, quebra-cabeça",
+  "prioridades": "Quero que ela consiga falar o que quer e tenha menos crises nas trocas de atividade.",
+  "idiomas": "Português",
+  "prematuridade": "nao",
+  "perda_habilidades": "nao",
+  "condicoes_relatadas": [
+   "em_investigacao"
+  ],
+  "documento_comprobatorio": "nao",
+  "observacoes_saude": "A pediatra pediu para observar a fala."
+ },
+ "respostas": {
+  "M30_COM_R_1": {
+   "resposta": "sim",
+   "exemplo": "Pego o sapato e coloca na caixa quando peço."
+  },
+  "M36_COM_E_1": {
+   "resposta": "nao",
+   "exemplo": "Aponta e puxa minha mão em vez de perguntar."
+  },
+  "M36_COM_E_2": {
+   "resposta": "as_vezes",
+   "exemplo": ""
+  },
+  "M36_FAL_1": {
+   "resposta": "nao",
+   "exemplo": "Fala palavras soltas, tipo \"água\", \"mamã\", \"dino\"."
+  },
+  "M36_FAL_2": {
+   "resposta": "nao",
+   "exemplo": "Só a família entende o que ela fala."
+  },
+  "M36_SOC_1": {
+   "resposta": "as_vezes",
+   "exemplo": "No parquinho fica perto das outras crianças mas brinca sozinha."
+  },
+  "M30_BRI_1": {
+   "resposta": "sim",
+   "exemplo": "Dá comida para os dinossauros de brinquedo."
+  },
+  "M36_COG_1": {
+   "resposta": "sim",
+   "exemplo": ""
+  },
+  "M30_MOT_A_1": {
+   "resposta": "sim",
+   "exemplo": "Adora pular na cama elástica."
+  },
+  "M36_MOT_F_1": {
+   "resposta": "as_vezes",
+   "exemplo": ""
+  },
+  "M36_MOT_F_2": {
+   "resposta": "sim",
+   "exemplo": "Faz colar de macarrão com a avó."
+  },
+  "M36_AUT_1": {
+   "resposta": "nao_sei",
+   "exemplo": ""
+  },
+  "M36_AUT_2": {
+   "resposta": "as_vezes",
+   "exemplo": "Prefere comer com a mão."
+  },
+  "M36_REG_1": {
+   "resposta": "nao",
+   "exemplo": "Na entrada da creche chora uns 20 minutos."
+  },
+  "M30_ATE_1": {
+   "resposta": "as_vezes",
+   "exemplo": "Se tiver música ajuda."
+  }
+ },
+ "dominios": {
+  "COM_R": {
+   "relato": "Entende quase tudo que a gente fala no dia a dia.",
+   "contexto": "casa"
+  },
+  "COM_E": {
+   "relato": "Quando quer algo, me puxa pela mão até o lugar. Às vezes grita quando não entendemos.",
+   "desafios": "Ficar frustrada quando não a entendem.",
+   "contexto": "ambos"
+  },
+  "FAL": {
+   "relato": "Fala umas 20 palavras soltas. Ainda não junta duas palavras.",
+   "contexto": "ambos"
+  },
+  "SOC": {
+   "relato": "Gosta muito de adultos, abraça. Com crianças fica mais na dela.",
+   "pontos_fortes": "Muito carinhosa com a família.",
+   "contexto": "ambos"
+  },
+  "BRI": {
+   "relato": "Brinca muito com dinossauros, enfileira e dá comida para eles.",
+   "contexto": "casa"
+  },
+  "COG": {
+   "relato": "Monta quebra-cabeça de 12 peças sozinha.",
+   "pontos_fortes": "Quebra-cabeças e encaixes.",
+   "contexto": "casa"
+  },
+  "MOT_A": {
+   "relato": "Corre, pula, sobe no escorregador.",
+   "contexto": "ambos"
+  },
+  "MOT_F": {
+   "nao_sei": true
+  },
+  "AUT": {
+   "relato": "Ainda usa fralda à noite. Tira o sapato sozinha.",
+   "contexto": "casa"
+  },
+  "REG": {
+   "relato": "Tem crises quando precisa parar de ver o tablet ou sair do banho, quase todo dia. Joga coisas e chora uns 15 minutos.",
+   "apoios": "Música e colo ajudam a acalmar.",
+   "desafios": "Transições.",
+   "contexto": "ambos"
+  },
+  "ATE": {
+   "relato": "Fica muito tempo nos quebra-cabeças. Em roda de história na creche levanta rápido, segundo a professora.",
+   "contexto": "ambos"
+  },
+  "SEN": {
+   "relato": "Tapa os ouvidos com liquidificador e secador. Adora água.",
+   "contexto": "casa"
+  },
+  "SAU": {
+   "relato": "Dorme tarde, por volta das 23h, acorda 7h. Come pouca variedade (arroz, frango, banana). Usa tablet umas 3 horas por dia.",
+   "contexto": "casa"
+  },
+  "CTX": {
+   "relato": "Mora com mãe e avó. Vai à creche municipal de manhã. Ainda não tem acompanhamento com fono.",
+   "apoios": "Avó ajuda muito.",
+   "contexto": "ambos"
+  }
+ },
+ "consentimento": true
+}

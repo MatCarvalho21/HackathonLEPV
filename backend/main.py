@@ -21,7 +21,19 @@ CONTEXT = {
     'SAU': 'Como estão sono e alimentação? Há informações de saúde, visão, audição ou acompanhamentos que deseja compartilhar?',
     'CTX': 'Como é a rotina em casa e na escola? Quem oferece apoio e quais barreiras dificultam a participação?'
 }
-app = FastAPI(title='Primeiros Passos — formulário inicial', version='0.1.0')
+from contextlib import asynccontextmanager
+
+
+@asynccontextmanager
+async def lifespan(_app):
+    from backend.avaliacoes import aquecer_rag
+    aquecer_rag()  # carrega a base vetorial em segundo plano
+    yield
+
+app = FastAPI(title='Primeiros Passos — formulário inicial', version='0.1.0', lifespan=lifespan)
+
+from backend.avaliacoes import router as avaliacoes_router  # noqa: E402
+app.include_router(avaliacoes_router)
 
 class Strict(BaseModel):
     model_config = ConfigDict(extra='forbid')
@@ -36,6 +48,11 @@ class Profile(Strict):
     idiomas: str = Field(default='', max_length=200)
     prematuridade: Literal['sim','nao','nao_sei'] = 'nao_sei'
     perda_habilidades: Literal['sim','nao','nao_sei']
+    condicoes_relatadas: list[Literal['tea','tdah','down','deficiencia_intelectual','atraso_global','linguagem_aprendizagem','motora','genetica_outra','em_investigacao','prefiro_nao_informar']] = Field(default_factory=list, max_length=10)
+    outra_condicao: str = Field(default='', max_length=500)
+    documento_comprobatorio: Literal['sim','nao','nao_sei'] = 'nao_sei'
+    tipo_documento: str = Field(default='', max_length=100)
+    observacoes_saude: str = Field(default='', max_length=2000)
 
 class Observation(Strict):
     resposta: Literal['sim','as_vezes','nao','nao_sei','nao_aplicavel']
@@ -43,11 +60,16 @@ class Observation(Strict):
 
 class DomainContext(Strict):
     relato: str = Field(default='', max_length=4000)
+    pontos_fortes: str = Field(default='', max_length=2000)
+    desafios: str = Field(default='', max_length=2000)
+    apoios: str = Field(default='', max_length=2000)
+    observacoes: str = Field(default='', max_length=2000)
     nao_sei: bool = False
     contexto: Literal['casa','escola','ambos','outro','nao_sei'] = 'nao_sei'
 
 class Submission(Strict):
     versao: str
+    informante: Literal['responsavel','professor'] = 'responsavel'
     perfil: Profile
     respostas: dict[str, Observation]
     dominios: dict[str, DomainContext]
@@ -86,14 +108,16 @@ def submit(data: Submission):
     if set(data.respostas) != expected or set(data.dominios) != set(NAMES):
         raise HTTPException(422, 'Responda os itens correspondentes à idade e aos 14 domínios.')
     for code, ctx in data.dominios.items():
-        if not ctx.relato.strip() and not ctx.nao_sei:
+        if not any(value.strip() for value in [ctx.relato, ctx.pontos_fortes, ctx.desafios, ctx.apoios, ctx.observacoes]) and not ctx.nao_sei:
             raise HTTPException(422, f'Inclua um relato ou marque não sei em {NAMES[code]}.')
     if not data.perfil.apelido.strip() or not data.perfil.prioridades.strip() or not data.perfil.vinculo.strip():
         raise HTTPException(422, 'Preencha apelido, vínculo e prioridades.')
     payload = {'id':str(uuid4()), 'criado_em':datetime.now(timezone.utc).isoformat(),
-               'status':'aguardando_agente', 'versao':data.versao, 'informante':'responsavel',
+               'status':'aguardando_agente', 'versao':data.versao, 'informante':data.informante,
                'perfil':data.perfil.model_dump(), 'consentimento':True, 'dominios':[],
                'orientacoes_agente': ['Os dados são relatos do responsável, não avaliação clínica validada.',
+                   'Condições, laudos e documentos são informações relatadas pela família; não confirmar diagnóstico nem inferir habilidades, prognóstico ou necessidade de apoio a partir de rótulos.',
+                   'Não aceitar nem armazenar arquivo médico neste protótipo; usar apenas dados sintéticos e o resumo mínimo necessário.',
                    'Não atribuir diagnóstico, idade de desenvolvimento, escore ou cores automáticas.',
                    'Não sei e não aplicável significam informação insuficiente, não dificuldade.',
                    'Preservar contexto, fontes, pontos fortes e incertezas; SAU e CTX são contextuais.',
