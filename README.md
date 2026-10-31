@@ -10,6 +10,16 @@ Projeto do HackathonLEPV. Plataforma para crianças de 0 a 10 anos.
 
 ![Tela inicial](docs/screenshots/01-inicio.png)
 
+## Entregas do hackathon
+
+| Entrega | Onde está |
+| --- | --- |
+| Vídeo de demonstração (até 5 min) | _link do vídeo_ |
+| Plano de negócio (PDF) | [plano_de_negocio/plano.pdf](plano_de_negocio/plano.pdf) |
+| Aplicação no ar, sem senha | https://77-112-105-69.sslip.io (entre pelos botões "Família da Lia" ou "Professora Carla") |
+| Repositório e como rodar | este README, seção [Rodar localmente](#rodar-localmente) |
+| Sessões de IA da equipe | [prompts/](prompts/), com uma pasta por integrante ([igor](prompts/igor/), [matheus](prompts/matheus/), [otavio](prompts/otavio/)) |
+
 ## O problema
 
 Quem cuida de uma criança junta, ao longo do tempo, observações espalhadas: o que a creche contou, o que a pediatra pediu para observar, a crise de ontem, a palavra nova da semana. Cada um vê um pedaço. A família raramente tem um retrato organizado do desenvolvimento, nem sabe o que tentar em casa ou quando procurar um profissional. A escola e a saúde não conversam entre si.
@@ -268,46 +278,14 @@ Limite de conexões: o Session pooler gratuito aceita 15 conexões no total, som
 
 ## Rodar localmente
 
-### Opção A: servidor remoto com túnel SSH
-
-O servidor tem GPU, a base vetorial e os modelos já baixados. Se a aplicação já estiver rodando nele, basta encaminhar a porta 5173.
-
-**VS Code com Remote-SSH:** abra o painel **Ports** (`Ctrl+J`, aba *Ports*), clique em **Forward a Port**, digite `5173` e abra http://localhost:5173.
-
-**Terminal da sua máquina:** rode o comando no seu computador, não no terminal integrado do VS Code. Lá a porta 5173 já está ocupada pelo Vite.
-
-```bash
-ssh -N -L 5173:127.0.0.1:5173 matheus@10.23.20.12   # ou o mesmo host/alias que você usa no ssh
-```
-
-**Para subir no servidor**, use dois terminais (ou `tmux`) a partir da raiz. O Vite 8 exige Node 20+, e no servidor há um Node 22 em `~/.local/node22`.
-
-```bash
-cd /mnt/diskSSD2TB/matheus_2/HackathonLEPV
-
-# (uma vez) dependências do frontend e dados de demonstração
-export PATH=$HOME/.local/node22/bin:$PATH
-npm install
-.venv/bin/python -m backend.seed            # --zerar apaga o banco local e recria
-
-# Terminal 1: backend
-RAG_DEVICE=cuda:1 .venv/bin/python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
-
-# Terminal 2: frontend (raiz do repositório)
-export PATH=$HOME/.local/node22/bin:$PATH
-npx vite --host 127.0.0.1 --port 5173
-```
-
-Verificação rápida: `curl http://127.0.0.1:5173/api/health` deve responder `{"status":"ok"}`.
-
-### Opção B: clonar e rodar na sua máquina
+### Opção A: clonar e rodar na sua máquina
 
 Requisitos: Python 3.10+, **Node.js 20+** e cerca de 1 GB livre para o modelo de embedding (`intfloat/multilingual-e5-small`, baixado na primeira busca). GPU não é obrigatória. Para pular o RAG, defina `RAG_DESATIVADO=1`.
 
 **Linux / macOS:**
 
 ```bash
-git clone git@github.com:MatCarvalho21/HackathonLEPV.git
+git clone https://github.com/MatCarvalho21/HackathonLEPV.git
 cd HackathonLEPV
 cp .env.example .env                               # preencha API_KEY (e DATABASE_URL, se usar Supabase)
 
@@ -326,7 +304,7 @@ npx vite --host 127.0.0.1 --port 5173
 **Windows (PowerShell):**
 
 ```powershell
-git clone git@github.com:MatCarvalho21/HackathonLEPV.git
+git clone https://github.com/MatCarvalho21/HackathonLEPV.git
 cd HackathonLEPV
 Copy-Item .env.example .env        # preencha API_KEY
 python -m venv .venv
@@ -343,7 +321,9 @@ $env:RAG_DEVICE="cpu"          # ou: $env:RAG_DESATIVADO="1"
 npx vite --host 127.0.0.1 --port 5173
 ```
 
-### Opção C: Docker (igual à produção)
+Verificação rápida: `curl http://127.0.0.1:5173/api/health` deve responder `{"status":"ok"}`.
+
+### Opção B: Docker (igual à produção)
 
 ```bash
 docker compose up --build      # abre em http://localhost
