@@ -126,7 +126,8 @@ def ajustar(avaliacao_id: str, comentario: str, llm: ClienteLLM | None = None) -
 
 def resumo_sessao(sessao: dict) -> dict:
     """O que a API devolve ao frontend (sem o histórico completo)."""
-    out = {"sessao_id": sessao["id"], "formulario_id": sessao["formulario_id"], "status": sessao["status"],
+    out = {"sessao_id": sessao["id"], "formulario_id": sessao["formulario_id"], "crianca_id": sessao.get("crianca_id"),
+           "status": sessao["status"],
            "passos": sessao["passos"], "buscas_feitas": sessao["buscas_feitas"], "uso_tokens": sessao["uso_tokens"],
            "eventos": sessao.get("eventos", []), "avaliacao_anterior_id": sessao.get("avaliacao_anterior_id")}
     if sessao["status"] == "aguardando_responsavel":
@@ -144,7 +145,8 @@ def resumo_sessao(sessao: dict) -> dict:
 # ------------------------------------------------------------------ internos
 def _nova_sessao(formulario: dict, dossie: dict, mensagens: list[dict]) -> dict:
     return {
-        "id": str(uuid4()), "formulario_id": formulario["id"], "status": "executando",
+        "id": str(uuid4()), "formulario_id": formulario["id"], "crianca_id": formulario.get("crianca_id"),
+        "status": "executando",
         "criado_em": repo.agora(), "versao_agente": VERSAO_AGENTE, "modelo": config.MODELO,
         "dossie": dossie, "mensagens": mensagens,
         "passos": 0, "buscas_feitas": 0, "rodadas_perguntas": 0, "tentativas_validacao": 0,
@@ -295,7 +297,7 @@ def _salvar_avaliacao(sessao: dict, relatorio: dict) -> str:
                 for ev in e["evidencias"] if ev.startswith("kb:")}
     av = {
         "id": str(uuid4()),
-        "crianca_id": None,  # ainda não há tabela crianca no MVP local
+        "crianca_id": formulario["crianca_id"],
         "formulario_id": sessao["formulario_id"],
         "sessao_id": sessao["id"],
         "avaliacao_anterior_id": sessao["avaliacao_anterior_id"],

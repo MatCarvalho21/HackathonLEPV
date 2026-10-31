@@ -19,6 +19,7 @@ from src.rag.config import (
     EMBEDDING_MODEL_NAME,
     DEVICE,
     BATCH_SIZE,
+    prefixos,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -128,8 +129,14 @@ def run_indexing(
 
     collection = chroma_client.get_or_create_collection(
         name=COLLECTION_NAME,
-        metadata={"hnsw:space": "cosine"}
+        # o retriever lê o modelo daqui, para nunca consultar a coleção com o modelo errado
+        metadata={"hnsw:space": "cosine", "embedding_model": EMBEDDING_MODEL_NAME}
     )
+    modelo_colecao = (collection.metadata or {}).get("embedding_model")
+    if modelo_colecao and modelo_colecao != EMBEDDING_MODEL_NAME:
+        raise SystemExit(f"A coleção '{COLLECTION_NAME}' foi criada com '{modelo_colecao}', mas o modelo atual é "
+                         f"'{EMBEDDING_MODEL_NAME}'. Use outra coleção (RAG_COLECAO=...) ou --reindex.")
+    _, prefixo_trecho = prefixos(EMBEDDING_MODEL_NAME)
 
     # 4. Modo Incremental: Identifica chunks que já foram gravados anteriormente
     existing_ids = set() if force_reindex else get_existing_chunk_ids(collection)
@@ -167,11 +174,12 @@ def run_indexing(
             batch = chunks_to_process[i : i + batch_size]
             batch_ids = [c.chunk_id for c in batch]
             batch_texts = [c.text for c in batch]
+            textos_para_embedding = [prefixo_trecho + t for t in batch_texts]
             batch_metadatas = [c.metadata for c in batch]
 
             # Vetorização densa normalizada
             embeddings = embedder.encode(
-                batch_texts,
+                textos_para_embedding,
                 batch_size=len(batch),
                 normalize_embeddings=True,
                 show_progress_bar=False

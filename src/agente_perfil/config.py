@@ -35,4 +35,4 @@ MAX_TENTATIVAS_VALIDACAO = 3
 RAG_DESATIVADO = os.getenv("RAG_DESATIVADO", "0") == "1"
 RAG_MIN_RELEVANCIA = float(os.getenv("AGENTE_RAG_MIN_RELEVANCIA", "0.15"))  # nota do reranker
 
-FORM_DB = Path(os.getenv("FORM_DB", str(ROOT / "backend/data/forms.sqlite3")))
+FORM_DB = Path(os.getenv("FORM_DB", str(ROOT / "backend/data/plataforma.sqlite3")))

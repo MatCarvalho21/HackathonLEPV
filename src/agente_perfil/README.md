@@ -1,3 +1,16 @@
+# Agentes: mapeamento de perfil e chat
+
+## Chat (`chat.py`)
+
+Na aba **Conversar** do painel (e em "Dúvida sobre a criança", no Diário), cada resposta recebe no prompt de sistema:
+1. as regras do assistente;
+2. o **resumo ativo** da criança, montado por código (`contexto_crianca`): perfil vigente, semáforo, foco, metas com o último check-in, dicas, estratégias que funcionaram ou não, e alertas;
+3. os **15 registros mais recentes**, um por linha.
+
+Duas ferramentas cobrem o que não coube no contexto: `buscar_registros` (filtros por tipo, área, texto e período no banco) e `consultar_base_conhecimento` (RAG, no máximo 2 por resposta). As conversas e mensagens ficam nas tabelas `conversa` e `mensagem`. As fontes e ferramentas usadas ficam em `mensagem.sugestoes`. Para depurar, use `GET /api/criancas/{id}/contexto-chat`, que mostra exatamente o que o modelo recebe.
+
+---
+
 # Agente de mapeamento de perfil
 
 Este agente recebe o formulário inicial do responsável e gera uma **proposta** de perfil da criança: semáforo dos 14 domínios, pontos fortes, foco prioritário, metas de curto, médio e longo prazo (com escala GAS) e dicas. O responsável lê a proposta, pode pedir ajustes e depois a aprova.
@@ -55,7 +68,7 @@ As chamadas são síncronas e levam de 30 s a 2 min. No frontend, mostre um esta
 
 ## Banco
 
-O SQLite local usa `FORM_DB`, o mesmo banco do formulário. As tabelas são `submissions`, `sessao_agente` e `avaliacao`, esta última com as mesmas colunas de `prompts/matheus/04/output.sql`. A tabela `avaliacao` guarda o relatório completo e as fontes em `perfil`, as cores em `niveis` (`{"FAL": "vermelho", ...}`) e as metas com GAS em `metas`. Para levar ao Postgres/Supabase, aplique `migracao_postgres.sql`.
+O banco local da plataforma (`schema_local.sql`, padrão `backend/data/plataforma.sqlite3`) espelha `prompts/matheus/04/output.sql`. O agente usa as tabelas `formulario`, `sessao_agente` e `avaliacao`. A tabela `avaliacao` guarda o relatório completo e as fontes em `perfil`, as cores em `niveis` (`{"FAL": "vermelho", ...}`) e as metas com GAS em `metas`. Para levar ao Postgres/Supabase, aplique `migracao_postgres.sql`.
 
 ## Limitações conhecidas
 

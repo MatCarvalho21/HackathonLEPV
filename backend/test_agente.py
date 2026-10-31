@@ -54,6 +54,22 @@ class LLMRoteiro:
                                 "function": {"name": nome, "arguments": json.dumps(args)}}]}
 
 
+class LLMChat:
+    """Roteiro para o chat: tuplas (ferramenta, args) ou texto final."""
+
+    def __init__(self, passos):
+        self.passos = list(passos)
+        self.mensagens = []
+
+    def completar(self, mensagens, ferramentas):
+        self.mensagens = list(mensagens)
+        p = self.passos.pop(0)
+        if isinstance(p, str):
+            return {"role": "assistant", "content": p, "uso": {}}
+        return {"role": "assistant", "content": "", "uso": {}, "tool_calls": [
+            {"id": "t1", "type": "function", "function": {"name": p[0], "arguments": json.dumps(p[1])}}]}
+
+
 class AgenteTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(dir="backend")
@@ -125,31 +141,66 @@ class AgenteTests(unittest.TestCase):
         self.assertEqual(r.json()["status"], "vigente")
         self.assertEqual(self.client.post(f"/api/avaliacoes/{res2['avaliacao_id']}/aprovar").status_code, 409)
 
-    def test_demo_registros_e_painel(self):
-        fid = self.client.post("/api/demo/formulario").json()["id"]
+    def test_jornada_da_plataforma_registros_e_painel(self):
+        ana = self.client.post("/api/responsaveis", json={"nome": "Ana", "email": "ana@x.com"}).json()
+        prof = self.client.post("/api/professores", json={"nome": "Carla", "email": "c@x.com", "escola": "Sol", "turma": "M2"}).json()
+        c = self.client.post("/api/criancas", json={"nome": "Lia", "data_nascimento": "2023-08-20", "interesses": ["dino"],
+                                                    "responsavel_id": ana["id"], "parentesco": "Mãe"}).json()
+        cid = c["crianca"]["id"]
+        self.assertEqual(c["etapa"], "formulario")
+        corpo = {**json.loads(EXEMPLO.read_text(encoding="utf-8")), "crianca_id": cid, "autor_id": ana["id"]}
+        fid = self.client.post("/api/formularios", json=corpo).json()["id"]
+        self.assertEqual(self.client.get(f"/api/criancas/{cid}/estado").json()["etapa"], "formulario_enviado")
         res = agente.iniciar(fid, LLMRoteiro([("entregar_relatorio", relatorio_valido(self.dossie))]))
-        self.assertEqual(self.client.get(f"/api/criancas/{fid}/painel").json()["avaliacao_vigente"], None)
+        self.assertEqual(self.client.get(f"/api/criancas/{cid}/estado").json()["etapa"], "proposta")
         self.client.post(f"/api/avaliacoes/{res['avaliacao_id']}/aprovar")
-        base = f"/api/criancas/{fid}/registros"
+        self.assertEqual(self.client.get(f"/api/responsaveis/{ana['id']}/criancas").json()[0]["etapa"], "vigente")
+        self.client.post(f"/api/criancas/{cid}/turma", json={"professor_id": prof["id"]})
+        self.assertEqual(len(self.client.get(f"/api/professores/{prof['id']}/criancas").json()), 1)
+
+        base = f"/api/criancas/{cid}/registros"
+        A = {"autor": "responsavel", "autor_id": ana["id"]}
         ok = [
-            {"tipo": "conquista", "texto": "Falou água", "dominios": ["FAL"]},
-            {"tipo": "comportamento", "dados": {"antecedente": "tablet", "comportamento": "chorou"},
+            {**A, "tipo": "conquista", "texto": "Falou água", "dominios": ["FAL"]},
+            {**A, "tipo": "comportamento", "dados": {"antecedente": "tablet", "comportamento": "chorou"},
              "estrategia": "A", "resultado": "funcionou", "local": "casa"},
-            {"tipo": "saude", "texto": "Consulta", "dados": {"categoria": "Consulta"}},
-            {"tipo": "checkin_meta", "meta_id": "m1", "dados": {"nivel_gas": -1}},
-            {"tipo": "feedback_estrategia", "estrategia": "A", "resultado": "parcial"},
+            {**A, "tipo": "saude", "texto": "Consulta", "dados": {"categoria": "Consulta"}},
+            {**A, "tipo": "checkin_meta", "meta_id": "m1", "dados": {"nivel_gas": -1}},
+            {"autor": "professor", "autor_id": prof["id"], "tipo": "feedback_estrategia", "estrategia": "A", "resultado": "parcial"},
         ]
         for body in ok:
             self.assertEqual(self.client.post(base, json=body).status_code, 201, body)
-        for body in [{"tipo": "checkin_meta", "meta_id": "m1", "dados": {"nivel_gas": 5}},
-                     {"tipo": "feedback_estrategia", "estrategia": "A"}, {"tipo": "conquista"}]:
+        for body in [{**A, "tipo": "checkin_meta", "meta_id": "m1", "dados": {"nivel_gas": 5}},
+                     {**A, "tipo": "feedback_estrategia", "estrategia": "A"}, {**A, "tipo": "conquista"},
+                     {"autor": "professor", "autor_id": prof["id"], "tipo": "saude", "texto": "x"}]:
             self.assertEqual(self.client.post(base, json=body).status_code, 422, body)
-        p = self.client.get(f"/api/criancas/{fid}/painel").json()
+        p = self.client.get(f"/api/criancas/{cid}/painel").json()
         self.assertEqual(p["avaliacao_vigente"]["status"], "vigente")
         self.assertIn("M36_FAL_1", p["avaliacao_vigente"]["evidencias_legiveis"])
         self.assertEqual(len(p["registros"]), 5)
         self.assertEqual(p["checkins_metas"]["m1"][0]["nivel"], -1)
         self.assertEqual({(e["estrategia"], e["funcionou"], e["parcial"]) for e in p["estrategias"]}, {("A", 1, 0), ("A", 0, 1)})
+
+        # chat: contexto inclui perfil e registros; ferramenta de registros funciona
+        from src.agente_perfil import chat
+        ctx = chat.contexto_crianca(cid)
+        self.assertIn("Semáforo", ctx)
+        self.assertIn("Falou água", ctx)
+        llm = LLMChat([("buscar_registros", {"tipo": "saude"}), "Na consulta, foi isso."])
+        r = chat.responder(cid, "O que a pediatra disse?", "responsavel", ana["id"], llm=llm)
+        self.assertEqual(r["mensagem_assistente"]["conteudo"], "Na consulta, foi isso.")
+        self.assertIn("Consulta", llm.mensagens[-1]["content"])  # resultado da ferramenta chegou ao modelo
+        conv = r["conversa"]["id"]
+        chat.responder(cid, "E agora?", "responsavel", ana["id"], conv, llm=LLMChat(["Ok."]))
+        msgs = self.client.get(f"/api/conversas/{conv}/mensagens").json()
+        self.assertEqual([m["papel"] for m in msgs], ["usuario", "assistente", "usuario", "assistente"])
+        self.assertEqual(len(self.client.get(f"/api/criancas/{cid}/conversas").json()), 1)
+
+    def test_seed_demo(self):
+        r = self.client.post("/api/demo/entrar").json()
+        self.assertEqual(self.client.post("/api/demo/entrar").json()["responsavel"]["id"], r["responsavel"]["id"])
+        etapas = {c["crianca"]["nome"]: c["etapa"] for c in r["criancas"]}
+        self.assertEqual(etapas, {"Lia": "vigente", "Nina": "formulario"})
 
     def test_rotas_404(self):
         self.assertEqual(self.client.get("/api/avaliacoes/nao-existe").status_code, 404)

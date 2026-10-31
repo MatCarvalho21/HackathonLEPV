@@ -224,3 +224,6 @@ backend/data/
 frontend/node_modules/
 frontend/dist/
 .venv/
+
+# Dependências JS (instale com npm install)
+node_modules/

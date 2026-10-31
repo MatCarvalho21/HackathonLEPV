@@ -34,6 +34,8 @@ app = FastAPI(title='Primeiros Passos — formulário inicial', version='0.1.0',
 
 from backend.avaliacoes import router as avaliacoes_router  # noqa: E402
 app.include_router(avaliacoes_router)
+from backend.plataforma import router as plataforma_router  # noqa: E402
+app.include_router(plataforma_router)
 
 class Strict(BaseModel):
     model_config = ConfigDict(extra='forbid')
@@ -74,6 +76,8 @@ class Submission(Strict):
     respostas: dict[str, Observation]
     dominios: dict[str, DomainContext]
     consentimento: Literal[True]
+    crianca_id: str | None = None   # criança cadastrada na plataforma (sem ela, uma é criada a partir do perfil)
+    autor_id: str | None = None     # id do responsável ou professor que preencheu
 
 def questionnaire(age: int, school: int | None):
     domains = []
@@ -128,9 +132,8 @@ def submit(data: Submission):
         payload['dominios'].append({**d, 'contexto_responsavel':data.dominios[d['id']].model_dump(),
             'perguntas':[{**q, **data.respostas[q['id']].model_dump()} for q in d['perguntas']],
             'classificacao':None})
-    dbpath = Path(os.getenv('FORM_DB', str(ROOT/'backend/data/forms.sqlite3')))
-    dbpath.parent.mkdir(parents=True, exist_ok=True)
-    with sqlite3.connect(dbpath) as db:
-        db.execute('CREATE TABLE IF NOT EXISTS submissions (id TEXT PRIMARY KEY, payload TEXT NOT NULL)')
-        db.execute('INSERT INTO submissions VALUES (?,?)', (payload['id'], json.dumps(payload, ensure_ascii=False)))
+    from src.agente_perfil import repositorio
+    if data.crianca_id and not repositorio.obter_crianca(data.crianca_id):
+        raise HTTPException(404, 'Criança não encontrada.')
+    repositorio.salvar_formulario(payload, data.crianca_id, data.autor_id)  # banco local: tabela formulario
     return payload

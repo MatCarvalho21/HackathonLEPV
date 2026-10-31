@@ -18,8 +18,11 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 MARKDOWN_DIR.mkdir(parents=True, exist_ok=True)
 CHROMA_PERSIST_DIR.mkdir(parents=True, exist_ok=True)
 
-# Nome da coleção no ChromaDB
-COLLECTION_NAME = "desenvolvimento_infantil_kb"
+# Coleções no ChromaDB. Cada modelo de embedding precisa da SUA coleção (dimensões diferentes).
+# Padrão atual: modelo leve (e5-small, 384 dim). A coleção antiga (bge-m3, 1024 dim) fica como fallback.
+COLLECTION_NAME = os.getenv("RAG_COLECAO", "desenvolvimento_infantil_kb_e5small")
+LEGACY_COLLECTION_NAME = "desenvolvimento_infantil_kb"
+LEGACY_EMBEDDING_MODEL = "BAAI/bge-m3"
 
 # Detecção e Seleção Inteligente de GPU (Escolhe a GPU com mais memória livre)
 def get_default_device() -> str:
@@ -50,9 +53,18 @@ def get_default_device() -> str:
 
 DEVICE = get_default_device()
 
-# Modelos Open-Source de Alta Fidelidade
-EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "BAAI/bge-m3")
+# Modelo de embedding LEVE: intfloat/multilingual-e5-small (118M parâmetros, ~470 MB, 384 dim, multilíngue,
+# roda em CPU em ~20 ms por consulta). Alternativas: "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+# (mesmo porte) ou "BAAI/bge-m3" (pesado, ~2,2 GB, melhor qualidade).
+EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "intfloat/multilingual-e5-small")
+# Reranker é opcional (pesado: ~2,2 GB). Ative com RAG_RERANKER=1.
+ENABLE_RERANKER = os.getenv("RAG_RERANKER", "0") == "1"
 RERANKER_MODEL_NAME = os.getenv("RERANKER_MODEL_NAME", "BAAI/bge-reranker-v2-m3")
+
+
+def prefixos(modelo: str) -> tuple[str, str]:
+    """Modelos E5 foram treinados com prefixos: 'query: ' na consulta e 'passage: ' nos trechos."""
+    return ("query: ", "passage: ") if "e5" in modelo.lower() else ("", "")
 
 # Configurações de Chunking Estruturado
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "1200"))       # Caracteres por bloco de prosa

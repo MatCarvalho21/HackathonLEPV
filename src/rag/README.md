@@ -1,4 +1,33 @@
-# Pipeline RAG de Alta Fidelidade (Docling + GPU + Reranker)
+# Pipeline RAG
+
+## Modelo leve (padrão atual)
+
+As consultas usam o **`intfloat/multilingual-e5-small`**: 118M parâmetros, cerca de 470 MB, vetores de 384 dimensões, multilíngue. Ele roda em CPU em cerca de 20 ms por consulta. O reranker ficou **opcional** (`RAG_RERANKER=1`), porque era a parte mais pesada.
+
+Cada modelo precisa da sua própria coleção no ChromaDB. A coleção nova se chama `desenvolvimento_infantil_kb_e5small`, e o modelo usado fica gravado na metadata dela. Enquanto essa coleção não existir, o retriever usa a coleção antiga (`desenvolvimento_infantil_kb`, bge-m3) e avisa no log.
+
+### Reindexar com o modelo leve
+
+Não é preciso reconverter os PDFs: os Markdowns de `data/markdown_docs/` são reaproveitados. A partir da raiz do repositório:
+
+```bash
+source .venv/bin/activate
+
+# Indexa os ~6.400 chunks na coleção nova. É incremental: se cair, rode de novo e ele continua.
+# Na GPU leva cerca de 1 minuto; em CPU, de 10 a 15 minutos.
+RAG_DEVICE=cuda:1 python -m src.rag.indexer          # ou RAG_DEVICE=cpu
+
+# Teste rápido de busca
+python -m src.rag.test_query
+```
+
+Depois, reinicie o backend: no log deve aparecer `Coleção 'desenvolvimento_infantil_kb_e5small' | embedder 'intfloat/multilingual-e5-small'`. Para economizar espaço, a coleção antiga pode ser apagada depois (`chromadb` → `delete_collection("desenvolvimento_infantil_kb")`). Ela ocupa a maior parte de `chroma_db/`.
+
+Outro modelo: `EMBEDDING_MODEL_NAME=... RAG_COLECAO=nome_da_colecao python -m src.rag.indexer`. Use o mesmo `RAG_COLECAO` ao subir o backend.
+
+---
+
+# Pipeline original (Docling + GPU + Reranker)
 
 Esta pipeline converte os 74 PDFs de referência em `/pdfs` (Caderneta da Criança, Guias da OMS, Relatórios EEF, Portarias do MEC, Pyramid Model e SWYC) em **Markdowns estruturados com preservação de layout e tabelas**, fatiando-os em **chunks hierárquicos** com embeddings multilíngues (`BAAI/bge-m3`) e **re-ranqueamento com Cross-Encoder** (`BAAI/bge-reranker-v2-m3`) acelerado por GPU CUDA.
 

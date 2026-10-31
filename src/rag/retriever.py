@@ -8,12 +8,16 @@ from sentence_transformers import SentenceTransformer
 from src.rag.config import (
     CHROMA_PERSIST_DIR,
     COLLECTION_NAME,
+    LEGACY_COLLECTION_NAME,
+    LEGACY_EMBEDDING_MODEL,
     EMBEDDING_MODEL_NAME,
+    ENABLE_RERANKER,
     RERANKER_MODEL_NAME,
     DEVICE,
     TOP_K_INITIAL,
     TOP_K_FINAL,
     RERANKER_MIN_SCORE,
+    prefixos,
 )
 
 logger = logging.getLogger(__name__)
@@ -21,36 +25,47 @@ logger = logging.getLogger(__name__)
 
 class KnowledgeRetriever:
     """
-    Componente de recuperação (Two-Stage Retriever):
-    1. Primeira etapa (Bi-Encoder): Busca densa rápida no ChromaDB (Top 20).
-    2. Segunda etapa (Cross-Encoder): Reranking profundo com BAAI/bge-reranker-v2-m3 (Top 4).
+    Recuperação densa no ChromaDB com reranking opcional.
+    - Modelo de consulta = o mesmo que indexou a coleção (lido da metadata da coleção).
+    - Se a coleção leve (e5-small) ainda não foi indexada, usa a coleção antiga (bge-m3) como fallback.
+    - Reranker (Cross-Encoder) só quando RAG_RERANKER=1: ele é o componente mais pesado.
     """
 
     def __init__(
         self,
         persist_dir: str = str(CHROMA_PERSIST_DIR),
         collection_name: str = COLLECTION_NAME,
-        embed_model_name: str = EMBEDDING_MODEL_NAME,
+        embed_model_name: Optional[str] = None,
         rerank_model_name: str = RERANKER_MODEL_NAME,
         device: str = DEVICE,
-        enable_reranker: bool = True
+        enable_reranker: bool = ENABLE_RERANKER
     ):
         self.persist_dir = persist_dir
-        self.collection_name = collection_name
-        self.embed_model_name = embed_model_name
         self.rerank_model_name = rerank_model_name
         self.device = device
         self.enable_reranker = enable_reranker
 
-        # Conexão com ChromaDB
+        # Conexão com ChromaDB (com fallback para a coleção antiga)
         self.chroma_client = chromadb.PersistentClient(path=self.persist_dir)
-        self.collection = self.chroma_client.get_collection(name=self.collection_name)
+        try:
+            self.collection = self.chroma_client.get_collection(name=collection_name)
+            self.collection_name = collection_name
+        except Exception:
+            logger.warning(f"Coleção '{collection_name}' não existe (rode o indexador). "
+                           f"Usando a coleção antiga '{LEGACY_COLLECTION_NAME}' com {LEGACY_EMBEDDING_MODEL}.")
+            self.collection = self.chroma_client.get_collection(name=LEGACY_COLLECTION_NAME)
+            self.collection_name = LEGACY_COLLECTION_NAME
 
-        # 1. Carrega modelo denso de embeddings (Bi-Encoder)
-        logger.info(f"Carregando Bi-Encoder '{self.embed_model_name}' em {self.device}...")
+        meta = self.collection.metadata or {}
+        padrao = LEGACY_EMBEDDING_MODEL if self.collection_name == LEGACY_COLLECTION_NAME else EMBEDDING_MODEL_NAME
+        self.embed_model_name = embed_model_name or meta.get("embedding_model") or padrao
+        self.query_prefix, _ = prefixos(self.embed_model_name)
+
+        # 1. Modelo de embeddings (Bi-Encoder)
+        logger.info(f"Coleção '{self.collection_name}' | embedder '{self.embed_model_name}' em {self.device}")
         self.embedder = SentenceTransformer(self.embed_model_name, device=self.device)
 
-        # 2. Carrega modelo Cross-Encoder (Reranker)
+        # 2. Reranker opcional
         self.reranker = None
         if self.enable_reranker:
             try:
@@ -75,7 +90,7 @@ class KnowledgeRetriever:
             return []
 
         # Etapa 1: Busca densa no ChromaDB
-        query_embedding = self.embedder.encode([query], normalize_embeddings=True).tolist()
+        query_embedding = self.embedder.encode([self.query_prefix + query], normalize_embeddings=True).tolist()
         n_fetch = max(initial_candidates, top_k * 3)
 
         query_params = {
