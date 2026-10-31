@@ -227,3 +227,6 @@ frontend/dist/
 
 # Dependências JS (instale com npm install)
 node_modules/
+
+# Deploy: chave SSH e known_hosts gerados por deploy/aws.py
+deploy/.ssh/
