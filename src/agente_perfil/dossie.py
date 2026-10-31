@@ -90,7 +90,9 @@ def montar_dossie(formulario: dict) -> dict:
             "relato_responsavel": relato or None,
             "onde_observado": ctx.get("contexto", "nao_sei"),
             "responsavel_marcou_nao_sei": bool(ctx.get("nao_sei")),
-            "fontes_referencia": sorted({q["fonte"] for q in d.get("perguntas", []) if q.get("fonte")}),
+            # `fonte` vem como texto ou como lista de referências, conforme o marco
+            "fontes_referencia": sorted({f for q in d.get("perguntas", []) for f in
+                                         (q["fonte"] if isinstance(q.get("fonte"), list) else [q.get("fonte")]) if f}),
         }
         if tipo == "por_idade":
             entrada["status_calculado"], entrada["regra_aplicada"] = status_por_idade([i["resposta"] for i in itens])
