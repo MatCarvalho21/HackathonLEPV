@@ -1,0 +1,33 @@
+# Sobe a aplicação inteira: `docker compose up -d --build`
+# Lê o .env da pasta (no servidor, o deploy/aws.py gera esse arquivo só com as variáveis da aplicação).
+services:
+  api:
+    build:
+      context: .
+      target: api
+    env_file: .env
+    environment:
+      RAG_DEVICE: cpu
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      target: web
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data      # certificados HTTPS (não pedir de novo a cada deploy)
+      - caddy_config:/config
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

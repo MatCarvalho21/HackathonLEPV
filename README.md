@@ -134,6 +134,28 @@ $env:RAG_DEVICE="cpu"          # ou: $env:RAG_DESATIVADO="1"
 npx vite --host 127.0.0.1 --port 5173
 ```
 
+### Opção C — Deploy na AWS (internet pública)
+
+Uma EC2 `t3.small` (2 GB + 2 GB de swap) em `us-east-2`, com dois containers. A conta da organização só libera essa região, e ela fica a ~12 ms do Supabase (`us-east-1`):
+- **web:** Caddy servindo o front compilado, com HTTPS automático em `https://<ip-com-traços>.sslip.io`;
+- **api:** FastAPI, agente e RAG em CPU.
+
+O banco continua no Supabase. O script [deploy/aws.py](deploy/aws.py) usa boto3 para criar e gerenciar tudo. Ele precisa de `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` e `AWS_REGION` no `.env` (modelo em [.env.example](.env.example)). Essas chaves não vão para o servidor.
+
+```bash
+.venv/bin/pip install -r deploy/requirements.txt
+
+.venv/bin/python deploy/aws.py subir              # cria tudo e põe no ar (1ª vez ~10 min). Rode de novo a cada mudança
+.venv/bin/python deploy/aws.py soft-kill          # desliga: para a cobrança por hora, mantém disco/imagens/IP (~US$ 0,20/dia)
+.venv/bin/python deploy/aws.py subir --so-ligar   # volta do soft kill em ~1 min, mesmo endereço
+.venv/bin/python deploy/aws.py hard-kill          # apaga tudo: cobrança zero
+.venv/bin/python deploy/aws.py status | logs [api|web] | ssh
+```
+
+O `subir` envia os arquivos do diretório de trabalho, não só o último commit. Ficam de fora o `.env`, os venvs, `pdfs/` e `frontend/`.
+
+Custo: com a máquina ligada, ~US$ 0,03/h (~US$ 0,70/dia). Para rodar a mesma imagem localmente: `docker compose up --build` e abra http://localhost.
+
 ### Roteiro de demonstração
 
 1. Na tela inicial, clique em **"Entrar na demonstração (família da Lia)"**.
