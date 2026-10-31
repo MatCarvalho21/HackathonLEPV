@@ -21,6 +21,7 @@ function App() {
   const [screen, setScreen] = useState('home');
   const [role, setRole] = useState('responsavel');
   const [activeId, setActiveId] = useState(null);
+  const [formEdit, setFormEdit] = useState(null);
   const [modal, setModal] = useState('');
   const [notice, setNotice] = useState('');
   const [showProfile, setShowProfile] = useState(false);
@@ -59,13 +60,13 @@ function App() {
     const metas = questionnaire.dominios.filter((domain) => {
       const context = dominios[domain.id] || {};
       const flagged = domain.perguntas.some((question) => ['nao', 'as_vezes'].includes(respostas[question.id]?.resposta));
-      return flagged || Boolean(context.desafios?.trim());
+      return flagged || Boolean(context.desafios?.trim()) || Boolean(context.pontos_fortes?.trim());
     }).slice(0, 3).map((item, index) => ({
       id: `m${index + 1}`,
       dominio: item.id,
       nomeDominio: item.nome,
       horizonte: index === 0 ? 'curto' : 'medio',
-      texto: goalFor(item.id, activeChild, dominios[item.id], perfil),
+      texto: goalFor(item.id, activeChild, dominios[item.id], perfil, !dominios[item.id]?.desafios?.trim() && !item.perguntas.some((question) => ['nao', 'as_vezes'].includes(respostas[question.id]?.resposta))),
       estado: 'proposta',
     }));
     if (!metas.length && perfil.prioridades?.trim()) metas.push({
@@ -95,6 +96,7 @@ function App() {
       metas, payload: localPayload, backendStatus, backendNotice, createdAt: new Date().toISOString(),
     };
     setData((current) => ({ ...current, assessments: [proposal, ...current.assessments.filter((item) => item.childId !== activeChild.id)] }));
+    setFormEdit(null);
     if (backendNotice) setNotice(backendNotice);
     setScreen('goals');
   }
@@ -126,10 +128,10 @@ function App() {
         {screen === 'home' && <Welcome onChoose={(nextRole) => { setRole(nextRole); setScreen(nextRole === 'responsavel' ? 'signup-parent' : 'signup-teacher'); }} hasAccount={hasAccount} onContinue={() => setScreen('dashboard')} />}
         {screen === 'signup-parent' && <Signup kind="responsavel" onBack={() => setScreen('home')} onSave={saveParent} />}
         {screen === 'signup-teacher' && <Signup kind="professor" onBack={() => setScreen('home')} onSave={saveTeacher} />}
-        {screen === 'dashboard' && <Dashboard role={role} data={data} activeChild={activeChild} onAddChild={() => setModal('child')} onSelectChild={(id) => { setActiveId(id); setScreen(data.assessments.some((a) => a.childId === id) ? 'goals' : 'form'); }} onNewForm={() => setScreen('form')} onTeacherChild={() => setNotice('A vinculação de turma e alunos será conectada ao banco na próxima etapa.')} />}
-        {screen === 'form' && activeChild && <ChildForm child={activeChild} relationship={role === 'professor' ? 'Professor(a)' : data.parents.at(-1)?.parentesco || ''} informante={role} onBack={() => setScreen('dashboard')} onSubmit={generateAssessment} />}
+        {screen === 'dashboard' && <Dashboard role={role} data={data} activeChild={activeChild} onAddChild={() => setModal('child')} onSelectChild={(id) => { setActiveId(id); setScreen(data.assessments.some((a) => a.childId === id) ? 'goals' : 'form'); }} onNewForm={() => { setFormEdit(null); setScreen('form'); }} onTeacherChild={() => setNotice('A vinculação de turma e alunos será conectada ao banco na próxima etapa.')} />}
+        {screen === 'form' && activeChild && <ChildForm key={formEdit ? 'editing' : activeChild.id} initialPayload={formEdit} child={activeChild} relationship={role === 'professor' ? 'Professor(a)' : data.parents.at(-1)?.parentesco || ''} informante={role} onBack={() => setScreen('dashboard')} onSubmit={generateAssessment} />}
         {screen === 'form' && !activeChild && <EmptyChild onAdd={() => setModal('child')} />}
-        {screen === 'goals' && activeChild && <Goals child={activeChild} assessment={activeAssessment} onBack={() => setScreen('dashboard')} onAccept={acceptAssessment} onDone={markDemoDone} onEdit={() => setScreen('form')} />}
+        {screen === 'goals' && activeChild && <Goals child={activeChild} assessment={activeAssessment} onBack={() => setScreen('dashboard')} onAccept={acceptAssessment} onDone={markDemoDone} onEdit={() => { setFormEdit(activeAssessment?.payload || null); setScreen('form'); }} />}
       </main>
       {modal === 'child' && <ChildModal onClose={() => setModal('')} onSave={saveChild} />}
       {notice && <div className="toast"><Check size={16} />{notice}</div>}
@@ -166,9 +168,9 @@ function Dashboard({ role, data, activeChild, onAddChild, onSelectChild, onNewFo
   </div>;
 }
 
-function ChildForm({ child, relationship, informante, onBack, onSubmit }) {
-  const [step, setStep] = useState(0);
-  const [profile, setProfile] = useState(() => ({
+function ChildForm({ child, initialPayload, relationship, informante, onBack, onSubmit }) {
+  const [step, setStep] = useState(() => initialPayload ? 15 : 0);
+  const [profile, setProfile] = useState(() => initialPayload?.perfil || ({
     apelido: child.name,
     idade_meses: ageMonthsFromBirth(child.birthDate),
     ano_escolar: '',
@@ -177,12 +179,13 @@ function ChildForm({ child, relationship, informante, onBack, onSubmit }) {
     prioridades: '', idiomas: '', prematuridade: 'nao_sei', perda_habilidades: 'nao_sei',
     condicoes_relatadas: [], outra_condicao: '', documento_comprobatorio: 'nao_sei', tipo_documento: '', observacoes_saude: '',
   }));
-  const [answers, setAnswers] = useState({});
-  const [contexts, setContexts] = useState({});
+  const [answers, setAnswers] = useState(initialPayload?.respostas || {});
+  const [contexts, setContexts] = useState(initialPayload?.dominios || {});
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const age = Number(profile.idade_meses) || 0;
+  const validAge = profile.idade_meses !== '' && Number.isInteger(Number(profile.idade_meses)) && Number(profile.idade_meses) >= 0 && Number(profile.idade_meses) <= 131;
   const schoolYear = profile.ano_escolar ? Number(profile.ano_escolar) : null;
   const schema = useMemo(() => buildQuestionnaire(age, schoolYear), [age, schoolYear]);
   const domainIndex = step - 1;
@@ -194,6 +197,14 @@ function ChildForm({ child, relationship, informante, onBack, onSubmit }) {
   };
   const setContextValue = (key, value) => setContexts((previous) => ({ ...previous, [current.id]: { ...ctx, [key]: value } }));
   const go = (next) => { setError(''); setStep(next); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+
+  function startObservations() {
+    if (!profile.apelido.trim() || !profile.vinculo.trim() || !profile.prioridades.trim() || !validAge) {
+      setError('Para continuar, informe como chamar a criança, a idade em meses, seu vínculo e uma prioridade da família.');
+      return;
+    }
+    go(1);
+  }
 
   function nextDomain(event) {
     event.preventDefault();
@@ -238,7 +249,7 @@ function ChildForm({ child, relationship, informante, onBack, onSubmit }) {
       <span className="section-kicker">01 / CONHECENDO A CRIANÇA</span><h2>Começamos pelo contexto de vocês.</h2><p className="questionnaire-lead">As respostas são relatos da família. “Não sei” ou “não se aplica” são opções válidas; não transformam falta de informação em dificuldade.</p>
       <div className="form-profile-grid">
         <label>Como podemos chamar a criança?<input value={profile.apelido} maxLength={60} onChange={(event) => setProfileValue('apelido', event.target.value)} /></label>
-        <label>Idade em meses completos<input type="number" min="0" max="131" value={profile.idade_meses} onChange={(event) => setProfileValue('idade_meses', event.target.value)} /><small>Usada para selecionar perguntas da referência por faixa etária.</small></label>
+        <label>Idade em meses completos<input type="number" min="0" max="131" step="1" value={profile.idade_meses} onChange={(event) => setProfileValue('idade_meses', event.target.value)} /><small>Usada para selecionar perguntas da referência por faixa etária.</small></label>
         <label>Seu vínculo com a criança<input value={profile.vinculo} maxLength={60} placeholder="Mãe, pai, avó, responsável…" onChange={(event) => setProfileValue('vinculo', event.target.value)} /></label>
         <label>Ano escolar atual<select value={profile.ano_escolar} onChange={(event) => setProfileValue('ano_escolar', event.target.value)}><option value="">Não se aplica / não sei</option>{[1, 2, 3, 4, 5].map((year) => <option value={year} key={year}>{year}º ano</option>)}</select></label>
         <label>Línguas usadas em casa<input value={profile.idiomas} maxLength={200} placeholder="Opcional" onChange={(event) => setProfileValue('idiomas', event.target.value)} /></label>
@@ -265,7 +276,7 @@ function ChildForm({ child, relationship, informante, onBack, onSubmit }) {
         <label className="long-answer">Há alguma recomendação, adaptação ou informação do documento que você queira resumir?<textarea maxLength={2000} value={profile.observacoes_saude} onChange={(event) => setProfileValue('observacoes_saude', event.target.value)} placeholder="Opcional. Não inclua números de documentos, dados de terceiros ou informações que não sejam necessárias." /></label>
         <div className="questionnaire-notice"><ShieldCheck size={17} /> Nesta demonstração não há envio de arquivo. Use somente dados fictícios; não digite laudos reais. Informação de saúde é sensível e exige proteção e base legal adequada antes de uso real.</div>
       </div>
-      <div className="form-actions"><button className="btn-primary" disabled={!profile.apelido.trim() || !profile.vinculo.trim() || !profile.prioridades.trim() || age > 131} onClick={() => go(1)}>Começar observações <ArrowRight size={16} /></button></div>
+      <div className="form-actions"><div><button className="btn-primary" onClick={startObservations}>Começar observações <ArrowRight size={16} /></button><small className="field-hint">Obrigatórios: nome, idade em meses, vínculo e prioridade da família.</small></div></div>
     </section>}
 
     {current && <section className="questionnaire-card panel"><div className="domain-intro"><span className="domain-emoji">{DOMAIN_META[current.id]?.icon}</span><div><span className="section-kicker">ÁREA {step} DE 14 · {current.natureza === 'contextual' ? 'RELATO CONTEXTUAL' : 'OBSERVAÇÃO POR IDADE'}</span><h2>{current.nome}</h2><p>{current.faixa_referencia_meses ? `Perguntas de referência: ${current.faixa_referencia_meses} meses (${Math.floor(current.faixa_referencia_meses / 12)} anos${current.faixa_referencia_meses % 12 ? ` e ${current.faixa_referencia_meses % 12} meses` : ''}).` : 'Esta área é registrada pelo contexto e impacto no cotidiano, sem classificação por marcos etários.'}</p></div></div>
@@ -276,7 +287,7 @@ function ChildForm({ child, relationship, informante, onBack, onSubmit }) {
       <div className="form-actions"><button className="btn-secondary" onClick={() => go(step - 1)}><ArrowLeft size={16} /> Etapa anterior</button><button className="btn-primary" onClick={nextDomain}>{step === 14 ? 'Revisar formulário' : 'Próxima área'} <ArrowRight size={16} /></button></div>
     </section>}
 
-    {step === 15 && <section className="questionnaire-card panel"><span className="section-kicker">REVISÃO · ANTES DE REGISTRAR</span><h2>Confira este retrato inicial.</h2><p className="questionnaire-lead">Revise cada área e ajuste o que quiser. Os relatos permanecem separados das interpretações e sugestões futuras do modelo.</p><div className="review-profile"><b>{profile.apelido}</b><span>{profile.idade_meses} meses · {profile.ano_escolar ? `${profile.ano_escolar}º ano` : 'ano escolar não informado'} · Relato de {profile.vinculo}</span><p><b>Prioridade da família:</b> {profile.prioridades}</p><p><b>Interesses e pontos fortes:</b> {profile.interesses || 'Não informado'}</p><p><b>Condição relatada:</b> {profile.condicoes_relatadas.length ? profile.condicoes_relatadas.map((id) => CONDITIONS.find(([conditionId]) => conditionId === id)?.[1] || profile.outra_condicao).filter(Boolean).join('; ') : 'Não informada'}</p><p><b>Documento:</b> {profile.documento_comprobatorio === 'sim' ? `${profile.tipo_documento || 'Tipo não informado'} — documento não anexado` : profile.documento_comprobatorio === 'nao' ? 'Família relata que não há' : 'Não informado'}</p></div>
+    {step === 15 && <section className="questionnaire-card panel"><span className="section-kicker">REVISÃO · ANTES DE REGISTRAR</span><h2>Confira este retrato inicial.</h2><p className="questionnaire-lead">Revise cada área e ajuste o que quiser. Os relatos permanecem separados das interpretações e sugestões futuras do modelo.</p><div className="review-profile"><b>{profile.apelido}</b><span>{profile.idade_meses} meses · {profile.ano_escolar ? `${profile.ano_escolar}º ano` : 'ano escolar não informado'} · Relato de {profile.vinculo}</span><p><b>Prioridade da família:</b> {profile.prioridades}</p><p><b>Interesses e pontos fortes:</b> {profile.interesses || 'Não informado'}</p><p><b>Condição relatada:</b> {profile.condicoes_relatadas.length ? profile.condicoes_relatadas.map((id) => CONDITIONS.find(([conditionId]) => conditionId === id)?.[1] || profile.outra_condicao).filter(Boolean).join('; ') : 'Não informada'}</p><p><b>Documento:</b> {profile.documento_comprobatorio === 'sim' ? `${profile.tipo_documento || 'Tipo não informado'} — documento não anexado` : profile.documento_comprobatorio === 'nao' ? 'Família relata que não há' : 'Não informado'}</p><p><b>Informações ou adaptações de saúde resumidas:</b> {profile.observacoes_saude || profile.outra_condicao || 'Não informado'}</p><button className="btn-secondary" onClick={() => go(0)}>Editar dados iniciais</button></div>
         {schema.dominios.map((domain, index) => <details className="review-domain" key={domain.id}><summary><span>{DOMAIN_META[domain.id]?.icon} {domain.nome}</span><small>{index + 1}/14</small></summary>{domain.perguntas.map((question) => <p key={question.id}><b>{question.pergunta}</b><br />{ANSWER_LABELS[answers[question.id]?.resposta] || 'Sem resposta'}{answers[question.id]?.exemplo ? ` — ${answers[question.id].exemplo}` : ''}</p>)}<p><b>Pontos fortes:</b> {contexts[domain.id]?.pontos_fortes || 'Não informado'}</p><p><b>Dificuldades e apoios necessários:</b> {contexts[domain.id]?.desafios || (contexts[domain.id]?.nao_sei ? 'Ainda não sabe informar' : 'Não informado')}</p><p><b>O que ajuda / já foi tentado:</b> {contexts[domain.id]?.apoios || 'Não informado'}</p><p><b>Contexto:</b> {contexts[domain.id]?.contexto || 'Não informado'}</p><button className="btn-secondary" onClick={() => go(index + 1)}>Editar esta área</button></details>)}
         <label className="consent-box"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} /><span><b>Confirmo que revisei as informações e autorizo o registro local desta demonstração.</b><small>Inclui relatos de desenvolvimento e, se preenchidas, informações de saúde. Use somente dados fictícios nesta versão.</small></span></label>
         <div className="questionnaire-notice"><ShieldCheck size={17} /> As respostas são relatos familiares, não avaliação clínica validada. O sistema não gera diagnóstico nem classificação automática. Metas e atividades futuras devem ser rascunhos revisados por adultos responsáveis.</div>
@@ -332,8 +343,11 @@ function ChildModal({ onClose, onSave }) {
 
 function EmptyChild({ onAdd }) { return <div className="page-wrap"><div className="empty-card"><span className="empty-illustration">🌱</span><h3>Vamos começar pelo perfil.</h3><p>Cadastre uma criança para seguir com o formulário de observações.</p><button className="btn-primary" onClick={onAdd}><Plus size={17} /> Criar perfil</button></div></div>; }
 
-function goalFor(domain, child, context = {}, profile = {}) {
+function goalFor(domain, child, context = {}, profile = {}, strengthFocus = false) {
   const name = child.name || 'a criança';
+  if (strengthFocus && context.pontos_fortes?.trim()) {
+    return `Criar uma oportunidade agradável para ${name} explorar e compartilhar uma habilidade ou interesse já observado, respeitando seu ritmo e oferecendo escolhas. A família descreveu: “${context.pontos_fortes.trim().slice(0, 180)}${context.pontos_fortes.trim().length > 180 ? '…' : ''}”`;
+  }
   const goals = {
     COM_R: `Experimentar uma instrução curta em atividade escolhida por ${name}, oferecendo gesto ou apoio visual se ajudar e observando como ela compreende.`,
     COM_E: `Criar oportunidades para ${name} expressar escolhas e necessidades pela forma de comunicação que preferir, sem exigir fala.`,
