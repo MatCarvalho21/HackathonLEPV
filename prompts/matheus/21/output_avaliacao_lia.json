@@ -1,0 +1,1316 @@
+{
+ "id": "064c4af1-40c4-4180-8c07-e9b8be53c561",
+ "crianca_id": null,
+ "formulario_id": "9feff908-a5cc-4c42-bca8-f81a50e8d0d5",
+ "sessao_id": "0d6c1fbf-6ce3-45ee-bd74-f592f181d868",
+ "avaliacao_anterior_id": null,
+ "tipo": "inicial",
+ "status": "proposta",
+ "respostas_formulario": {
+  "M30_COM_R_1": "sim",
+  "M36_COM_E_1": "nao",
+  "M36_COM_E_2": "as_vezes",
+  "M36_FAL_1": "nao",
+  "M36_FAL_2": "nao",
+  "M36_SOC_1": "as_vezes",
+  "M30_BRI_1": "sim",
+  "M36_COG_1": "sim",
+  "M30_MOT_A_1": "sim",
+  "M36_MOT_F_1": "as_vezes",
+  "M36_MOT_F_2": "sim",
+  "M36_AUT_1": "nao_sei",
+  "M36_AUT_2": "as_vezes",
+  "M36_REG_1": "nao",
+  "M30_ATE_1": "as_vezes"
+ },
+ "perfil": {
+  "relatorio": {
+   "resumo": "Lia é uma menina de 3 anos e 2 meses, curiosa e muito carinhosa, que ama dinossauros, água, música e quebra-cabeças — e monta quebra-cabeça de 12 peças sozinha, o que mostra uma capacidade de concentração linda para a idade. Ela entende quase tudo o que vocês falam e se faz entender do jeito dela, puxando sua mão quando quer algo. O ponto que mais pede atenção agora é a fala: ela fala cerca de 20 palavras soltas e ainda não junta duas, e a pediatra já pediu para observar — vale pedir um encaminhamento para fonoaudiólogo(a) e checar a audição. As crises nas trocas de atividade (tablet, banho) e o choro na entrada da creche também merecem cuidado, e há muito o que fazer em casa com aviso prévio, música e colo, que já funcionam com ela. Este é um mapeamento inicial, uma proposta para você ler e ajustar — ele não substitui avaliação profissional.",
+   "caracteristicas": [
+    "Ama dinossauros, água, música e quebra-cabeças",
+    "Muito carinhosa com a família: gosta de abraçar e fica perto dos adultos",
+    "Com outras crianças fica mais na dela, brincando sozinha por perto",
+    "Se comunica puxando sua mão e usando palavras soltas como \"água\", \"mamã\" e \"dino\"",
+    "Fica frustrada e grita quando não é entendida",
+    "Acalma-se com música e colo",
+    "Tapa os ouvidos com barulhos de liquidificador e secador",
+    "Adora o banho e demora a sair dele",
+    "Gosta de pular, correr e subir no escorregador"
+   ],
+   "pontos_fortes_gerais": [
+    {
+     "texto": "Entende muito bem o dia a dia: segue instruções de dois passos, como pegar o sapato e colocar na caixa.",
+     "evidencias": [
+      "M30_COM_R_1",
+      "ctx:COM_R"
+     ]
+    },
+    {
+     "texto": "Monta quebra-cabeça de 12 peças sozinha e fica bastante tempo concentrada no que gosta.",
+     "evidencias": [
+      "ctx:COG",
+      "ctx:ATE"
+     ]
+    },
+    {
+     "texto": "Já faz de conta: dá comida para os dinossauros de brinquedo e enfileira os bichos.",
+     "evidencias": [
+      "M30_BRI_1",
+      "ctx:BRI"
+     ]
+    },
+    {
+     "texto": "Corpo ativo e confiante: corre, pula com os dois pés e sobe no escorregador.",
+     "evidencias": [
+      "M30_MOT_A_1",
+      "ctx:MOT_A"
+     ]
+    },
+    {
+     "texto": "Muito afetuosa e com uma rede de apoio forte: você e a avó, que ajuda bastante.",
+     "evidencias": [
+      "ctx:SOC",
+      "ctx:CTX"
+     ]
+    },
+    {
+     "texto": "Já tem um vocabulário de cerca de 20 palavras com sentido e usa gestos para se comunicar — é uma base boa para crescer.",
+     "evidencias": [
+      "ctx:FAL",
+      "M36_COM_E_2"
+     ]
+    }
+   ],
+   "dominios": [
+    {
+     "codigo": "COM_R",
+     "status": "verde",
+     "justificativa_status": "Os marcos de compreensão da faixa de 3 anos estão alcançados: ela segue instruções de dois passos em casa.",
+     "o_que_observamos": "Você contou que ela entende quase tudo o que vocês falam no dia a dia e que atende pedidos de duas partes, como pegar o sapato e colocar na caixa. Isso mostra que a compreensão dela está dentro do esperado para a idade.",
+     "pontos_fortes": [
+      {
+       "texto": "Segue instruções de 2 passos, como \"pega o sapato e coloca na caixa\".",
+       "evidencias": [
+        "M30_COM_R_1"
+       ]
+      },
+      {
+       "texto": "Entende quase tudo o que a família fala na rotina.",
+       "evidencias": [
+        "ctx:COM_R"
+       ]
+      }
+     ],
+     "pontos_de_atencao": [
+      {
+       "texto": "Como ela entende bem, essa é uma ótima base para incentivar a fala: depois de mostrar que entendeu, vale convidar ela a dizer a palavra.",
+       "evidencias": [
+        "ctx:COM_R",
+        "kb:5"
+       ]
+      }
+     ]
+    },
+    {
+     "codigo": "COM_E",
+     "status": "amarelo",
+     "justificativa_status": "Um marco da faixa ainda não foi alcançado (fazer perguntas com quem, o quê, onde ou por quê) e outro aparece só às vezes (dizer o próprio nome). Por isso, amarelo: pede atenção e estímulo.",
+     "o_que_observamos": "Para pedir, Lia puxa sua mão até o lugar em vez de usar palavras, e às vezes grita quando não é entendida. Ela diz o próprio nome só de vez em quando. O gesto de puxar a mão é uma forma de comunicação válida — a ideia agora é ir colocando palavras junto dele.",
+     "pontos_fortes": [
+      {
+       "texto": "Usa gestos de forma clara para mostrar o que quer (puxa a mão até o lugar).",
+       "evidencias": [
+        "M36_COM_E_1",
+        "ctx:COM_E"
+       ]
+      },
+      {
+       "texto": "Já diz o próprio nome em algumas situações.",
+       "evidencias": [
+        "M36_COM_E_2"
+       ]
+      }
+     ],
+     "pontos_de_atencao": [
+      {
+       "texto": "Ainda não faz perguntas simples com \"o quê\", \"onde\" ou \"por quê\".",
+       "evidencias": [
+        "M36_COM_E_1"
+       ]
+      },
+      {
+       "texto": "O grito aparece quando não é entendida — é frustração por não conseguir se expressar, e diminui quando ela ganha uma palavra ou gesto para usar.",
+       "evidencias": [
+        "ctx:COM_E",
+        "kb:5"
+       ]
+      }
+     ]
+    },
+    {
+     "codigo": "FAL",
+     "status": "vermelho",
+     "justificativa_status": "Os dois marcos de fala da faixa de 3 anos ainda não foram alcançados: ela não descreve o que acontece numa figura e não fala de um jeito que outras pessoas entendam. Por isso, vermelho: vale conversar com um profissional.",
+     "o_que_observamos": "Você contou que Lia fala cerca de 20 palavras soltas e ainda não junta duas palavras, e que só a família entende o que ela fala. A pediatra já pediu para observar a fala. Isso não é um defeito dela: é um próximo passo importante, e quanto antes for avaliado, melhor o resultado.",
+     "pontos_fortes": [
+      {
+       "texto": "Tem cerca de 20 palavras com significado e usa todas com intenção (água, mamã, dino).",
+       "evidencias": [
+        "ctx:FAL"
+       ]
+      },
+      {
+       "texto": "Procura vocês para se comunicar, com gestos e palavras — ela quer se fazer entender.",
+       "evidencias": [
+        "ctx:COM_E",
+        "M36_COM_E_1"
+       ]
+      },
+      {
+       "texto": "Entende bem o que ouve, o que é uma base forte para o desenvolvimento da fala.",
+       "evidencias": [
+        "M30_COM_R_1",
+        "kb:2"
+       ]
+      }
+     ],
+     "pontos_de_atencao": [
+      {
+       "texto": "Ainda não junta duas palavras aos 3 anos e 2 meses.",
+       "evidencias": [
+        "M36_FAL_1",
+        "ctx:FAL"
+       ]
+      },
+      {
+       "texto": "Pessoas de fora da família não entendem a maior parte do que ela fala.",
+       "evidencias": [
+        "M36_FAL_2"
+       ]
+      },
+      {
+       "texto": "Ainda não tem acompanhamento com fonoaudiólogo(a), mesmo com o pedido da pediatra de observar a fala.",
+       "evidencias": [
+        "ctx:CTX",
+        "ctx:SAU"
+       ]
+      }
+     ]
+    },
+    {
+     "codigo": "SOC",
+     "status": "verde",
+     "justificativa_status": "O marco de interação social da faixa está alcançado (no máximo um \"às vezes\"): ela percebe outras crianças e se junta a elas.",
+     "o_que_observamos": "Lia é muito carinhosa com a família e gosta de adultos. Com crianças, fica perto no parquinho, mas ainda brinca sozinha — o que é esperado nessa idade, quando a brincadeira em paralelo é comum.",
+     "pontos_fortes": [
+      {
+       "texto": "Percebe outras crianças e fica junto delas no parquinho.",
+       "evidencias": [
+        "M36_SOC_1"
+       ]
+      },
+      {
+       "texto": "Muito carinhosa, abraça e busca contato com a família.",
+       "evidencias": [
+        "ctx:SOC"
+       ]
+      }
+     ],
+     "pontos_de_atencao": [
+      {
+       "texto": "Brinca mais sozinha perto das outras crianças — dá para incentivar brincadeiras em dupla, com você por perto no começo.",
+       "evidencias": [
+        "M36_SOC_1",
+        "kb:20"
+       ]
+      }
+     ]
+    },
+    {
+     "codigo": "BRI",
+     "status": "verde",
+     "justificativa_status": "O marco de brincadeira da faixa está alcançado: ela usa objetos para faz de conta.",
+     "o_que_observamos": "Ela brinca muito com dinossauros, enfileira e dá comida para eles. Esse faz de conta é uma porta de entrada excelente para a fala, porque cria situações para nomear, pedir e comentar.",
+     "pontos_fortes": [
+      {
+       "texto": "Faz de conta com objetos: dá comida para os dinossauros de brinquedo.",
+       "evidencias": [
+        "M30_BRI_1"
+       ]
+      },
+      {
+       "texto": "Brinca de enfileirar e organizar os dinossauros, com enredo próprio.",
+       "evidencias": [
+        "ctx:BRI"
+       ]
+      }
+     ],
+     "pontos_de_atencao": [
+      {
+       "texto": "A brincadeira dela é o melhor lugar para colocar palavras: entre na brincadeira e dê nome ao que ela faz.",
+       "evidencias": [
+        "ctx:BRI",
+        "kb:2"
+       ]
+      }
+     ]
+    },
+    {
+     "codigo": "COG",
+     "status": "verde",
+     "justificativa_status": "O marco de cognição da faixa está alcançado e o relato mostra ainda mais: ela monta quebra-cabeça de 12 peças sozinha.",
+     "o_que_observamos": "Ela evita tocar em objetos quentes quando é avisada, o que mostra que entende o aviso e o risco. Em casa, monta quebra-cabeça de 12 peças sozinha e adora encaixes — raciocínio e concentração bem desenvolvidos.",
+     "pontos_fortes": [
+      {
+       "texto": "Evita objetos quentes quando é avisada.",
+       "evidencias": [
+        "M36_COG_1"
+       ]
+      },
+      {
+       "texto": "Monta quebra-cabeça de 12 peças sozinha.",
+       "evidencias": [
+        "ctx:COG"
+       ]
+      }
+     ],
+     "pontos_de_atencao": [
+      {
+       "texto": "Nada a apontar aqui: a aprendizagem dela é um ponto forte e pode ser usada nas brincadeiras de fala (nomear as peças, pedir \"mais uma\").",
+       "evidencias": [
+        "ctx:COG"
+       ]
+      }
+     ]
+    },
+    {
+     "codigo": "MOT_A",
+     "status": "verde",
+     "justificativa_status": "O marco de motor amplo da faixa está alcançado: ela pula com os dois pés.",
+     "o_que_observamos": "Corre, pula, sobe no escorregador e adora a cama elástica. O corpo dela está ativo e confiante, o que também ajuda na regulação do humor e do sono.",
+     "pontos_fortes": [
+      {
+       "texto": "Pula com os dois pés e adora pular na cama elástica.",
+       "evidencias": [
+        "M30_MOT_A_1"
+       ]
+      },
+      {
+       "texto": "Corre, sobe e desce com segurança no parquinho.",
+       "evidencias": [
+        "ctx:MOT_A"
+       ]
+      }
+     ],
+     "pontos_de_atencao": [
+      {
+       "texto": "Nada a apontar: movimento é um ponto forte e pode ser usado nos momentos de agitação, antes de pedir que ela fique sentada.",
+       "evidencias": [
+        "ctx:MOT_A",
+        "kb:20"
+       ]
+      }
+     ]
+    },
+    {
+     "codigo": "MOT_F",
+     "status": "verde",
+     "justificativa_status": "Os marcos de motor fino da faixa estão alcançados (um \"às vezes\"): ela enfia objetos num fio e às vezes desenha um círculo depois de ver o adulto fazer.",
+     "o_que_observamos": "Ela faz colar de macarrão com a avó, o que mostra boa coordenação das mãos. O desenho do círculo acontece às vezes. Você marcou que não sabe em qual ambiente isso foi observado, então essa parte tem menos informação.",
+     "pontos_fortes": [
+      {
+       "texto": "Enfia macarrão no fio e faz colar com a avó.",
+       "evidencias": [
+        "M36_MOT_F_2"
+       ]
+      },
+      {
+       "texto": "Desenha um círculo depois de ver o adulto fazer, em algumas ocasiões.",
+       "evidencias": [
+        "M36_MOT_F_1"
+       ]
+      }
+     ],
+     "pontos_de_atencao": [
+      {
+       "texto": "Não foi informado onde as atividades de mãos foram observadas — é uma lacuna de informação, não uma dificuldade.",
+       "evidencias": [
+        "M36_MOT_F_1"
+       ]
+      }
+     ]
+    },
+    {
+     "codigo": "AUT",
+     "status": "verde",
+     "justificativa_status": "Os marcos de autonomia da faixa estão alcançados (um \"às vezes\"): ela usa o garfo em algumas refeições e tira o sapato sozinha.",
+     "o_que_observamos": "Ela tira o sapato sozinha e usa o garfo às vezes, preferindo comer com a mão — comum nessa idade. Ainda usa fralda à noite, o que também é esperado aos 3 anos. Você marcou \"não sei\" sobre vestir roupas sozinha, então essa parte ficou sem informação.",
+     "pontos_fortes": [
+      {
+       "texto": "Tira o sapato sozinha.",
+       "evidencias": [
+        "ctx:AUT"
+       ]
+      },
+      {
+       "texto": "Usa o garfo em algumas refeições.",
+       "evidencias": [
+        "M36_AUT_2"
+       ]
+      }
+     ],
+     "pontos_de_atencao": [
+      {
+       "texto": "Não foi informado se ela veste algumas roupas sozinha — vale observar e registrar na plataforma.",
+       "evidencias": [
+        "M36_AUT_1"
+       ]
+      },
+      {
+       "texto": "Prefere comer com a mão: dá para oferecer o garfo junto, sem tirar a comida da mão, para ela ir experimentando.",
+       "evidencias": [
+        "M36_AUT_2"
+       ]
+      }
+     ]
+    },
+    {
+     "codigo": "REG",
+     "status": "amarelo",
+     "justificativa_status": "As crises acontecem quase todos os dias nas trocas de atividade em casa e ela ainda chora cerca de 20 minutos na entrada da creche — frequência e duração que pedem atenção e estratégias, com uma conversa com a pediatra.",
+     "o_que_observamos": "Você contou que Lia tem crises quando precisa parar de ver o tablet ou sair do banho, quase todo dia, jogando coisas e chorando uns 15 minutos. Na entrada da creche, chora cerca de 20 minutos. Música e colo ajudam a acalmar — isso é muito valioso, porque mostra que ela já tem caminhos para se regular com apoio. Birras nessa idade são frequentes e esperadas; o que chama atenção aqui é a frequência quase diária e o tempo de choro.",
+     "pontos_fortes": [
+      {
+       "texto": "Aceita colo e música para se acalmar — ela já responde a estratégias de calming.",
+       "evidencias": [
+        "ctx:REG"
+       ]
+      },
+      {
+       "texto": "Consegue se acalmar depois da crise, o que mostra que a regulação está em construção.",
+       "evidencias": [
+        "ctx:REG",
+        "kb:9"
+       ]
+      }
+     ],
+     "pontos_de_atencao": [
+      {
+       "texto": "Crises quase diárias ao parar o tablet ou sair do banho, com objetos jogados e cerca de 15 minutos de choro.",
+       "evidencias": [
+        "ctx:REG"
+       ]
+      },
+      {
+       "texto": "Ainda não se acalma em até 10 minutos depois que você sai na entrada da creche.",
+       "evidencias": [
+        "M36_REG_1"
+       ]
+      },
+      {
+       "texto": "As trocas de atividade são o gatilho principal — aviso prévio e rotina previsível costumam reduzir muito esse impacto.",
+       "evidencias": [
+        "ctx:REG",
+        "kb:11"
+       ]
+      }
+     ]
+    },
+    {
+     "codigo": "ATE",
+     "status": "amarelo",
+     "justificativa_status": "A atenção dela é forte no que ama e precisa de apoio em atividades de grupo e rotinas; não há relato de impacto frequente em vários contextos, por isso amarelo.",
+     "o_que_observamos": "Ela fica muito tempo nos quebra-cabeças, o que mostra boa capacidade de sustentar atenção no que interessa. Em roda de história na creche, levanta rápido, segundo a professora, e em casa segue rotinas simples só às vezes — com música ajuda. Isso é bem típico de 3 anos: a atenção cresce muito quando a atividade é interessante e previsível.",
+     "pontos_fortes": [
+      {
+       "texto": "Fica muito tempo concentrada nos quebra-cabeças.",
+       "evidencias": [
+        "ctx:ATE"
+       ]
+      },
+      {
+       "texto": "Segue rotinas simples quando tem música ajudando.",
+       "evidencias": [
+        "M30_ATE_1"
+       ]
+      }
+     ],
+     "pontos_de_atencao": [
+      {
+       "texto": "Levanta rápido da roda de história na creche.",
+       "evidencias": [
+        "ctx:ATE"
+       ]
+      },
+      {
+       "texto": "Guardar brinquedos e seguir rotinas acontece só às vezes — usar canção e aviso prévio tende a ajudar.",
+       "evidencias": [
+        "M30_ATE_1",
+        "kb:11"
+       ]
+      }
+     ]
+    },
+    {
+     "codigo": "SEN",
+     "status": "amarelo",
+     "justificativa_status": "Ela tapa os ouvidos com liquidificador e secador, uma sensibilidade a sons que pede ajustes simples no ambiente; não há relato de crises por causa disso, por isso amarelo.",
+     "o_que_observamos": "Lia tapa os ouvidos quando o liquidificador ou o secador ligam, em casa. Não foi informado com que frequência isso acontece nem se chega a atrapalhar a rotina. Ela adora água, o que é uma ótima ferramenta para se acalmar e para brincar junto.",
+     "pontos_fortes": [
+      {
+       "texto": "Mostra o incômodo tapando os ouvidos — é um jeito de comunicar o que sente.",
+       "evidencias": [
+        "ctx:SEN"
+       ]
+      },
+      {
+       "texto": "Adora água, o que ajuda muito nos momentos de agitação e no banho.",
+       "evidencias": [
+        "ctx:SEN"
+       ]
+      }
+     ],
+     "pontos_de_atencao": [
+      {
+       "texto": "Sons de eletrodomésticos incomodam; avisar antes e oferecer opções (sair do cômodo, abafar o som) costuma diminuir o desconforto.",
+       "evidencias": [
+        "ctx:SEN",
+        "kb:23"
+       ]
+      },
+      {
+       "texto": "Não foi informado com que frequência isso acontece nem se há outros sons que incomodam.",
+       "evidencias": [
+        "ctx:SEN"
+       ]
+      }
+     ]
+    },
+    {
+     "codigo": "SAU",
+     "status": "contextual",
+     "justificativa_status": "Domínio de contexto: sem cor, apenas pontos de atenção sobre sono, alimentação, telas e acompanhamento de saúde.",
+     "o_que_observamos": "Você contou que ela dorme por volta das 23h e acorda às 7h, come pouca variedade (arroz, frango, banana) e usa tablet cerca de 3 horas por dia. A pediatra pediu para observar a fala. Esses são pontos de contexto que influenciam diretamente o humor, as crises e o desenvolvimento da linguagem.",
+     "pontos_fortes": [
+      {
+       "texto": "A família já está atenta e em acompanhamento com a pediatra.",
+       "evidencias": [
+        "ctx:SAU"
+       ]
+      }
+     ],
+     "pontos_de_atencao": [
+      {
+       "texto": "Sono de cerca de 8 horas por noite, com horário de dormir tarde — para 3 anos, o esperado é mais horas de sono, e dormir tarde costuma aumentar as crises do dia.",
+       "evidencias": [
+        "ctx:SAU",
+        "kb:13"
+       ]
+      },
+      {
+       "texto": "Tablet por cerca de 3 horas por dia; a recomendação para 2 a 5 anos é de no máximo 1 hora por dia, com um adulto junto.",
+       "evidencias": [
+        "ctx:SAU",
+        "kb:14"
+       ]
+      },
+      {
+       "texto": "Pouca variedade alimentar (arroz, frango, banana) — vale conversar com a pediatra sobre isso no acompanhamento.",
+       "evidencias": [
+        "ctx:SAU"
+       ]
+      },
+      {
+       "texto": "A pediatra pediu para observar a fala; vale perguntar também sobre um teste de audição, já que falar pouco é um sinal que merece checagem.",
+       "evidencias": [
+        "ctx:SAU",
+        "kb:21"
+       ]
+      }
+     ]
+    },
+    {
+     "codigo": "CTX",
+     "status": "contextual",
+     "justificativa_status": "Domínio de contexto: sem cor, apenas pontos de atenção sobre rotina, rede de apoio e acesso a acompanhamento.",
+     "o_que_observamos": "Lia mora com a mãe e a avó, vai à creche municipal de manhã e ainda não tem acompanhamento com fonoaudiólogo(a). A avó ajuda muito — uma rede de apoio forte é um dos maiores facilitadores para o progresso.",
+     "pontos_fortes": [
+      {
+       "texto": "Rede de apoio presente: a avó ajuda muito no dia a dia.",
+       "evidencias": [
+        "ctx:CTX"
+       ]
+      },
+      {
+       "texto": "Frequenta a creche de manhã, o que amplia convivência e estímulo de linguagem.",
+       "evidencias": [
+        "ctx:CTX"
+       ]
+      }
+     ],
+     "pontos_de_atencao": [
+      {
+       "texto": "Ainda não há acompanhamento com fonoaudiólogo(a), apesar do pedido da pediatra de observar a fala — buscar encaminhamento pela UBS é o passo mais importante agora.",
+       "evidencias": [
+        "ctx:CTX",
+        "ctx:SAU"
+       ]
+      },
+      {
+       "texto": "Alinhar com a creche as mesmas estratégias usadas em casa (aviso prévio, canção de transição) ajuda a diminuir o choro na entrada.",
+       "evidencias": [
+        "ctx:CTX",
+        "ctx:REG",
+        "kb:11"
+       ]
+      }
+     ]
+    }
+   ],
+   "foco_prioritario": [
+    {
+     "dominio": "FAL",
+     "por_que": "É o ponto que mais pede atenção: ela fala cerca de 20 palavras soltas, não junta duas palavras e só a família entende — e a pediatra já pediu para observar a fala. É também o que mais conecta com a sua prioridade de que ela consiga falar o que quer."
+    },
+    {
+     "dominio": "COM_E",
+     "por_que": "Ela pede puxando sua mão e grita quando não é entendida. Dar a ela uma palavra ou gesto para pedir reduz a frustração e abre caminho para a fala."
+    },
+    {
+     "dominio": "REG",
+     "por_que": "As crises quase diárias nas trocas de atividade e o choro na entrada da creche foram a segunda prioridade que você trouxe. Com aviso prévio, música e colo — que já funcionam com ela — dá para melhorar muito."
+    }
+   ],
+   "metas": [
+    {
+     "id": "meta_1",
+     "horizonte": "curto",
+     "dominio": "COM_E",
+     "texto": "Lia pede o que quer usando uma palavra (ou uma palavra com gesto) em vez de puxar sua mão, em pelo menos 3 de 5 pedidos por dia.",
+     "prazo_semanas": 4,
+     "como_acompanhar": "Marque por dia quantos pedidos ela fez com palavra ou gesto (contagem de 0 a 5) e registre na plataforma 3 vezes por semana.",
+     "quem_participa": [
+      "Mãe",
+      "Avó",
+      "Lia"
+     ],
+     "gas": {
+      "menos_2": "Hoje ela puxa sua mão ou grita na maioria dos pedidos.",
+      "menos_1": "Em 1 ou 2 pedidos por dia ela já usa uma palavra ou gesto combinado.",
+      "zero": "Em 3 de 5 pedidos por dia ela usa palavra ou gesto para pedir.",
+      "mais_1": "Em 4 de 5 pedidos por dia ela usa palavra ou gesto.",
+      "mais_2": "Pede com palavra em quase todos os pedidos e começa a juntar duas palavras."
+     },
+     "evidencias": [
+      "M36_COM_E_1",
+      "M36_COM_E_2",
+      "ctx:COM_E",
+      "kb:5"
+     ]
+    },
+    {
+     "id": "meta_2",
+     "horizonte": "curto",
+     "dominio": "REG",
+     "texto": "Nas trocas de atividade (fim do tablet e fim do banho), Lia aceita o aviso prévio e se acalma em até 5 minutos em 3 de 5 trocas.",
+     "prazo_semanas": 6,
+     "como_acompanhar": "Anote em cada troca: ela foi avisada antes? Quanto tempo de choro? Registre quantas trocas tranquilas houve na semana.",
+     "quem_participa": [
+      "Mãe",
+      "Avó"
+     ],
+     "gas": {
+      "menos_2": "Hoje as crises acontecem quase todos os dias, com 15 minutos ou mais de choro e objetos jogados.",
+      "menos_1": "Em 1 ou 2 trocas da semana ela aceita melhor, com choro mais curto.",
+      "zero": "Em 3 de 5 trocas ela se acalma em até 5 minutos.",
+      "mais_1": "Em 4 de 5 trocas ela se acalma em até 5 minutos.",
+      "mais_2": "Na maioria dos dias a troca acontece sem crise."
+     },
+     "evidencias": [
+      "M36_REG_1",
+      "ctx:REG",
+      "kb:11",
+      "kb:9"
+     ]
+    },
+    {
+     "id": "meta_3",
+     "horizonte": "curto",
+     "dominio": "FAL",
+     "texto": "Lia usa 5 palavras novas ligadas ao que ela ama (dino, água, música, quebra-cabeça) em situações do dia a dia.",
+     "prazo_semanas": 6,
+     "como_acompanhar": "Faça uma listinha das palavras novas e marque cada vez que ela usar sozinha, sem imitar você.",
+     "quem_participa": [
+      "Mãe",
+      "Avó",
+      "Lia"
+     ],
+     "gas": {
+      "menos_2": "Hoje ela fala cerca de 20 palavras soltas, quase sempre as mesmas.",
+      "menos_1": "Ela passa a usar 2 palavras novas sozinha.",
+      "zero": "Ela usa 5 palavras novas sozinha.",
+      "mais_1": "Ela usa 8 palavras novas sozinha.",
+      "mais_2": "Ela usa mais de 10 palavras novas e começa a combinar duas."
+     },
+     "evidencias": [
+      "M36_FAL_1",
+      "ctx:FAL",
+      "kb:2"
+     ]
+    },
+    {
+     "id": "meta_4",
+     "horizonte": "medio",
+     "dominio": "FAL",
+     "texto": "Lia junta duas palavras para pedir ou comentar (\"mais água\", \"dino grande\") em 3 de 5 oportunidades por dia.",
+     "prazo_semanas": 12,
+     "como_acompanhar": "Conte por dia quantas vezes ela falou duas palavras juntas e registre o total da semana na plataforma.",
+     "quem_participa": [
+      "Mãe",
+      "Avó",
+      "Creche"
+     ],
+     "gas": {
+      "menos_2": "Hoje ela ainda não junta duas palavras.",
+      "menos_1": "Junta duas palavras de vez em quando, com ajuda ou imitando.",
+      "zero": "Junta duas palavras em 3 de 5 oportunidades por dia.",
+      "mais_1": "Junta duas palavras em 4 de 5 oportunidades e às vezes usa três.",
+      "mais_2": "Faz pequenas frases de 3 palavras em várias situações do dia."
+     },
+     "evidencias": [
+      "M36_FAL_1",
+      "M36_COM_E_1",
+      "kb:1",
+      "kb:2"
+     ]
+    },
+    {
+     "id": "meta_5",
+     "horizonte": "medio",
+     "dominio": "COM_E",
+     "texto": "Lia responde perguntas simples de \"o quê\" e \"onde\" com uma palavra ou apontando e falando (\"Onde está o dino?\" — \"Ali!\").",
+     "prazo_semanas": 12,
+     "como_acompanhar": "Faça 5 perguntas simples por dia dentro da brincadeira e marque quantas ela respondeu.",
+     "quem_participa": [
+      "Mãe",
+      "Avó"
+     ],
+     "gas": {
+      "menos_2": "Hoje ela aponta e puxa sua mão, sem responder perguntas.",
+      "menos_1": "Responde 1 ou 2 de 5 perguntas.",
+      "zero": "Responde 3 de 5 perguntas.",
+      "mais_1": "Responde 4 de 5 perguntas.",
+      "mais_2": "Responde quase todas e começa a fazer perguntas simples."
+     },
+     "evidencias": [
+      "M36_COM_E_1",
+      "M36_FAL_1",
+      "kb:2",
+      "kb:7"
+     ]
+    },
+    {
+     "id": "meta_6",
+     "horizonte": "medio",
+     "dominio": "REG",
+     "texto": "Na entrada da creche, Lia se acalma em até 10 minutos depois que você sai, em 4 de 5 dias.",
+     "prazo_semanas": 16,
+     "como_acompanhar": "Combine com a professora de anotar o tempo de choro na chegada e registre na plataforma quantos dias foram assim na semana.",
+     "quem_participa": [
+      "Mãe",
+      "Creche"
+     ],
+     "gas": {
+      "menos_2": "Hoje ela chora cerca de 20 minutos na entrada.",
+      "menos_1": "Ela chora menos, uns 15 minutos.",
+      "zero": "Se acalma em até 10 minutos em 4 de 5 dias.",
+      "mais_1": "Se acalma em até 5 minutos na maioria dos dias.",
+      "mais_2": "Entra sem choro na maioria dos dias."
+     },
+     "evidencias": [
+      "M36_REG_1",
+      "ctx:REG",
+      "ctx:CTX",
+      "kb:11"
+     ]
+    },
+    {
+     "id": "meta_7",
+     "horizonte": "longo",
+     "dominio": "FAL",
+     "texto": "Pessoas de fora da família entendem a maior parte do que Lia fala no dia a dia.",
+     "prazo_semanas": 32,
+     "como_acompanhar": "A cada duas semanas, pergunte a alguém de fora (professora, vizinha) se entendeu a maior parte do que ela falou e registre a resposta.",
+     "quem_participa": [
+      "Mãe",
+      "Creche",
+      "Fonoaudiólogo(a)"
+     ],
+     "gas": {
+      "menos_2": "Hoje só a família entende o que ela fala.",
+      "menos_1": "Pessoas de fora entendem algumas palavras.",
+      "zero": "Pessoas de fora entendem a maior parte na maior parte do tempo.",
+      "mais_1": "Pessoas de fora entendem quase tudo.",
+      "mais_2": "Todos entendem tudo e ela conversa em frases curtas."
+     },
+     "evidencias": [
+      "M36_FAL_2",
+      "ctx:FAL",
+      "kb:1"
+     ]
+    },
+    {
+     "id": "meta_8",
+     "horizonte": "longo",
+     "dominio": "REG",
+     "texto": "Lia passa pela maioria das trocas de atividade do dia (tablet, banho, sair de casa) sem crise em 5 de 7 dias.",
+     "prazo_semanas": 24,
+     "como_acompanhar": "Marque no calendário os dias em que as trocas aconteceram sem crise e conte quantos dias por semana.",
+     "quem_participa": [
+      "Mãe",
+      "Avó",
+      "Creche"
+     ],
+     "gas": {
+      "menos_2": "Hoje as crises acontecem quase todos os dias.",
+      "menos_1": "Ainda há crises em 4 ou 5 dias da semana.",
+      "zero": "Há dias sem crise em 5 de 7 dias.",
+      "mais_1": "Há dias sem crise em 6 de 7 dias.",
+      "mais_2": "A semana inteira passa sem crise nas trocas."
+     },
+     "evidencias": [
+      "ctx:REG",
+      "M36_REG_1",
+      "kb:11",
+      "kb:9"
+     ]
+    }
+   ],
+   "dicas": [
+    {
+     "dominio": "FAL",
+     "titulo": "Dê nome ao que os dinossauros fazem",
+     "por_que_ajuda": "A brincadeira que ela já ama é o melhor lugar para a fala nascer. Falar junto com a ação, em frases curtas, e esperar a resposta dela cria oportunidades de ela usar palavras sem pressão.",
+     "como_fazer": [
+      "Sente no chão com ela e os dinossauros e narre o que ela faz: \"O dino está comendo\", \"O dino pulou\".",
+      "Use frases de 2 a 3 palavras, bem devagar, e faça uma pausa de alguns segundos no fim, olhando para ela.",
+      "Se ela disser só \"dino\", amplie sem corrigir: \"Dino grande!\" — do jeito que a caderneta do Ministério da Saúde sugere, mostrando a forma certa com naturalidade.",
+      "Repita a mesma palavra várias vezes na brincadeira (dino, água, comer) para ela ouvir e tentar."
+     ],
+     "momento_do_dia": "Brincadeira no chão, depois do café da manhã",
+     "usa_interesse_da_crianca": true,
+     "fontes": [
+      "kb:2",
+      "kb:7",
+      "kb:1"
+     ]
+    },
+    {
+     "dominio": "COM_E",
+     "titulo": "Espere a palavra antes de entregar",
+     "por_que_ajuda": "Hoje ela puxa sua mão e você entende na hora — o que é ótimo, mas tira a necessidade da palavra. Dar uma pequena espera e oferecer o modelo de fala cria o espaço para ela pedir com palavra ou gesto.",
+     "como_fazer": [
+      "Quando ela puxar sua mão, abaixe até a altura dela e diga o nome do que ela quer: \"Água! Você quer água.\"",
+      "Espere 5 segundos olhando para ela, com expectativa boa, antes de pegar o objeto.",
+      "Se ela não falar, aceite o gesto ou o som e diga a palavra de novo: \"Água. Aqui está a água.\"",
+      "Combinem um gesto simples para pedir (mão na boca para água) e use sempre o mesmo, junto com a palavra.",
+      "Elogie qualquer tentativa, mesmo que a palavra saia diferente."
+     ],
+     "momento_do_dia": "Cozinha e hora das refeições",
+     "usa_interesse_da_crianca": true,
+     "fontes": [
+      "kb:5",
+      "kb:6",
+      "kb:1"
+     ]
+    },
+    {
+     "dominio": "FAL",
+     "titulo": "Cantiga com buraco para ela completar",
+     "por_que_ajuda": "Música é o que acalma Lia e também um jeito leve de treinar fala: canções com repetição convidam a criança a completar o fim da frase, sem cobrança.",
+     "como_fazer": [
+      "Escolha 2 músicas que ela gosta e cante sempre igual, devagar.",
+      "Pare no fim de um verso e olhe para ela, esperando que complete com uma palavra ou som.",
+      "Se ela completar de qualquer jeito, repita a palavra certa e siga cantando.",
+      "Faça isso também com os nomes dos dinossauros: invente uma musiquinha curta com o nome dela e dos bichos."
+     ],
+     "momento_do_dia": "Banho e hora de dormir",
+     "usa_interesse_da_crianca": true,
+     "fontes": [
+      "kb:2",
+      "kb:18",
+      "kb:1"
+     ]
+    },
+    {
+     "dominio": "REG",
+     "titulo": "Aviso de 5 e de 2 minutos antes de trocar de atividade",
+     "por_que_ajuda": "As crises dela acontecem principalmente quando a atividade acaba de surpresa. Avisar antes e usar um sinal previsível reduz o susto e dá tempo para ela se preparar — é uma das estratégias mais indicadas para birras e transições.",
+     "como_fazer": [
+      "Antes de desligar o tablet, avise: \"Faltam 5 minutos de tablet. Depois a gente guarda.\"",
+      "Dois minutos depois, avise de novo e mostre os dedos contando.",
+      "Use sempre a mesma frase e, se der, a mesma música de guardar.",
+      "Cumpra o combinado com calma, sem discutir durante a crise: espere ela se acalmar e só então ofereça o próximo passo.",
+      "Quando ela passar pela troca sem crise, elogie na hora: \"Você guardou o tablet sem chorar, que legal!\""
+     ],
+     "momento_do_dia": "Fim do tablet e fim do banho",
+     "usa_interesse_da_crianca": true,
+     "fontes": [
+      "kb:11",
+      "kb:9",
+      "kb:10"
+     ]
+    },
+    {
+     "dominio": "REG",
+     "titulo": "Cantinho da calma com música e colo",
+     "por_que_ajuda": "Você já descobriu que música e colo acalmam Lia — isso é ouro. Transformar isso em um lugar e um ritual previsível ajuda ela a se regular mais rápido e a reconhecer o próprio corpo.",
+     "como_fazer": [
+      "Escolha um cantinho da casa com almofada ou cobertor e chame de \"cantinho da calma\".",
+      "Quando ela começar a ficar agitada, ofereça: \"Vamos para o cantinho ouvir música?\"",
+      "Coloque a música que ela gosta, abrace e fique em silêncio por um tempo, sem explicar nem dar sermão.",
+      "Depois que ela se acalmar, converse rapidinho sobre o que aconteceu, com uma frase só.",
+      "Use o mesmo cantinho sempre, para ela associar o lugar à calma."
+     ],
+     "momento_do_dia": "Qualquer momento de agitação, principalmente fim de tarde",
+     "usa_interesse_da_crianca": true,
+     "fontes": [
+      "kb:11",
+      "kb:9",
+      "kb:23"
+     ]
+    },
+    {
+     "dominio": "ATE",
+     "titulo": "Guardar brincando com música",
+     "por_que_ajuda": "Ela segue rotinas quando tem música — então a música é a ponte. Transformar o guardar em brincadeira diminui a disputa e treina a atenção e o seguir instruções simples.",
+     "como_fazer": [
+      "Cante sempre a mesma música de guardar (pode ser inventada) e comece a guardar junto.",
+      "Dê instruções de um passo só: \"Guarda o dino\", e espere ela fazer antes de pedir outra.",
+      "Use o que ela ama: \"Os dinossauros vão dormir na caixa. Um, dois, três!\"",
+      "Termine com um elogio e um abraço, para o guardar virar um momento bom."
+     ],
+     "momento_do_dia": "Antes do jantar e antes do banho",
+     "usa_interesse_da_crianca": true,
+     "fontes": [
+      "kb:11",
+      "kb:20",
+      "kb:2"
+     ]
+    },
+    {
+     "dominio": "SEN",
+     "titulo": "Avisar antes dos barulhos que incomodam",
+     "por_que_ajuda": "Lia tapa os ouvidos com liquidificador e secador: ela sente o som de forma mais intensa. Avisar antes e dar uma opção de saída diminui o desconforto e ensina que ela pode se proteger sem medo.",
+     "como_fazer": [
+      "Antes de ligar o liquidificador, avise: \"Vou ligar, vai fazer barulho. Você quer sair ou tampar o ouvido?\"",
+      "Deixe ela escolher: ir para o quarto, ficar no colo ou usar abafador de ouvido simples.",
+      "Se ela tapar os ouvidos, valide: \"É barulhento mesmo, né? Já já acaba.\"",
+      "Aproveite a água, que ela adora, como calmante depois desses momentos: lavar as mãos, brincar com potes na pia."
+     ],
+     "momento_do_dia": "Cozinha, na hora de preparar as refeições",
+     "usa_interesse_da_crianca": true,
+     "fontes": [
+      "kb:23",
+      "kb:24"
+     ]
+    },
+    {
+     "dominio": "SAU",
+     "titulo": "Rotina de sono mais cedo, começando pela tela",
+     "por_que_ajuda": "Ela dorme às 23h e usa tablet cerca de 3 horas por dia — a recomendação para 2 a 5 anos é de no máximo 1 hora. Reduzir a tela à noite e antecipar o sono costuma diminuir as crises do dia seguinte.",
+     "como_fazer": [
+      "Escolha um horário fixo para desligar as telas, uns 60 a 90 minutos antes de dormir, e avise antes.",
+      "Troque a tela por banho, música calma e história no mesmo horário todos os dias.",
+      "Vá antecipando o horário de dormir aos poucos, 15 minutos por semana, até chegar perto das 21h.",
+      "Deixe o tablet fora do quarto e fora do alcance à noite.",
+      "Leve essas mudanças para a conversa com a pediatra, junto com a questão da alimentação."
+     ],
+     "momento_do_dia": "Hora de dormir",
+     "usa_interesse_da_crianca": true,
+     "fontes": [
+      "kb:14",
+      "kb:15",
+      "kb:13"
+     ]
+    }
+   ],
+   "alertas": [
+    {
+     "tipo": "fala",
+     "texto": "Lia tem 3 anos e 2 meses, fala cerca de 20 palavras soltas, ainda não junta duas palavras e só a família entende o que ela diz. A pediatra já pediu para observar a fala.",
+     "recomendacao": "Vale pedir à pediatra um encaminhamento para avaliação fonoaudiológica e também uma checagem da audição. Não é motivo de alarme, mas é o passo mais importante agora: quanto mais cedo a avaliação, melhor o resultado. Enquanto espera, as dicas deste relatório já ajudam."
+    },
+    {
+     "tipo": "regulacao",
+     "texto": "Crises quase diárias nas trocas de atividade, com objetos jogados e cerca de 15 minutos de choro, e choro de aproximadamente 20 minutos na entrada da creche.",
+     "recomendacao": "Birras nessa idade são esperadas, mas a frequência quase diária e o tempo de choro merecem atenção. Converse com a pediatra sobre isso e combine com a creche as mesmas estratégias usadas em casa (aviso prévio e canção de transição). Se as crises aumentarem ou vierem junto com perda de habilidades, procure o profissional."
+    },
+    {
+     "tipo": "sono_e_telas",
+     "texto": "Sono de cerca de 8 horas por noite (dorme às 23h) e tablet por cerca de 3 horas por dia.",
+     "recomendacao": "Para 2 a 5 anos, a recomendação é de no máximo 1 hora de tela por dia, com um adulto por perto, e mais horas de sono. Ajustar isso com calma costuma melhorar o humor e as crises. Leve o tema para a consulta com a pediatra."
+    },
+    {
+     "tipo": "acompanhamento",
+     "texto": "A família relatou uma condição em investigação e ainda não há acompanhamento com fonoaudiólogo(a).",
+     "recomendacao": "Continue o acompanhamento com a pediatra e pergunte quais avaliações e encaminhamentos são indicados. Este mapeamento não faz diagnóstico — ele só organiza o que você observa para ajudar nessa conversa."
+    }
+   ],
+   "proximos_passos": [
+    "Leia este relatório com calma e me diga o que quer ajustar: metas, prazos ou prioridades. Ele só vale depois que você aprovar.",
+    "Fale com a pediatra sobre o encaminhamento para fonoaudiólogo(a) e sobre uma avaliação de audição — esse é o passo mais importante agora.",
+    "Comece pelas dicas mais fáceis de encaixar na rotina: o aviso de 5 e 2 minutos antes de desligar o tablet e o \"dar nome\" na brincadeira dos dinossauros.",
+    "Combine com a avó e com a creche as mesmas estratégias (aviso prévio, canção de guardar, esperar a palavra antes de entregar) para todo mundo fazer parecido.",
+    "Registre na plataforma as metas de curto prazo (pedidos com palavra, trocas sem crise, palavras novas) para ver o progresso em 4 a 6 semanas.",
+    "Se quiser, peça ajuste das metas depois de duas semanas de tentativa — elas foram pensadas para serem um passo além do que ela já faz, não um salto."
+   ],
+   "limitacoes": "Este relatório é um mapeamento inicial feito a partir do que você respondeu no formulário. Ele não é diagnóstico, não mede idade de desenvolvimento nem substitui avaliação de pediatra, fonoaudiólogo(a), terapeuta ocupacional ou outro profissional. Algumas informações ficaram faltando e podem mudar a leitura: você marcou \\\"não sei\\\" sobre Lia vestir roupas sozinha, e não foi informado onde as atividades de mãos (desenhar o círculo) foram observadas. Também não foi informado com que frequência ela tapa os ouvidos com barulhos, se isso atrapalha a rotina, nem detalhes sobre a condição em investigação relatada pela família. Sobre a alimentação, foi informado apenas que ela come pouca variedade. As cores dos domínios de regulação, atenção e processamento sensorial foram propostas a partir do relato de impacto no dia a dia e podem ser revistas se você trouxer mais informações."
+  },
+  "fontes": {
+   "kb:1": {
+    "documento": "ministerio_saude_caderneta_crianca_menino_6ed.pdf",
+    "pagina": 1,
+    "secao": "MINISTÉRIO DA SAÚDE > Entre 4 e 5 anos",
+    "consulta": "estratégias para estimular a fala de criança de 3 anos que fala poucas palavras soltas e ainda não junta duas palavras em casa",
+    "relevancia": 0.5322
+   },
+   "kb:2": {
+    "documento": "ministerio_saude_caderneta_crianca_menino_6ed.pdf",
+    "pagina": 1,
+    "secao": "MINISTÉRIO DA SAÚDE > Entre 2 e 3 anos",
+    "consulta": "estratégias para estimular a fala de criança de 3 anos que fala poucas palavras soltas e ainda não junta duas palavras em casa",
+    "relevancia": 0.5288
+   },
+   "kb:5": {
+    "documento": "ministerio_saude_caderneta_crianca_menina_7ed.pdf",
+    "pagina": 1,
+    "secao": "MINISTÉRIO DA SAÚDE > Entre 1 ano e 1 ano e 6 meses",
+    "consulta": "como ajudar criança de 3 anos a pedir o que quer com palavra ou gesto em vez de puxar a mão do adulto",
+    "relevancia": 0.6764
+   },
+   "kb:6": {
+    "documento": "ministerio_saude_caderneta_crianca_menino_6ed.pdf",
+    "pagina": 1,
+    "secao": "MINISTÉRIO DA SAÚDE > Entre 1 ano e 1 ano e 6 meses",
+    "consulta": "como ajudar criança de 3 anos a pedir o que quer com palavra ou gesto em vez de puxar a mão do adulto",
+    "relevancia": 0.662
+   },
+   "kb:7": {
+    "documento": "ministerio_saude_caderneta_crianca_menino_6ed.pdf",
+    "pagina": 1,
+    "secao": "MINISTÉRIO DA SAÚDE > Entre 2 e 3 anos",
+    "consulta": "como ajudar criança de 3 anos a pedir o que quer com palavra ou gesto em vez de puxar a mão do adulto",
+    "relevancia": 0.5279
+   },
+   "kb:9": {
+    "documento": "ministerio_saude_caderneta_crianca_menina_7ed.pdf",
+    "pagina": 1,
+    "secao": "MINISTÉRIO DA SAÚDE > IMPORTANTE!",
+    "consulta": "crises e birras em criança de 3 anos nas trocas de atividade, aviso prévio, rotina visual e cantinho da calma",
+    "relevancia": 0.2831
+   },
+   "kb:10": {
+    "documento": "ministerio_saude_caderneta_crianca_menino_6ed.pdf",
+    "pagina": 1,
+    "secao": "MINISTÉRIO DA SAÚDE > IMPORTANTE!",
+    "consulta": "crises e birras em criança de 3 anos nas trocas de atividade, aviso prévio, rotina visual e cantinho da calma",
+    "relevancia": 0.2761
+   },
+   "kb:11": {
+    "documento": "guide.pdf",
+    "pagina": 1,
+    "secao": "THE DIRECTORATE OF CHILDREN SERVICES TRAINING MANUAL ON CARING FOR CHILDREN WITH DISABILITIES AND THOSE WITH SPECIAL NEEDS > 3. Disruptive Behaviour (e.g., yelling, tantrums)",
+    "consulta": "crises e birras em criança de 3 anos nas trocas de atividade, aviso prévio, rotina visual e cantinho da calma",
+    "relevancia": 0.2159
+   },
+   "kb:13": {
+    "documento": "ministerio_saude_caderneta_crianca_menina_7ed.pdf",
+    "pagina": 1,
+    "secao": "MINISTÉRIO DA SAÚDE > Entre 6 e 9 meses",
+    "consulta": "sono e tempo de tela recomendados para criança de 3 anos e rotina para dormir",
+    "relevancia": 0.109
+   },
+   "kb:14": {
+    "documento": "ministerio_saude_caderneta_crianca_menina_7ed.pdf",
+    "pagina": 1,
+    "secao": "MINISTÉRIO DA SAÚDE > ATENÇÃO!",
+    "consulta": "sono e tempo de tela recomendados para criança de 3 anos e rotina para dormir",
+    "relevancia": 0.0873
+   },
+   "kb:15": {
+    "documento": "ministerio_saude_caderneta_crianca_menino_6ed.pdf",
+    "pagina": 1,
+    "secao": "MINISTÉRIO DA SAÚDE > ATENÇÃO!",
+    "consulta": "sono e tempo de tela recomendados para criança de 3 anos e rotina para dormir",
+    "relevancia": 0.0873
+   },
+   "kb:18": {
+    "documento": "ministerio_saude_caderneta_crianca_menina_7ed.pdf",
+    "pagina": 1,
+    "secao": "MINISTÉRIO DA SAÚDE > Do nascimento aos 2 meses",
+    "consulta": "rotina visual e canções para criança de 3 anos seguir instruções simples e permanecer em roda de história na creche",
+    "relevancia": 0.1141
+   },
+   "kb:20": {
+    "documento": "ministerio_saude_caderneta_crianca_menino_6ed.pdf",
+    "pagina": 1,
+    "secao": "MINISTÉRIO DA SAÚDE > Entre 3 e 4 anos",
+    "consulta": "rotina visual e canções para criança de 3 anos seguir instruções simples e permanecer em roda de história na creche",
+    "relevancia": 0.0578
+   },
+   "kb:21": {
+    "documento": "ministerio_saude_caderneta_crianca_menino_6ed.pdf",
+    "pagina": 1,
+    "secao": "MINISTÉRIO DA SAÚDE > Deficiência Auditiva Fique atento quando seu filho:",
+    "consulta": "criança sensível a sons altos como liquidificador e secador, como reduzir desconforto sonoro em casa",
+    "relevancia": 0.2031
+   },
+   "kb:23": {
+    "documento": "guide.pdf",
+    "pagina": 1,
+    "secao": "THE DIRECTORATE OF CHILDREN SERVICES TRAINING MANUAL ON CARING FOR CHILDREN WITH DISABILITIES AND THOSE WITH SPECIAL NEEDS > 5. Sensory Sensitivities",
+    "consulta": "criança sensível a sons altos como liquidificador e secador, como reduzir desconforto sonoro em casa",
+    "relevancia": 0.038
+   },
+   "kb:24": {
+    "documento": "ministerio_saude_caderneta_crianca_menino_6ed.pdf",
+    "pagina": 1,
+    "secao": "MINISTÉRIO DA SAÚDE > ATENÇÃO!",
+    "consulta": "criança sensível a sons altos como liquidificador e secador, como reduzir desconforto sonoro em casa",
+    "relevancia": 0.0207
+   }
+  },
+  "respostas_complementares": {},
+  "gerado_por": {
+   "agente": "perfil-v1",
+   "modelo": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+   "sessao_id": "0d6c1fbf-6ce3-45ee-bd74-f592f181d868",
+   "ajustes_automaticos": []
+  }
+ },
+ "niveis": {
+  "COM_R": "verde",
+  "COM_E": "amarelo",
+  "FAL": "vermelho",
+  "SOC": "verde",
+  "BRI": "verde",
+  "COG": "verde",
+  "MOT_A": "verde",
+  "MOT_F": "verde",
+  "AUT": "verde",
+  "REG": "amarelo",
+  "ATE": "amarelo",
+  "SEN": "amarelo",
+  "SAU": "contextual",
+  "CTX": "contextual"
+ },
+ "metas": [
+  {
+   "id": "meta_1",
+   "horizonte": "curto",
+   "dominio": "COM_E",
+   "texto": "Lia pede o que quer usando uma palavra (ou uma palavra com gesto) em vez de puxar sua mão, em pelo menos 3 de 5 pedidos por dia.",
+   "prazo_semanas": 4,
+   "como_acompanhar": "Marque por dia quantos pedidos ela fez com palavra ou gesto (contagem de 0 a 5) e registre na plataforma 3 vezes por semana.",
+   "quem_participa": [
+    "Mãe",
+    "Avó",
+    "Lia"
+   ],
+   "gas": {
+    "menos_2": "Hoje ela puxa sua mão ou grita na maioria dos pedidos.",
+    "menos_1": "Em 1 ou 2 pedidos por dia ela já usa uma palavra ou gesto combinado.",
+    "zero": "Em 3 de 5 pedidos por dia ela usa palavra ou gesto para pedir.",
+    "mais_1": "Em 4 de 5 pedidos por dia ela usa palavra ou gesto.",
+    "mais_2": "Pede com palavra em quase todos os pedidos e começa a juntar duas palavras."
+   },
+   "evidencias": [
+    "M36_COM_E_1",
+    "M36_COM_E_2",
+    "ctx:COM_E",
+    "kb:5"
+   ]
+  },
+  {
+   "id": "meta_2",
+   "horizonte": "curto",
+   "dominio": "REG",
+   "texto": "Nas trocas de atividade (fim do tablet e fim do banho), Lia aceita o aviso prévio e se acalma em até 5 minutos em 3 de 5 trocas.",
+   "prazo_semanas": 6,
+   "como_acompanhar": "Anote em cada troca: ela foi avisada antes? Quanto tempo de choro? Registre quantas trocas tranquilas houve na semana.",
+   "quem_participa": [
+    "Mãe",
+    "Avó"
+   ],
+   "gas": {
+    "menos_2": "Hoje as crises acontecem quase todos os dias, com 15 minutos ou mais de choro e objetos jogados.",
+    "menos_1": "Em 1 ou 2 trocas da semana ela aceita melhor, com choro mais curto.",
+    "zero": "Em 3 de 5 trocas ela se acalma em até 5 minutos.",
+    "mais_1": "Em 4 de 5 trocas ela se acalma em até 5 minutos.",
+    "mais_2": "Na maioria dos dias a troca acontece sem crise."
+   },
+   "evidencias": [
+    "M36_REG_1",
+    "ctx:REG",
+    "kb:11",
+    "kb:9"
+   ]
+  },
+  {
+   "id": "meta_3",
+   "horizonte": "curto",
+   "dominio": "FAL",
+   "texto": "Lia usa 5 palavras novas ligadas ao que ela ama (dino, água, música, quebra-cabeça) em situações do dia a dia.",
+   "prazo_semanas": 6,
+   "como_acompanhar": "Faça uma listinha das palavras novas e marque cada vez que ela usar sozinha, sem imitar você.",
+   "quem_participa": [
+    "Mãe",
+    "Avó",
+    "Lia"
+   ],
+   "gas": {
+    "menos_2": "Hoje ela fala cerca de 20 palavras soltas, quase sempre as mesmas.",
+    "menos_1": "Ela passa a usar 2 palavras novas sozinha.",
+    "zero": "Ela usa 5 palavras novas sozinha.",
+    "mais_1": "Ela usa 8 palavras novas sozinha.",
+    "mais_2": "Ela usa mais de 10 palavras novas e começa a combinar duas."
+   },
+   "evidencias": [
+    "M36_FAL_1",
+    "ctx:FAL",
+    "kb:2"
+   ]
+  },
+  {
+   "id": "meta_4",
+   "horizonte": "medio",
+   "dominio": "FAL",
+   "texto": "Lia junta duas palavras para pedir ou comentar (\"mais água\", \"dino grande\") em 3 de 5 oportunidades por dia.",
+   "prazo_semanas": 12,
+   "como_acompanhar": "Conte por dia quantas vezes ela falou duas palavras juntas e registre o total da semana na plataforma.",
+   "quem_participa": [
+    "Mãe",
+    "Avó",
+    "Creche"
+   ],
+   "gas": {
+    "menos_2": "Hoje ela ainda não junta duas palavras.",
+    "menos_1": "Junta duas palavras de vez em quando, com ajuda ou imitando.",
+    "zero": "Junta duas palavras em 3 de 5 oportunidades por dia.",
+    "mais_1": "Junta duas palavras em 4 de 5 oportunidades e às vezes usa três.",
+    "mais_2": "Faz pequenas frases de 3 palavras em várias situações do dia."
+   },
+   "evidencias": [
+    "M36_FAL_1",
+    "M36_COM_E_1",
+    "kb:1",
+    "kb:2"
+   ]
+  },
+  {
+   "id": "meta_5",
+   "horizonte": "medio",
+   "dominio": "COM_E",
+   "texto": "Lia responde perguntas simples de \"o quê\" e \"onde\" com uma palavra ou apontando e falando (\"Onde está o dino?\" — \"Ali!\").",
+   "prazo_semanas": 12,
+   "como_acompanhar": "Faça 5 perguntas simples por dia dentro da brincadeira e marque quantas ela respondeu.",
+   "quem_participa": [
+    "Mãe",
+    "Avó"
+   ],
+   "gas": {
+    "menos_2": "Hoje ela aponta e puxa sua mão, sem responder perguntas.",
+    "menos_1": "Responde 1 ou 2 de 5 perguntas.",
+    "zero": "Responde 3 de 5 perguntas.",
+    "mais_1": "Responde 4 de 5 perguntas.",
+    "mais_2": "Responde quase todas e começa a fazer perguntas simples."
+   },
+   "evidencias": [
+    "M36_COM_E_1",
+    "M36_FAL_1",
+    "kb:2",
+    "kb:7"
+   ]
+  },
+  {
+   "id": "meta_6",
+   "horizonte": "medio",
+   "dominio": "REG",
+   "texto": "Na entrada da creche, Lia se acalma em até 10 minutos depois que você sai, em 4 de 5 dias.",
+   "prazo_semanas": 16,
+   "como_acompanhar": "Combine com a professora de anotar o tempo de choro na chegada e registre na plataforma quantos dias foram assim na semana.",
+   "quem_participa": [
+    "Mãe",
+    "Creche"
+   ],
+   "gas": {
+    "menos_2": "Hoje ela chora cerca de 20 minutos na entrada.",
+    "menos_1": "Ela chora menos, uns 15 minutos.",
+    "zero": "Se acalma em até 10 minutos em 4 de 5 dias.",
+    "mais_1": "Se acalma em até 5 minutos na maioria dos dias.",
+    "mais_2": "Entra sem choro na maioria dos dias."
+   },
+   "evidencias": [
+    "M36_REG_1",
+    "ctx:REG",
+    "ctx:CTX",
+    "kb:11"
+   ]
+  },
+  {
+   "id": "meta_7",
+   "horizonte": "longo",
+   "dominio": "FAL",
+   "texto": "Pessoas de fora da família entendem a maior parte do que Lia fala no dia a dia.",
+   "prazo_semanas": 32,
+   "como_acompanhar": "A cada duas semanas, pergunte a alguém de fora (professora, vizinha) se entendeu a maior parte do que ela falou e registre a resposta.",
+   "quem_participa": [
+    "Mãe",
+    "Creche",
+    "Fonoaudiólogo(a)"
+   ],
+   "gas": {
+    "menos_2": "Hoje só a família entende o que ela fala.",
+    "menos_1": "Pessoas de fora entendem algumas palavras.",
+    "zero": "Pessoas de fora entendem a maior parte na maior parte do tempo.",
+    "mais_1": "Pessoas de fora entendem quase tudo.",
+    "mais_2": "Todos entendem tudo e ela conversa em frases curtas."
+   },
+   "evidencias": [
+    "M36_FAL_2",
+    "ctx:FAL",
+    "kb:1"
+   ]
+  },
+  {
+   "id": "meta_8",
+   "horizonte": "longo",
+   "dominio": "REG",
+   "texto": "Lia passa pela maioria das trocas de atividade do dia (tablet, banho, sair de casa) sem crise em 5 de 7 dias.",
+   "prazo_semanas": 24,
+   "como_acompanhar": "Marque no calendário os dias em que as trocas aconteceram sem crise e conte quantos dias por semana.",
+   "quem_participa": [
+    "Mãe",
+    "Avó",
+    "Creche"
+   ],
+   "gas": {
+    "menos_2": "Hoje as crises acontecem quase todos os dias.",
+    "menos_1": "Ainda há crises em 4 ou 5 dias da semana.",
+    "zero": "Há dias sem crise em 5 de 7 dias.",
+    "mais_1": "Há dias sem crise em 6 de 7 dias.",
+    "mais_2": "A semana inteira passa sem crise nas trocas."
+   },
+   "evidencias": [
+    "ctx:REG",
+    "M36_REG_1",
+    "kb:11",
+    "kb:9"
+   ]
+  }
+ ],
+ "comentario_responsavel": null,
+ "criado_em": "2026-10-31T04:13:31.632027+00:00",
+ "aceita_em": null
+}

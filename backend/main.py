@@ -23,6 +23,9 @@ CONTEXT = {
 }
 app = FastAPI(title='Primeiros Passos — formulário inicial', version='0.1.0')
 
+from backend.avaliacoes import router as avaliacoes_router  # noqa: E402
+app.include_router(avaliacoes_router)
+
 class Strict(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
